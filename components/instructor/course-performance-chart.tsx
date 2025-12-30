@@ -1,0 +1,107 @@
+"use client"
+
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Cell } from "recharts"
+import { BookOpen } from "lucide-react"
+
+const COLORS = [
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
+]
+
+export function CoursePerformanceChart() {
+  const data = [
+    { course: "React Avancé", students: 450, label: "React" },
+    { course: "Node.js Complet", students: 380, label: "Node.js" },
+    { course: "TypeScript", students: 340, label: "TypeScript" },
+    { course: "Python", students: 420, label: "Python" },
+  ]
+
+  return (
+    <div className="w-full space-y-4">
+      <ChartContainer
+        config={{
+          students: {
+            label: "Étudiants",
+            color: "hsl(var(--chart-1))",
+          },
+        }}
+        className="h-[280px] w-full"
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={data}
+            margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+            barCategoryGap="20%"
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+            <XAxis
+              dataKey="label"
+              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+              tickLine={{ stroke: "hsl(var(--border))" }}
+              axisLine={{ stroke: "hsl(var(--border))" }}
+              angle={-45}
+              textAnchor="end"
+              height={80}
+            />
+            <YAxis
+              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+              tickLine={{ stroke: "hsl(var(--border))" }}
+              axisLine={{ stroke: "hsl(var(--border))" }}
+            />
+            <ChartTooltip
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div className="rounded-lg border bg-card p-3 shadow-md">
+                      <div className="flex items-center gap-2 mb-1">
+                        <BookOpen className="h-4 w-4 text-primary" />
+                        <p className="font-semibold">{payload[0].payload.course}</p>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">{payload[0].value}</span> apprenants
+                      </p>
+                    </div>
+                  )
+                }
+                return null
+              }}
+            />
+            <Bar
+              dataKey="students"
+              radius={[8, 8, 0, 0]}
+              animationDuration={800}
+              animationBegin={0}
+            >
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartContainer>
+      
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {data.map((item, index) => (
+          <div
+            key={item.course}
+            className="flex items-center gap-2 p-2 rounded-lg border bg-card/50 hover:bg-card transition-colors"
+          >
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: COLORS[index % COLORS.length] }}
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium truncate">{item.label}</p>
+              <p className="text-xs text-muted-foreground">{item.students} apprenants</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+

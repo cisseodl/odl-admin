@@ -1,0 +1,13 @@
+import { AdministrateursList } from "@/components/admin/administrateurs-list"
+
+export default function AdministrateursPage() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Gestion des Administrateurs</h1>
+        <p className="text-muted-foreground">Gérez tous les administrateurs de la plateforme</p>
+      </div>
+      <AdministrateursList />
+    </div>
+  )
+}
