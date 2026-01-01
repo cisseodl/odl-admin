@@ -9,6 +9,7 @@ export type CourseProgress = {
   courseOverallProgress: number; // Percentage for this specific course
   chaptersCompleted: number;
   totalChapters: number;
+  period: string; // New field for the learning period
 };
 
 export type LearnerProgress = {
@@ -42,9 +43,9 @@ const mockData: LearnerProgress[] = [
     coursesCompleted: 1, 
     overallProgress: 40,
     courses: [
-      { courseId: 101, courseTitle: "Introduction au Dev Web", courseOverallProgress: 75, chaptersCompleted: 3, totalChapters: 4 },
-      { courseId: 102, courseTitle: "Bases de Python", courseOverallProgress: 20, chaptersCompleted: 1, totalChapters: 5 },
-      { courseId: 103, courseTitle: "UX/UI Design", courseOverallProgress: 0, chaptersCompleted: 0, totalChapters: 6 },
+      { courseId: 101, courseTitle: "Introduction au Dev Web", courseOverallProgress: 75, chaptersCompleted: 3, totalChapters: 4, period: "Jan-Fev 2023" },
+      { courseId: 102, courseTitle: "Bases de Python", courseOverallProgress: 20, chaptersCompleted: 1, totalChapters: 5, period: "Mar-Avr 2023" },
+      { courseId: 103, courseTitle: "UX/UI Design", courseOverallProgress: 0, chaptersCompleted: 0, totalChapters: 6, period: "Mai-Juin 2023" },
     ]
   },
   { 
@@ -55,8 +56,8 @@ const mockData: LearnerProgress[] = [
     coursesCompleted: 2, 
     overallProgress: 100,
     courses: [
-      { courseId: 101, courseTitle: "Introduction au Dev Web", courseOverallProgress: 100, chaptersCompleted: 4, totalChapters: 4 },
-      { courseId: 104, courseTitle: "Data Science avec R", courseOverallProgress: 100, chaptersCompleted: 7, totalChapters: 7 },
+      { courseId: 101, courseTitle: "Introduction au Dev Web", courseOverallProgress: 100, chaptersCompleted: 4, totalChapters: 4, period: "Jan-Fev 2023" },
+      { courseId: 104, courseTitle: "Data Science avec R", courseOverallProgress: 100, chaptersCompleted: 7, totalChapters: 7, period: "Avr-Juin 2023" },
     ]
   },
   { 
@@ -67,10 +68,10 @@ const mockData: LearnerProgress[] = [
     coursesCompleted: 0, 
     overallProgress: 12,
     courses: [
-      { courseId: 101, courseTitle: "Introduction au Dev Web", courseOverallProgress: 10, chaptersCompleted: 1, totalChapters: 4 },
-      { courseId: 105, courseTitle: "Cloud Computing AWS", courseOverallProgress: 5, chaptersCompleted: 1, totalChapters: 20 },
-      { courseId: 106, courseTitle: "Cybersecurite", courseOverallProgress: 0, chaptersCompleted: 0, totalChapters: 10 },
-      { courseId: 102, courseTitle: "Bases de Python", courseOverallProgress: 0, chaptersCompleted: 0, totalChapters: 5 },
+      { courseId: 101, courseTitle: "Introduction au Dev Web", courseOverallProgress: 10, chaptersCompleted: 1, totalChapters: 4, period: "Jan-Fev 2023" },
+      { courseId: 105, courseTitle: "Cloud Computing AWS", courseOverallProgress: 5, chaptersCompleted: 1, totalChapters: 20, period: "Fev-Avr 2023" },
+      { courseId: 106, courseTitle: "Cybersecurite", courseOverallProgress: 0, chaptersCompleted: 0, totalChapters: 10, period: "Mar-Mai 2023" },
+      { courseId: 102, courseTitle: "Bases de Python", courseOverallProgress: 0, chaptersCompleted: 0, totalChapters: 5, period: "Avr-Juin 2023" },
     ]
   },
   { 
@@ -81,7 +82,7 @@ const mockData: LearnerProgress[] = [
     coursesCompleted: 0, 
     overallProgress: 0,
     courses: [
-      { courseId: 103, courseTitle: "UX/UI Design", courseOverallProgress: 0, chaptersCompleted: 0, totalChapters: 6 },
+      { courseId: 103, courseTitle: "UX/UI Design", courseOverallProgress: 0, chaptersCompleted: 0, totalChapters: 6, period: "Juin-Juil 2023" },
     ]
   },
   { 
@@ -92,8 +93,8 @@ const mockData: LearnerProgress[] = [
     coursesCompleted: 1, 
     overallProgress: 66,
     courses: [
-      { courseId: 104, courseTitle: "Data Science avec R", courseOverallProgress: 100, chaptersCompleted: 7, totalChapters: 7 },
-      { courseId: 106, courseTitle: "Cybersecurite", courseOverallProgress: 30, chaptersCompleted: 3, totalChapters: 10 },
+      { courseId: 104, courseTitle: "Data Science avec R", courseOverallProgress: 100, chaptersCompleted: 7, totalChapters: 7, period: "Jan-Mar 2023" },
+      { courseId: 106, courseTitle: "Cybersecurite", courseOverallProgress: 30, chaptersCompleted: 3, totalChapters: 10, period: "Avr-Juin 2023" },
     ]
   },
   { 
@@ -104,7 +105,7 @@ const mockData: LearnerProgress[] = [
     coursesCompleted: 0, 
     overallProgress: 50,
     courses: [
-      { courseId: 105, courseTitle: "Cloud Computing AWS", courseOverallProgress: 50, chaptersCompleted: 10, totalChapters: 20 },
+      { courseId: 105, courseTitle: "Cloud Computing AWS", courseOverallProgress: 50, chaptersCompleted: 10, totalChapters: 20, period: "Mar-Juin 2023" },
     ]
   },
   { 
@@ -115,9 +116,9 @@ const mockData: LearnerProgress[] = [
     coursesCompleted: 2, 
     overallProgress: 71,
     courses: [
-      { courseId: 101, courseTitle: "Introduction au Dev Web", courseOverallProgress: 100, chaptersCompleted: 4, totalChapters: 4 },
-      { courseId: 102, courseTitle: "Bases de Python", courseOverallProgress: 100, chaptersCompleted: 5, totalChapters: 5 },
-      { courseId: 103, courseTitle: "UX/UI Design", courseOverallProgress: 20, chaptersCompleted: 1, totalChapters: 6 },
+      { courseId: 101, courseTitle: "Introduction au Dev Web", courseOverallProgress: 100, chaptersCompleted: 4, totalChapters: 4, period: "Fev-Avr 2023" },
+      { courseId: 102, courseTitle: "Bases de Python", courseOverallProgress: 100, chaptersCompleted: 5, totalChapters: 5, period: "Mar-Mai 2023" },
+      { courseId: 103, courseTitle: "UX/UI Design", courseOverallProgress: 20, chaptersCompleted: 1, totalChapters: 6, period: "Avr-Juin 2023" },
     ]
   },
 ]

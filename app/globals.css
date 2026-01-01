@@ -146,3 +146,9 @@
     scroll-behavior: smooth;
   }
 }
+/* Added print utility class */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

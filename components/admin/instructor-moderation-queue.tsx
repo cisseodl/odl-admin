@@ -7,15 +7,24 @@ import { ActionMenu } from "@/components/ui/action-menu"
 import { StatusBadge } from "@/components/ui/status-badge"
 import { SearchBar } from "@/components/ui/search-bar"
 import { useSearch } from "@/hooks/use-search"
-import { Eye, CheckCircle2, XCircle, GraduationCap, Mail, Briefcase, Calendar, FileText } from "lucide-react"
+import { Eye, CheckCircle2, XCircle, GraduationCap, Mail, Briefcase, Calendar, FileText, Edit } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Label } from "@/components/ui/label" // Added Label import
+import { Input } from "@/components/ui/input"     // Added Input import
 
 type InstructorRequest = {
   id: number
@@ -82,8 +91,9 @@ export function InstructorModerationQueue() {
   ])
 
   const [selectedRequest, setSelectedRequest] = useState<InstructorRequest | null>(null)
-  const [showViewDialog, setShowViewDialog] = useState(false)
-  const [showRejectDialog, setShowRejectDialog] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false) // Nouveau modal pour l'édition
+  const [showApproveModal, setShowApproveModal] = useState(false) // Nouveau modal de confirmation pour Valider
+  const [showRejectModal, setShowRejectModal] = useState(false) // Modal pour le rejet (existe déjà)
   const [rejectionReason, setRejectionReason] = useState("")
   const [statusFilter, setStatusFilter] = useState<"all" | "En attente" | "Approuvé" | "Rejeté">("all")
 
@@ -93,8 +103,8 @@ export function InstructorModerationQueue() {
   })
 
   // Filtrer par statut
-  const filteredData = statusFilter === "all" 
-    ? searchFilteredData 
+  const filteredData = statusFilter === "all"
+    ? searchFilteredData
     : searchFilteredData.filter(item => item.status === statusFilter)
 
   const getPriorityColor = (priority?: string) => {
@@ -110,11 +120,15 @@ export function InstructorModerationQueue() {
     }
   }
 
-  const handleApprove = (id: number) => {
-    setRequests(requests.map((item) => (item.id === id ? { ...item, status: "Approuvé" as const } : item)))
+  const confirmApprove = () => {
+    if (selectedRequest) {
+      setRequests(requests.map((item) => (item.id === selectedRequest.id ? { ...item, status: "Approuvé" as const } : item)))
+      setShowApproveModal(false)
+      setSelectedRequest(null)
+    }
   }
 
-  const handleReject = () => {
+  const confirmReject = () => {
     if (selectedRequest) {
       setRequests(
         requests.map((item) =>
@@ -123,15 +137,23 @@ export function InstructorModerationQueue() {
             : item
         )
       )
-      setShowRejectDialog(false)
+      setShowRejectModal(false)
       setRejectionReason("")
       setSelectedRequest(null)
     }
   }
 
-  const handleView = (request: InstructorRequest) => {
+  const handleEdit = (request: InstructorRequest) => {
     setSelectedRequest(request)
-    setShowViewDialog(true)
+    setShowEditModal(true)
+  }
+
+  const handleSaveEdit = (editedRequest: InstructorRequest) => {
+    setRequests(
+      requests.map((item) => (item.id === editedRequest.id ? { ...editedRequest, status: "En attente" as const } : item)) // Remettre en attente si modifié
+    )
+    setShowEditModal(false)
+    setSelectedRequest(null)
   }
 
   const columns: ColumnDef<InstructorRequest>[] = [
@@ -203,14 +225,15 @@ export function InstructorModerationQueue() {
       header: "Actions",
       cell: ({ row }) => {
         const item = row.original
+        // Si l'élément n'est pas "En attente", on propose seulement de le modifier pour le cas où il faut réajuster
         if (item.status !== "En attente") {
           return (
             <ActionMenu
               actions={[
                 {
-                  label: "Voir détails",
-                  icon: <Eye className="h-4 w-4" />,
-                  onClick: () => handleView(item),
+                  label: "Modifier",
+                  icon: <Edit className="h-4 w-4" />,
+                  onClick: () => handleEdit(item),
                 },
               ]}
             />
@@ -221,21 +244,21 @@ export function InstructorModerationQueue() {
           <ActionMenu
             actions={[
               {
-                label: "Voir détails",
-                icon: <Eye className="h-4 w-4" />,
-                onClick: () => handleView(item),
+                label: "Modifier",
+                icon: <Edit className="h-4 w-4" />,
+                onClick: () => handleEdit(item),
               },
               {
-                label: "Approuver",
+                label: "Valider",
                 icon: <CheckCircle2 className="h-4 w-4" />,
-                onClick: () => handleApprove(item.id),
+                onClick: () => { setSelectedRequest(item); setShowApproveModal(true); },
               },
               {
                 label: "Rejeter",
                 icon: <XCircle className="h-4 w-4" />,
                 onClick: () => {
                   setSelectedRequest(item)
-                  setShowRejectDialog(true)
+                  setShowRejectModal(true)
                 },
                 variant: "destructive",
               },
@@ -275,138 +298,72 @@ export function InstructorModerationQueue() {
         </CardContent>
       </Card>
 
-      {/* Dialog de visualisation */}
-      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+      {/* Modal Modifier (Edit Instructor Request) */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold leading-tight flex items-center gap-3">
-              <Avatar>
-                <AvatarFallback>
-                  {selectedRequest?.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </AvatarFallback>
-              </Avatar>
-              {selectedRequest?.name}
-            </DialogTitle>
-            <DialogDescription className="text-sm leading-relaxed">
-              Détails de la demande d'inscription
+            <DialogTitle>Modifier la demande d'instructeur</DialogTitle>
+            <DialogDescription>
+              Ajustez les détails de la demande de "{selectedRequest?.name}".
             </DialogDescription>
           </DialogHeader>
           {selectedRequest && (
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 flex-wrap">
-                <StatusBadge status={selectedRequest.status} />
-                {selectedRequest.priority && (
-                  <Badge className={`text-xs ${getPriorityColor(selectedRequest.priority)}`}>
-                    Priorité {selectedRequest.priority === "high" ? "Haute" : selectedRequest.priority === "medium" ? "Moyenne" : "Basse"}
-                  </Badge>
-                )}
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">Nom</Label>
+                <Input id="name" value={selectedRequest.name} onChange={(e) => setSelectedRequest({ ...selectedRequest, name: e.target.value })} className="col-span-3" />
               </div>
-
-              <Separator />
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-start gap-3">
-                  <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">Email</p>
-                    <p className="font-medium">{selectedRequest.email}</p>
-                  </div>
-                </div>
-                {selectedRequest.phone && (
-                  <div className="flex items-start gap-3">
-                    <Briefcase className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm text-muted-foreground leading-relaxed">Téléphone</p>
-                      <p className="font-medium">{selectedRequest.phone}</p>
-                    </div>
-                  </div>
-                )}
-                <div className="flex items-start gap-3">
-                  <GraduationCap className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">Spécialisation</p>
-                    <p className="font-medium">{selectedRequest.specialization}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">Date de soumission</p>
-                    <p className="font-medium">{selectedRequest.submittedAt}</p>
-                  </div>
-                </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">Email</Label>
+                <Input id="email" value={selectedRequest.email} onChange={(e) => setSelectedRequest({ ...selectedRequest, email: e.target.value })} className="col-span-3" />
               </div>
-
-              <Separator />
-
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm font-medium mb-2">Expérience</p>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{selectedRequest.experience}</p>
-                </div>
-                {selectedRequest.bio && (
-                  <div>
-                    <p className="text-sm font-medium mb-2">Biographie</p>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{selectedRequest.bio}</p>
-                  </div>
-                )}
-                {selectedRequest.portfolio && (
-                  <div>
-                    <p className="text-sm font-medium mb-2">Portfolio</p>
-                    <a
-                      href={selectedRequest.portfolio}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-primary hover:underline flex items-center gap-1"
-                    >
-                      <FileText className="h-4 w-4" />
-                      {selectedRequest.portfolio}
-                    </a>
-                  </div>
-                )}
-                {selectedRequest.rejectionReason && (
-                  <div>
-                    <p className="text-sm font-medium mb-2 text-destructive">Raison du rejet</p>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{selectedRequest.rejectionReason}</p>
-                  </div>
-                )}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="phone" className="text-right">Téléphone</Label>
+                <Input id="phone" value={selectedRequest.phone || ''} onChange={(e) => setSelectedRequest({ ...selectedRequest, phone: e.target.value })} className="col-span-3" />
               </div>
-
-              {selectedRequest.status === "En attente" && (
-                <>
-                  <Separator />
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setShowViewDialog(false)}>
-                      Fermer
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={() => {
-                        setShowViewDialog(false)
-                        setShowRejectDialog(true)
-                      }}
-                    >
-                      Rejeter
-                    </Button>
-                    <Button onClick={() => {
-                      handleApprove(selectedRequest.id)
-                      setShowViewDialog(false)
-                    }}>
-                      Approuver
-                    </Button>
-                  </DialogFooter>
-                </>
-              )}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="specialization" className="text-right">Spécialisation</Label>
+                <Input id="specialization" value={selectedRequest.specialization} onChange={(e) => setSelectedRequest({ ...selectedRequest, specialization: e.target.value })} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="experience" className="text-right">Expérience</Label>
+                <Input id="experience" value={selectedRequest.experience} onChange={(e) => setSelectedRequest({ ...selectedRequest, experience: e.target.value })} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-start gap-4">
+                <Label htmlFor="bio" className="text-right mt-2">Biographie</Label>
+                <Textarea id="bio" value={selectedRequest.bio || ''} onChange={(e) => setSelectedRequest({ ...selectedRequest, bio: e.target.value })} className="col-span-3 min-h-[100px]" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="portfolio" className="text-right">Portfolio</Label>
+                <Input id="portfolio" value={selectedRequest.portfolio || ''} onChange={(e) => setSelectedRequest({ ...selectedRequest, portfolio: e.target.value })} className="col-span-3" />
+              </div>
             </div>
           )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditModal(false)}>Annuler</Button>
+            <Button onClick={() => selectedRequest && handleSaveEdit(selectedRequest)}>Sauvegarder</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Dialog de rejet */}
-      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+      {/* Modal Valider (Approve Instructor Request) */}
+      <Dialog open={showApproveModal} onOpenChange={setShowApproveModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Valider la demande d'instructeur</DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir valider la demande de "{selectedRequest?.name}" ?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowApproveModal(false)}>Annuler</Button>
+            <Button onClick={confirmApprove}>Valider</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Rejeter (Reject Instructor Request) - Utilise le modal showRejectDialog existant */}
+      <Dialog open={showRejectModal} onOpenChange={setShowRejectModal}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Rejeter la demande</DialogTitle>
@@ -427,7 +384,7 @@ export function InstructorModerationQueue() {
             }}>
               Annuler
             </Button>
-            <Button variant="destructive" onClick={handleReject} disabled={!rejectionReason.trim()}>
+            <Button variant="destructive" onClick={confirmReject} disabled={!rejectionReason.trim()}>
               Rejeter
             </Button>
           </DialogFooter>
@@ -436,4 +393,3 @@ export function InstructorModerationQueue() {
     </>
   )
 }
-

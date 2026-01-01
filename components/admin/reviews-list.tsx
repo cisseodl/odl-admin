@@ -15,10 +15,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Search, MoreHorizontal, Check, X, Star, Trash2, Eye, MessageSquare, BookOpen, Calendar } from "lucide-react"
+import { Search, MoreHorizontal, Check, X, Star, Trash2, Eye, MessageSquare, BookOpen, Calendar, Edit } from "lucide-react"
 import { EmptyState } from "./empty-state"
-import { ViewReviewModal } from "./modals/view-review-modal"
-import { ApproveReviewModal } from "./modals/approve-review-modal"
+// import { ViewReviewModal } from "./modals/view-review-modal" // Ne plus importer car on le gère en ligne ou avec un modal plus générique
+// import { ApproveReviewModal } from "./modals/approve-review-modal" // Ne plus importer, géré en ligne
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+
 
 type Review = {
   id: number
@@ -29,14 +42,21 @@ type Review = {
   date: string
   status: "Approuvé" | "En attente" | "Rejeté"
   avatar?: string
+  rejectionReason?: string // Added for consistency
 }
 
 export function ReviewsList() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [showViewModal, setShowViewModal] = useState(false)
-  const [showApproveModal, setShowApproveModal] = useState(false)
   const [selectedReview, setSelectedReview] = useState<Review | null>(null)
-  const [approveAction, setApproveAction] = useState<"approve" | "reject">("approve")
+
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [showApproveModal, setShowApproveModal] = useState(false) // Pour la confirmation de validation
+  const [showRejectModal, setShowRejectModal] = useState(false) // Pour la confirmation de rejet avec raison
+  const [showDeleteModal, setShowDeleteModal] = useState(false) // Pour la confirmation de suppression
+  const [rejectionReason, setRejectionReason] = useState("")
+  // const [approveAction, setApproveAction] = useState<"approve" | "reject">("approve") // Non nécessaire avec des modaux séparés
+
+
   const [reviews, setReviews] = useState<Review[]>([
     {
       id: 1,
@@ -108,22 +128,49 @@ export function ReviewsList() {
     ))
   }
 
-  const handleApproveReview = () => {
+  const handleApprove = () => {
     if (selectedReview) {
       setReviews(
         reviews.map((r) =>
           r.id === selectedReview.id
-            ? { ...r, status: approveAction === "approve" ? "Approuvé" : "Rejeté" }
+            ? { ...r, status: "Approuvé" as const }
             : r
         )
       )
+      setShowApproveModal(false)
+      setSelectedReview(null)
     }
   }
 
-  const handleDeleteReview = () => {
+  const handleReject = () => {
+    if (selectedReview) {
+      setReviews(
+        reviews.map((r) =>
+          r.id === selectedReview.id
+            ? { ...r, status: "Rejeté" as const, rejectionReason }
+            : r
+        )
+      )
+      setShowRejectModal(false)
+      setRejectionReason("")
+      setSelectedReview(null)
+    }
+  }
+
+  const handleDelete = () => {
     if (selectedReview) {
       setReviews(reviews.filter((r) => r.id !== selectedReview.id))
+      setShowDeleteModal(false)
+      setSelectedReview(null)
     }
+  }
+
+  const handleSaveEdit = (editedReview: Review) => {
+    setReviews(
+      reviews.map((r) => (r.id === editedReview.id ? { ...editedReview, status: "En attente" as const } : r)) // Remettre en attente si modifié
+    )
+    setShowEditModal(false)
+    setSelectedReview(null)
   }
 
   return (
@@ -232,29 +279,27 @@ export function ReviewsList() {
                           <DropdownMenuItem
                             onClick={() => {
                               setSelectedReview(review)
-                              setShowViewModal(true)
+                              setShowEditModal(true)
                             }}
                           >
-                            <Eye className="mr-2 h-4 w-4" />
-                            Voir les détails
+                            <Edit className="mr-2 h-4 w-4" />
+                            Modifier
                           </DropdownMenuItem>
                           {review.status === "En attente" && (
                             <>
                               <DropdownMenuItem
                                 onClick={() => {
                                   setSelectedReview(review)
-                                  setApproveAction("approve")
                                   setShowApproveModal(true)
                                 }}
                               >
                                 <Check className="mr-2 h-4 w-4" />
-                                Approuver
+                                Valider
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => {
                                   setSelectedReview(review)
-                                  setApproveAction("reject")
-                                  setShowApproveModal(true)
+                                  setShowRejectModal(true)
                                 }}
                               >
                                 <X className="mr-2 h-4 w-4" />
@@ -266,7 +311,7 @@ export function ReviewsList() {
                             className="text-destructive"
                             onClick={() => {
                               setSelectedReview(review)
-                              handleDeleteReview()
+                              setShowDeleteModal(true)
                             }}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
@@ -283,20 +328,118 @@ export function ReviewsList() {
         </div>
       </CardContent>
 
-      <ViewReviewModal
-        open={showViewModal}
-        onOpenChange={setShowViewModal}
-        review={selectedReview}
-      />
-      {selectedReview && (
-        <ApproveReviewModal
-          open={showApproveModal}
-          onOpenChange={setShowApproveModal}
-          review={selectedReview}
-          action={approveAction}
-          onConfirm={handleApproveReview}
-        />
-      )}
+      {/* Modal Modifier (Edit Review) */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Modifier l'avis</DialogTitle>
+            <DialogDescription>
+              Ajustez les détails de l'avis de "{selectedReview?.user}" sur "{selectedReview?.course}".
+            </DialogDescription>
+          </DialogHeader>
+          {selectedReview && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="user" className="text-right">
+                  Utilisateur
+                </Label>
+                <Input id="user" value={selectedReview.user} onChange={(e) => setSelectedReview({ ...selectedReview, user: e.target.value })} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="course" className="text-right">
+                  Formation
+                </Label>
+                <Input id="course" value={selectedReview.course} onChange={(e) => setSelectedReview({ ...selectedReview, course: e.target.value })} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="rating" className="text-right">
+                  Note
+                </Label>
+                <Select
+                  value={String(selectedReview.rating)}
+                  onValueChange={(value) => setSelectedReview({ ...selectedReview, rating: parseInt(value) })}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Sélectionner une note" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5].map((r) => (
+                      <SelectItem key={r} value={String(r)}>{r} Étoile(s)</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-start gap-4">
+                <Label htmlFor="comment" className="text-right mt-2">
+                  Commentaire
+                </Label>
+                <Textarea id="comment" value={selectedReview.comment} onChange={(e) => setSelectedReview({ ...selectedReview, comment: e.target.value })} className="col-span-3 min-h-[100px]" />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditModal(false)}>Annuler</Button>
+            <Button onClick={() => selectedReview && handleSaveEdit(selectedReview)}>Sauvegarder</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Valider (Approve Review) */}
+      <Dialog open={showApproveModal} onOpenChange={setShowApproveModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Valider l'avis</DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir valider l'avis de "{selectedReview?.user}" sur "{selectedReview?.course}" ?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowApproveModal(false)}>Annuler</Button>
+            <Button onClick={handleApprove}>Valider</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Rejeter (Reject Review) */}
+      <Dialog open={showRejectModal} onOpenChange={setShowRejectModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rejeter l'avis</DialogTitle>
+            <DialogDescription>
+              Veuillez indiquer la raison pour laquelle vous rejetez l'avis de "{selectedReview?.user}" sur "{selectedReview?.course}".
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder="Raison du rejet..."
+            value={rejectionReason}
+            onChange={(e) => setRejectionReason(e.target.value)}
+            className="min-h-[100px]"
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRejectModal(false)}>Annuler</Button>
+            <Button variant="destructive" onClick={handleReject} disabled={!rejectionReason.trim()}>
+              Rejeter
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Supprimer (Delete Review) */}
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Supprimer l'avis</DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir supprimer l'avis de "{selectedReview?.user}" sur "{selectedReview?.course}" ?
+              Cette action est irréversible.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>Annuler</Button>
+            <Button variant="destructive" onClick={handleDelete}>Supprimer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }

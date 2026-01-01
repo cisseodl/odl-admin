@@ -16,9 +16,15 @@ import {
   BookOpen,
   BarChart3,
   FileText,
+  Printer, // Import Printer icon
 } from "lucide-react"
+import { Button } from "@/components/ui/button" // Import Button component
 
 export function AnalyticsDashboard() {
+  const handlePrint = () => {
+    window.print()
+  }
+
   // Métriques spécifiques à l'analytics (différentes du dashboard principal)
   const analyticsMetrics = [
     {
@@ -39,6 +45,13 @@ export function AnalyticsDashboard() {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end mb-4 no-print">
+        <Button onClick={handlePrint} className="flex items-center gap-2">
+          <Printer className="h-4 w-4" />
+          Imprimer les Statistiques
+        </Button>
+      </div>
+
       {/* Métriques Analytics - Spécifiques à cette page */}
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
         {analyticsMetrics.map((metric) => (
@@ -69,10 +82,10 @@ export function AnalyticsDashboard() {
             Apprenants
           </TabsTrigger>
           <TabsTrigger
-            value="engagement"
+            value="learning-time"
             className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
           >
-            Engagement
+            Temps d'apprentissage
           </TabsTrigger>
           <TabsTrigger
             value="reports"
@@ -86,10 +99,10 @@ export function AnalyticsDashboard() {
           <LearnerProgressList />
         </TabsContent>
 
-        <TabsContent value="engagement" className="space-y-4">
+        <TabsContent value="learning-time" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-xl font-semibold leading-tight">Engagement des Utilisateurs</CardTitle>
+              <CardTitle className="text-xl font-semibold leading-tight">Temps d'apprentissage</CardTitle>
               <CardDescription className="text-sm leading-relaxed">
                 Temps passé, sessions, interactions et activité
               </CardDescription>

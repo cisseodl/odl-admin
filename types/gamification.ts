@@ -57,9 +57,8 @@ export interface LeaderboardEntry {
   userId: number
   userName: string
   avatar?: string
-  points: number
-  badges: number
   coursesCompleted: number
+  certifications: number // Ajouté
   change?: number // Changement de position
 }
 

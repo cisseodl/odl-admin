@@ -21,12 +21,12 @@ export default function ModerationPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Modération</h1>
-        <p className="text-muted-foreground mt-2">Validez et modérez les contenus, formations, avis et instructeurs</p>
+        <h1 className="text-3xl font-bold tracking-tight">Validation</h1>
+        <p className="text-muted-foreground mt-2">Gérez les demandes de validation pour les contenus et formations.</p>
       </div>
 
       {/* Statistiques rapides */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Contenus</CardTitle>
@@ -51,42 +51,18 @@ export default function ModerationPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Avis</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.reviews.pending}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.reviews.approved} approuvés • {stats.reviews.rejected} rejetés
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Instructeurs</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.instructors.pending}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.instructors.approved} approuvés • {stats.instructors.rejected} rejeté
-            </p>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Alertes prioritaires */}
-      {(stats.contents.pending > 0 || stats.courses.pending > 0 || stats.reviews.pending > 0 || stats.instructors.pending > 0) && (
+      {(stats.contents.pending > 0 || stats.courses.pending > 0) && (
         <Card className="border-orange-200 dark:border-orange-900">
           <CardHeader>
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-orange-600" />
-              <CardTitle>Éléments en attente de modération</CardTitle>
+              <CardTitle>Éléments en attente de validation</CardTitle>
             </div>
             <CardDescription>
-              {stats.contents.pending + stats.courses.pending + stats.reviews.pending + stats.instructors.pending} élément(s) nécessitent votre attention
+              {stats.contents.pending + stats.courses.pending} élément(s) nécessitent votre attention
             </CardDescription>
           </CardHeader>
         </Card>
@@ -94,8 +70,11 @@ export default function ModerationPage() {
 
       {/* Onglets de modération */}
       <Tabs defaultValue="contents" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="contents" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-2 bg-[rgb(50,50,50)]/10 dark:bg-[rgb(50,50,50)]/20 border border-[rgb(50,50,50)]/20">
+          <TabsTrigger
+            value="contents"
+            className="flex items-center gap-2 data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
+          >
             <FileText className="h-4 w-4" />
             Contenus
             {stats.contents.pending > 0 && (
@@ -104,30 +83,15 @@ export default function ModerationPage() {
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="courses" className="flex items-center gap-2">
+          <TabsTrigger
+            value="courses"
+            className="flex items-center gap-2 data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
+          >
             <BookOpen className="h-4 w-4" />
             Formations
             {stats.courses.pending > 0 && (
               <Badge variant="destructive" className="ml-1">
                 {stats.courses.pending}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="reviews" className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" />
-            Avis
-            {stats.reviews.pending > 0 && (
-              <Badge variant="destructive" className="ml-1">
-                {stats.reviews.pending}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="instructors" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Instructeurs
-            {stats.instructors.pending > 0 && (
-              <Badge variant="destructive" className="ml-1">
-                {stats.instructors.pending}
               </Badge>
             )}
           </TabsTrigger>
@@ -139,14 +103,6 @@ export default function ModerationPage() {
 
         <TabsContent value="courses" className="space-y-4">
           <CourseModerationQueue />
-        </TabsContent>
-
-        <TabsContent value="reviews" className="space-y-4">
-          <ReviewsList />
-        </TabsContent>
-
-        <TabsContent value="instructors" className="space-y-4">
-          <InstructorModerationQueue />
         </TabsContent>
       </Tabs>
     </div>

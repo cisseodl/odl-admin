@@ -6,29 +6,48 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Trophy, Medal, Award, Star } from "lucide-react"
+import { Trophy, Medal, Award, Star, BookOpen, GraduationCap } from "lucide-react" // Added BookOpen, GraduationCap
 import { MonthlyLeaderboard } from "@/components/admin/leaderboard/monthly-leaderboard"
 import { CourseLeaderboard } from "@/components/admin/leaderboard/course-leaderboard"
 import { PointsCalculator } from "@/lib/gamification/points-calculator"
 import type { LeaderboardEntry } from "@/types/gamification"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Separator } from "@/components/ui/separator"
+import { Button } from "@/components/ui/button"
+
+// Extension du type LeaderboardEntry pour inclure les détails des formations et certifications
+interface UserDetails extends LeaderboardEntry {
+  completedCoursesList: { id: number, title: string }[]
+  certificationsList: { id: number, title: string, issuedDate: string }[]
+}
 
 export default function LeaderboardPage() {
+  const [selectedUser, setSelectedUser] = useState<UserDetails | null>(null)
+  const [showUserDetailsModal, setShowUserDetailsModal] = useState(false)
+
   // Données simulées pour le classement général
   const overallData: Omit<LeaderboardEntry, "rank">[] = [
-    { userId: 1, userName: "Marie Dupont", avatar: "/diverse-woman-portrait.png", points: 12500, badges: 15, coursesCompleted: 24 },
-    { userId: 2, userName: "Thomas Martin", points: 11200, badges: 12, coursesCompleted: 22 },
-    { userId: 3, userName: "Sophie Bernard", avatar: "/diverse-woman-portrait.png", points: 10800, badges: 11, coursesCompleted: 20 },
-    { userId: 4, userName: "Lucas Petit", points: 9800, badges: 10, coursesCompleted: 18 },
-    { userId: 5, userName: "Emma Moreau", avatar: "/diverse-woman-portrait.png", points: 9200, badges: 9, coursesCompleted: 17 },
+    { userId: 1, userName: "Marie Dupont", avatar: "/diverse-woman-portrait.png", coursesCompleted: 24, certifications: 5 },
+    { userId: 2, userName: "Thomas Martin", coursesCompleted: 22, certifications: 4 },
+    { userId: 3, userName: "Sophie Bernard", avatar: "/diverse-woman-portrait.png", coursesCompleted: 20, certifications: 3 },
+    { userId: 4, userName: "Lucas Petit", coursesCompleted: 18, certifications: 2 },
+    { userId: 5, userName: "Emma Moreau", avatar: "/diverse-woman-portrait.png", coursesCompleted: 17, certifications: 1 },
   ]
 
   // Données mensuelles (simulées)
   const monthlyData: LeaderboardEntry[] = [
-    { rank: 1, userId: 1, userName: "Marie Dupont", avatar: "/diverse-woman-portrait.png", points: 3200, badges: 4, coursesCompleted: 6, change: 0 },
-    { rank: 2, userId: 2, userName: "Thomas Martin", points: 2800, badges: 3, coursesCompleted: 5, change: 1 },
-    { rank: 3, userId: 3, userName: "Sophie Bernard", avatar: "/diverse-woman-portrait.png", points: 2500, badges: 3, coursesCompleted: 4, change: -1 },
-    { rank: 4, userId: 4, userName: "Lucas Petit", points: 2200, badges: 2, coursesCompleted: 4, change: 0 },
-    { rank: 5, userId: 5, userName: "Emma Moreau", avatar: "/diverse-woman-portrait.png", points: 2000, badges: 2, coursesCompleted: 3, change: 2 },
+    { rank: 1, userId: 1, userName: "Marie Dupont", avatar: "/diverse-woman-portrait.png", coursesCompleted: 6, certifications: 1, change: 0 },
+    { rank: 2, userId: 2, userName: "Thomas Martin", coursesCompleted: 5, certifications: 0, change: 1 },
+    { rank: 3, userId: 3, userName: "Sophie Bernard", avatar: "/diverse-woman-portrait.png", coursesCompleted: 4, certifications: 1, change: -1 },
+    { rank: 4, userId: 4, userName: "Lucas Petit", coursesCompleted: 4, certifications: 0, change: 0 },
+    { rank: 5, userId: 5, userName: "Emma Moreau", avatar: "/diverse-woman-portrait.png", coursesCompleted: 3, certifications: 0, change: 2 },
   ]
 
   // Données par formation (simulées)
@@ -43,21 +62,45 @@ export default function LeaderboardPage() {
   const getLeaderboardForCourse = (courseId: number): LeaderboardEntry[] => {
     // Simuler des données différentes par formation
     return [
-      { rank: 1, userId: 1, userName: "Marie Dupont", avatar: "/diverse-woman-portrait.png", points: 950, badges: 1, coursesCompleted: 1 },
-      { rank: 2, userId: 2, userName: "Thomas Martin", points: 880, badges: 1, coursesCompleted: 1 },
-      { rank: 3, userId: 3, userName: "Sophie Bernard", avatar: "/diverse-woman-portrait.png", points: 820, badges: 1, coursesCompleted: 1 },
-      { rank: 4, userId: 4, userName: "Lucas Petit", points: 750, badges: 0, coursesCompleted: 1 },
-      { rank: 5, userId: 5, userName: "Emma Moreau", avatar: "/diverse-woman-portrait.png", points: 680, badges: 0, coursesCompleted: 1 },
+      { rank: 1, userId: 1, userName: "Marie Dupont", avatar: "/diverse-woman-portrait.png", coursesCompleted: 1, certifications: 1 },
+      { rank: 2, userId: 2, userName: "Thomas Martin", coursesCompleted: 1, certifications: 1 },
+      { rank: 3, userId: 3, userName: "Sophie Bernard", avatar: "/diverse-woman-portrait.png", coursesCompleted: 1, certifications: 0 },
+      { rank: 4, userId: 4, userName: "Lucas Petit", coursesCompleted: 1, certifications: 0 },
+      { rank: 5, userId: 5, userName: "Emma Moreau", avatar: "/diverse-woman-portrait.png", coursesCompleted: 1, certifications: 0 },
     ]
   }
 
+  // Fonction pour obtenir les détails simulés d'un utilisateur
+  const getUserDetails = (entry: LeaderboardEntry): UserDetails => {
+    // Ceci simulerait un appel API ou une recherche dans une base de données
+    const simulatedUserDetails: UserDetails = {
+      ...entry,
+      completedCoursesList: [
+        { id: 101, title: "Introduction au Dev Web" },
+        { id: 102, title: "Bases de Python" },
+        { id: 103, title: "UX/UI Design" },
+      ].filter((_, idx) => idx < entry.coursesCompleted), // Simule les cours terminés
+      certificationsList: [
+        { id: 201, title: "Certificat React", issuedDate: "2023-03-15" },
+        { id: 202, title: "Certificat Python", issuedDate: "2023-06-20" },
+      ].filter((_, idx) => idx < entry.certifications), // Simule les certifications
+    }
+    return simulatedUserDetails
+  }
+
+
   // Calculer les rangs pour le classement général
   const overallLeaderboard = useMemo(() => {
-    const sorted = PointsCalculator.sortLeaderboard(
-      overallData.map((entry, index) => ({ ...entry, rank: index + 1 }))
-    )
+    // PointsCalculator.sortLeaderboard n'est plus pertinent si on n'a plus de points globaux
+    // On va simplement trier par coursesCompleted puis certifications pour le classement
+    const sorted = [...overallData].sort((a, b) => {
+      if (b.coursesCompleted !== a.coursesCompleted) {
+        return b.coursesCompleted - a.coursesCompleted // Plus de cours terminés = mieux
+      }
+      return b.certifications - a.certifications // Puis par certifications
+    })
     return sorted.map((entry, index) => ({ ...entry, rank: index + 1 }))
-  }, [])
+  }, [overallData])
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -80,7 +123,7 @@ export default function LeaderboardPage() {
       />
 
       <Tabs defaultValue="overall" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 bg-[rgb(50,50,50)]/10 dark:bg-[rgb(50,50,50)]/20 border border-[rgb(50,50,50)]/20"> {/* Added styling from Notifications */}
+        <TabsList className="grid w-full grid-cols-3 bg-[rgb(50,50,50)]/10 dark:bg-[rgb(50,50,50)]/20 border border-[rgb(50,50,50)]/20">
           <TabsTrigger
             value="overall"
             className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
@@ -105,14 +148,18 @@ export default function LeaderboardPage() {
           <Card>
             <CardHeader>
               <CardTitle>Classement Général</CardTitle>
-              <CardDescription>Top utilisateurs par points totaux</CardDescription>
+              <CardDescription>Top utilisateurs par nombre de formations et certifications</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {overallLeaderboard.map((entry) => (
                   <div
                     key={entry.rank}
-                    className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent transition-colors"
+                    className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent transition-colors cursor-pointer" // Added cursor-pointer
+                    onClick={() => { // Added onClick to open modal
+                      setSelectedUser(getUserDetails(entry))
+                      setShowUserDetailsModal(true)
+                    }}
                   >
                     <div className="flex items-center gap-4 flex-1">
                       <div className="flex h-10 w-10 items-center justify-center">
@@ -125,19 +172,11 @@ export default function LeaderboardPage() {
                       <div className="flex-1">
                         <div className="font-medium">{entry.userName}</div>
                         <div className="text-sm text-muted-foreground flex items-center gap-4">
-                          <span>{entry.points.toLocaleString("fr-FR")} points</span>
-                          <span>•</span>
-                          <span>{entry.badges} badges</span>
-                          <span>•</span>
                           <span>{entry.coursesCompleted} formations</span>
+                          <span>•</span>
+                          <span>{entry.certifications} certifications</span>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="flex items-center gap-1">
-                        <Star className="h-3 w-3" />
-                        {entry.points.toLocaleString("fr-FR")}
-                      </Badge>
                     </div>
                   </div>
                 ))}
@@ -154,7 +193,60 @@ export default function LeaderboardPage() {
           <CourseLeaderboard courses={courses} getLeaderboardForCourse={getLeaderboardForCourse} />
         </TabsContent>
       </Tabs>
+
+      {/* Modal Détails Utilisateur */}
+      <Dialog open={showUserDetailsModal} onOpenChange={setShowUserDetailsModal}>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Détails de {selectedUser?.userName}</DialogTitle>
+            <DialogDescription>
+              Aperçu des formations terminées et des certifications obtenues.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-6 py-4">
+              <div>
+                <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-primary" /> Formations Terminées ({selectedUser.completedCoursesList.length})
+                </h3>
+                {selectedUser.completedCoursesList.length > 0 ? (
+                  <ul className="list-disc pl-5 space-y-1">
+                    {selectedUser.completedCoursesList.map((course) => (
+                      <li key={course.id} className="text-muted-foreground text-sm">{course.title}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-muted-foreground text-sm">Aucune formation terminée.</p>
+                )}
+              </div>
+
+              <Separator />
+
+              <div>
+                <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5 text-primary" /> Certifications Obtenues ({selectedUser.certificationsList.length})
+                </h3>
+                {selectedUser.certificationsList.length > 0 ? (
+                  <ul className="list-disc pl-5 space-y-1">
+                    {selectedUser.certificationsList.map((cert) => (
+                      <li key={cert.id} className="text-muted-foreground text-sm">
+                        {cert.title} (Délivré le: {cert.issuedDate})
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-muted-foreground text-sm">Aucune certification obtenue.</p>
+                )}
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUserDetailsModal(false)}>Fermer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
+
 

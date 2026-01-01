@@ -25,6 +25,11 @@ export const adminRoutes: Route[] = [
     href: "/admin",
   },
   {
+    label: "Statistiques",
+    icon: BarChart3,
+    href: "/admin/analytics",
+  },
+  {
     label: "Utilisateurs",
     icon: Users,
     href: "/admin/users", // Parent route can still point to a general users list
@@ -73,10 +78,6 @@ export const adminRoutes: Route[] = [
     label: "Certifications",
     icon: Award,
     href: "/admin/certifications",
-  },  {
-    label: "Statistiques",
-    icon: BarChart3,
-    href: "/admin/analytics",
   },
   {
     label: "Commentaires",
@@ -92,6 +93,11 @@ export const adminRoutes: Route[] = [
     label: "Cohortes", // Replaced Modération
     icon: Users, // Icon for Cohortes (can be changed if needed)
     href: "/admin/cohortes", // New href for Cohortes
+  },
+  {
+    label: "Validation", // Nouvelle entrée pour la modération
+    icon: Shield,
+    href: "/admin/moderation",
   },
   {
     label: "Notifications",
@@ -122,6 +128,11 @@ export const instructorRoutes: Route[] = [
     href: "/instructor",
   },
   {
+    label: "Statistiques",
+    icon: BarChart3,
+    href: "/instructor/analytics",
+  },
+  {
     label: "Mes Formations",
     icon: BookOpen,
     href: "/instructor/courses",
@@ -130,6 +141,11 @@ export const instructorRoutes: Route[] = [
     label: "Contenus",
     icon: Upload,
     href: "/instructor/content",
+  },
+  {
+    label: "Validation", // Nouvelle entrée pour la modération
+    icon: Shield,
+    href: "/instructor/moderation",
   },
   {
     label: "Quiz & Exercices",
@@ -145,11 +161,6 @@ export const instructorRoutes: Route[] = [
     label: "Certificats",
     icon: Award,
     href: "/instructor/certificates",
-  },
-  {
-    label: "Statistiques",
-    icon: BarChart3,
-    href: "/instructor/analytics",
   },
   {
     label: "Paramètres",

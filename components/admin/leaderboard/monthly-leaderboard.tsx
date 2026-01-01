@@ -5,17 +5,35 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Trophy, Medal, Award, Star, TrendingUp, TrendingDown } from "lucide-react"
+import { Trophy, Medal, Award, TrendingUp, TrendingDown, BookOpen, GraduationCap } from "lucide-react" // Added BookOpen, GraduationCap
 import type { LeaderboardEntry } from "@/types/gamification"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Separator } from "@/components/ui/separator"
+import { Button } from "@/components/ui/button"
 
 type MonthlyLeaderboardProps = {
   entries: LeaderboardEntry[]
+}
+
+// Extension du type LeaderboardEntry pour inclure les détails des formations et certifications
+interface UserDetails extends LeaderboardEntry {
+  completedCoursesList: { id: number, title: string }[]
+  certificationsList: { id: number, title: string, issuedDate: string }[]
 }
 
 export function MonthlyLeaderboard({ entries }: MonthlyLeaderboardProps) {
   const [selectedMonth, setSelectedMonth] = useState<string>(
     new Date().toISOString().slice(0, 7) // Format YYYY-MM
   )
+  const [selectedUser, setSelectedUser] = useState<UserDetails | null>(null)
+  const [showUserDetailsModal, setShowUserDetailsModal] = useState(false)
 
   // Générer les 12 derniers mois
   const months = Array.from({ length: 12 }, (_, i) => {
@@ -50,6 +68,24 @@ export function MonthlyLeaderboard({ entries }: MonthlyLeaderboardProps) {
     return null
   }
 
+  // Fonction pour obtenir les détails simulés d'un utilisateur (copiée de leaderboard/page.tsx)
+  const getUserDetails = (entry: LeaderboardEntry): UserDetails => {
+    // Ceci simulerait un appel API ou une recherche dans une base de données
+    const simulatedUserDetails: UserDetails = {
+      ...entry,
+      completedCoursesList: [
+        { id: 101, title: "Introduction au Dev Web" },
+        { id: 102, title: "Bases de Python" },
+        { id: 103, title: "UX/UI Design" },
+      ].filter((_, idx) => idx < entry.coursesCompleted), // Simule les cours terminés
+      certificationsList: [
+        { id: 201, title: "Certificat React", issuedDate: "2023-03-15" },
+        { id: 202, title: "Certificat Python", issuedDate: "2023-06-20" },
+      ].filter((_, idx) => idx < entry.certifications), // Simule les certifications
+    }
+    return simulatedUserDetails
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -78,7 +114,11 @@ export function MonthlyLeaderboard({ entries }: MonthlyLeaderboardProps) {
             entries.map((entry) => (
               <div
                 key={entry.userId}
-                className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent transition-colors"
+                className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent transition-colors cursor-pointer" // Added cursor-pointer
+                onClick={() => { // Added onClick to open modal
+                  setSelectedUser(getUserDetails(entry))
+                  setShowUserDetailsModal(true)
+                }}
               >
                 <div className="flex items-center gap-4 flex-1">
                   <div className="flex h-10 w-10 items-center justify-center">
@@ -109,18 +149,16 @@ export function MonthlyLeaderboard({ entries }: MonthlyLeaderboardProps) {
                       )}
                     </div>
                     <div className="text-sm text-muted-foreground flex items-center gap-4">
-                      <span>{entry.points.toLocaleString("fr-FR")} points</span>
-                      <span>•</span>
-                      <span>{entry.badges} badges</span>
-                      <span>•</span>
                       <span>{entry.coursesCompleted} formations</span>
+                      <span>•</span>
+                      <span>{entry.certifications} certifications</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="flex items-center gap-1">
-                    <Star className="h-3 w-3" />
-                    {entry.points.toLocaleString("fr-FR")}
+                    <Award className="h-3 w-3" /> {/* Utilisation de Award pour certifications */}
+                    {entry.certifications}
                   </Badge>
                 </div>
               </div>
@@ -130,6 +168,58 @@ export function MonthlyLeaderboard({ entries }: MonthlyLeaderboardProps) {
           )}
         </div>
       </CardContent>
+
+      {/* Modal Détails Utilisateur (copié de leaderboard/page.tsx) */}
+      <Dialog open={showUserDetailsModal} onOpenChange={setShowUserDetailsModal}>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Détails de {selectedUser?.userName}</DialogTitle>
+            <DialogDescription>
+              Aperçu des formations terminées et des certifications obtenues.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-6 py-4">
+              <div>
+                <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-primary" /> Formations Terminées ({selectedUser.completedCoursesList.length})
+                </h3>
+                {selectedUser.completedCoursesList.length > 0 ? (
+                  <ul className="list-disc pl-5 space-y-1">
+                    {selectedUser.completedCoursesList.map((course) => (
+                      <li key={course.id} className="text-muted-foreground text-sm">{course.title}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-muted-foreground text-sm">Aucune formation terminée.</p>
+                )}
+              </div>
+
+              <Separator />
+
+              <div>
+                <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5 text-primary" /> Certifications Obtenues ({selectedUser.certificationsList.length})
+                </h3>
+                {selectedUser.certificationsList.length > 0 ? (
+                  <ul className="list-disc pl-5 space-y-1">
+                    {selectedUser.certificationsList.map((cert) => (
+                      <li key={cert.id} className="text-muted-foreground text-sm">
+                        {cert.title} (Délivré le: {cert.issuedDate})
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-muted-foreground text-sm">Aucune certification obtenue.</p>
+                )}
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUserDetailsModal(false)}>Fermer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }

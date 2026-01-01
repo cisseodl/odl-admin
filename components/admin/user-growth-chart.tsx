@@ -23,7 +23,7 @@ export function UserGrowthChart() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Croissance des Utilisateurs</CardTitle>
+            <CardTitle>KPI</CardTitle>
             <CardDescription>Évolution des inscriptions sur 6 mois</CardDescription>
           </div>
           <div className="flex items-center gap-4">

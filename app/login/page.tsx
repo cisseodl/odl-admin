@@ -71,7 +71,7 @@ export default function LoginPage() {
 
       {/* Container principal centré */}
       <div className="w-full max-w-sm relative z-10">
-        <Card className="backdrop-blur-sm bg-card/95 border-2 shadow-2xl shadow-primary/5">
+        <Card className="backdrop-blur-sm bg-background/80 border-2 shadow-lg dark:shadow-xl dark:shadow-primary/20">
           <CardHeader className="space-y-3 pb-4">
             {/* Logo et titre */}
             <div className="flex flex-col items-center space-y-4">

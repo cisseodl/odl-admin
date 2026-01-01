@@ -7,12 +7,22 @@ import { ActionMenu } from "@/components/ui/action-menu"
 import { StatusBadge } from "@/components/ui/status-badge"
 import { SearchBar } from "@/components/ui/search-bar"
 import { useSearch } from "@/hooks/use-search"
-import { Eye, CheckCircle2, XCircle, BookOpen, MessageSquare, AlertCircle } from "lucide-react"
+import { Eye, CheckCircle2, XCircle, BookOpen, MessageSquare, AlertCircle, Edit } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 type CourseItem = {
   id: number
@@ -24,6 +34,7 @@ type CourseItem = {
   priority?: "high" | "medium" | "low"
   modules: number
   duration: string
+  rejectionReason?: string // Added for consistency
 }
 
 export function CourseModerationQueue() {
@@ -53,8 +64,12 @@ export function CourseModerationQueue() {
   ])
 
   const [selectedCourse, setSelectedCourse] = useState<CourseItem | null>(null)
-  const [showCommentDialog, setShowCommentDialog] = useState(false)
-  const [comment, setComment] = useState("")
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [showApproveModal, setShowApproveModal] = useState(false)
+  const [showRejectModal, setShowRejectModal] = useState(false)
+  const [showRequestChangesModal, setShowRequestChangesModal] = useState(false) // Renommé de showCommentDialog
+  const [rejectionReason, setRejectionReason] = useState("")
+  const [requestChangesComment, setRequestChangesComment] = useState("") // Pour le modal "Demander modifications"
 
   const { searchQuery, setSearchQuery, filteredData } = useSearch<CourseItem>({
     data: courses,
@@ -74,25 +89,54 @@ export function CourseModerationQueue() {
     }
   }
 
-  const handleApprove = (id: number) => {
-    setCourses(courses.map((item) => (item.id === id ? { ...item, status: "Approuvé" as const } : item)))
+  const confirmApprove = () => {
+    if (selectedCourse) {
+      setCourses(courses.map((item) => (item.id === selectedCourse.id ? { ...item, status: "Approuvé" as const } : item)))
+      setShowApproveModal(false)
+      setSelectedCourse(null)
+    }
   }
 
-  const handleReject = (id: number) => {
-    setCourses(courses.map((item) => (item.id === id ? { ...item, status: "Rejeté" as const } : item)))
+  const confirmReject = () => {
+    if (selectedCourse) {
+      setCourses(
+        courses.map((item) =>
+          item.id === selectedCourse.id
+            ? { ...item, status: "Rejeté" as const, rejectionReason }
+            : item
+        )
+      )
+      setShowRejectModal(false)
+      setRejectionReason("")
+      setSelectedCourse(null)
+    }
   }
 
-  const handleRequestChanges = () => {
+  const confirmRequestChanges = () => {
     if (selectedCourse) {
       setCourses(
         courses.map((item) =>
           item.id === selectedCourse.id ? { ...item, status: "Modifications demandées" as const } : item
         )
       )
-      setShowCommentDialog(false)
-      setComment("")
+      setShowRequestChangesModal(false)
+      setRequestChangesComment("")
       setSelectedCourse(null)
     }
+  }
+
+  const handleEdit = (item: CourseItem) => {
+    setSelectedCourse(item)
+    setShowEditModal(true)
+    // Ici, vous pourriez charger les données complètes du cours pour l'édition
+  }
+
+  const handleSaveEdit = (editedCourse: CourseItem) => {
+    setCourses(
+      courses.map((item) => (item.id === editedCourse.id ? { ...editedCourse, status: "En attente" as const } : item)) // Mettre à jour et remettre en attente si modifié
+    )
+    setShowEditModal(false)
+    setSelectedCourse(null)
   }
 
   const columns: ColumnDef<CourseItem>[] = [
@@ -159,27 +203,24 @@ export function CourseModerationQueue() {
           <ActionMenu
             actions={[
               {
-                label: "Vérifier",
-                icon: <Eye className="h-4 w-4" />,
-                onClick: () => console.log("Review", item),
+                label: "Modifier",
+                icon: <Edit className="h-4 w-4" />,
+                onClick: () => handleEdit(item),
               },
               {
-                label: "Approuver",
+                label: "Valider",
                 icon: <CheckCircle2 className="h-4 w-4" />,
-                onClick: () => handleApprove(item.id),
+                onClick: () => { setSelectedCourse(item); setShowApproveModal(true); },
               },
               {
                 label: "Demander modifications",
                 icon: <MessageSquare className="h-4 w-4" />,
-                onClick: () => {
-                  setSelectedCourse(item)
-                  setShowCommentDialog(true)
-                },
+                onClick: () => { setSelectedCourse(item); setShowRequestChangesModal(true); },
               },
               {
                 label: "Rejeter",
                 icon: <XCircle className="h-4 w-4" />,
-                onClick: () => handleReject(item.id),
+                onClick: () => { setSelectedCourse(item); setShowRejectModal(true); },
                 variant: "destructive",
               },
             ]}
@@ -200,7 +241,99 @@ export function CourseModerationQueue() {
         </CardContent>
       </Card>
 
-      <Dialog open={showCommentDialog} onOpenChange={setShowCommentDialog}>
+      {/* Modal Modifier (Edit Course) */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Modifier la formation</DialogTitle>
+            <DialogDescription>
+              Ajustez les détails de la formation "{selectedCourse?.title}".
+            </DialogDescription>
+          </DialogHeader>
+          {selectedCourse && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="title" className="text-right">
+                  Titre
+                </Label>
+                <Input id="title" value={selectedCourse.title} onChange={(e) => setSelectedCourse({ ...selectedCourse, title: e.target.value })} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="instructor" className="text-right">
+                  Instructeur
+                </Label>
+                <Input id="instructor" value={selectedCourse.instructor} onChange={(e) => setSelectedCourse({ ...selectedCourse, instructor: e.target.value })} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="category" className="text-right">
+                  Catégorie
+                </Label>
+                <Input id="category" value={selectedCourse.category} onChange={(e) => setSelectedCourse({ ...selectedCourse, category: e.target.value })} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="modules" className="text-right">
+                  Modules
+                </Label>
+                <Input id="modules" type="number" value={selectedCourse.modules} onChange={(e) => setSelectedCourse({ ...selectedCourse, modules: parseInt(e.target.value) || 0 })} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="duration" className="text-right">
+                  Durée
+                </Label>
+                <Input id="duration" value={selectedCourse.duration} onChange={(e) => setSelectedCourse({ ...selectedCourse, duration: e.target.value })} className="col-span-3" />
+              </div>
+              {/* Ajoutez d'autres champs à éditer si nécessaire */}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditModal(false)}>Annuler</Button>
+            <Button onClick={() => selectedCourse && handleSaveEdit(selectedCourse)}>Sauvegarder</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Valider (Approve Course) */}
+      <Dialog open={showApproveModal} onOpenChange={setShowApproveModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Valider la formation</DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir valider la formation "{selectedCourse?.title}" ?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowApproveModal(false)}>Annuler</Button>
+            <Button onClick={confirmApprove}>Valider</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Rejeter (Reject Course) */}
+      <Dialog open={showRejectModal} onOpenChange={setShowRejectModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rejeter la formation</DialogTitle>
+            <DialogDescription>
+              Veuillez indiquer la raison pour laquelle vous rejetez la formation "{selectedCourse?.title}".
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder="Raison du rejet..."
+            value={rejectionReason}
+            onChange={(e) => setRejectionReason(e.target.value)}
+            className="min-h-[100px]"
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRejectModal(false)}>Annuler</Button>
+            <Button variant="destructive" onClick={confirmReject} disabled={!rejectionReason.trim()}>
+              Rejeter
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Demander modifications (Request Changes) - Ancien showCommentDialog */}
+      <Dialog open={showRequestChangesModal} onOpenChange={setShowRequestChangesModal}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Demander des modifications</DialogTitle>
@@ -210,15 +343,15 @@ export function CourseModerationQueue() {
           </DialogHeader>
           <Textarea
             placeholder="Décrivez les modifications à apporter..."
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
+            value={requestChangesComment}
+            onChange={(e) => setRequestChangesComment(e.target.value)}
             className="min-h-[100px]"
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCommentDialog(false)}>
+            <Button variant="outline" onClick={() => setShowRequestChangesModal(false)}>
               Annuler
             </Button>
-            <Button onClick={handleRequestChanges} disabled={!comment.trim()}>
+            <Button onClick={confirmRequestChanges} disabled={!requestChangesComment.trim()}>
               Envoyer
             </Button>
           </DialogFooter>

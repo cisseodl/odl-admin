@@ -7,10 +7,21 @@ import { ActionMenu } from "@/components/ui/action-menu"
 import { StatusBadge } from "@/components/ui/status-badge"
 import { SearchBar } from "@/components/ui/search-bar"
 import { useSearch } from "@/hooks/use-search"
-import { Eye, CheckCircle2, XCircle, FileText, Video, Image, FileQuestion, File } from "lucide-react"
+import { Eye, CheckCircle2, XCircle, FileText, Video, Image, FileQuestion, File, Edit } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 
 type ContentItem = {
   id: number
@@ -21,6 +32,8 @@ type ContentItem = {
   submittedAt: string
   status: "En attente" | "Approuvé" | "Rejeté"
   priority?: "high" | "medium" | "low"
+  // Ajout d'une propriété pour la raison du rejet si applicable
+  rejectionReason?: string
 }
 
 export function ContentModerationQueue() {
@@ -57,6 +70,12 @@ export function ContentModerationQueue() {
     },
   ])
 
+  const [selectedContent, setSelectedContent] = useState<ContentItem | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [showApproveModal, setShowApproveModal] = useState(false)
+  const [showRejectModal, setShowRejectModal] = useState(false)
+  const [rejectionReason, setRejectionReason] = useState("")
+
   const { searchQuery, setSearchQuery, filteredData } = useSearch<ContentItem>({
     data: contents,
     searchKeys: ["title", "course", "instructor", "type"],
@@ -90,12 +109,27 @@ export function ContentModerationQueue() {
     }
   }
 
-  const handleApprove = (id: number) => {
-    setContents(contents.map((item) => (item.id === id ? { ...item, status: "Approuvé" as const } : item)))
+  const confirmApprove = () => {
+    if (selectedContent) {
+      setContents(contents.map((item) => (item.id === selectedContent.id ? { ...item, status: "Approuvé" as const } : item)))
+      setShowApproveModal(false)
+      setSelectedContent(null)
+    }
   }
 
-  const handleReject = (id: number) => {
-    setContents(contents.map((item) => (item.id === id ? { ...item, status: "Rejeté" as const } : item)))
+  const confirmReject = () => {
+    if (selectedContent) {
+      setContents(contents.map((item) => (item.id === selectedContent.id ? { ...item, status: "Rejeté" as const, rejectionReason } : item)))
+      setShowRejectModal(false)
+      setRejectionReason("")
+      setSelectedContent(null)
+    }
+  }
+
+  const handleEdit = (item: ContentItem) => {
+    setSelectedContent(item)
+    setShowEditModal(true)
+    // Ici, vous pourriez charger les données complètes du contenu pour l'édition
   }
 
   const columns: ColumnDef<ContentItem>[] = [
@@ -152,19 +186,19 @@ export function ContentModerationQueue() {
           <ActionMenu
             actions={[
               {
-                label: "Prévisualiser",
-                icon: <Eye className="h-4 w-4" />,
-                onClick: () => console.log("Preview", item),
+                label: "Modifier",
+                icon: <Edit className="h-4 w-4" />,
+                onClick: () => handleEdit(item),
               },
               {
-                label: "Approuver",
+                label: "Valider",
                 icon: <CheckCircle2 className="h-4 w-4" />,
-                onClick: () => handleApprove(item.id),
+                onClick: () => { setSelectedContent(item); setShowApproveModal(true); },
               },
               {
                 label: "Rejeter",
                 icon: <XCircle className="h-4 w-4" />,
-                onClick: () => handleReject(item.id),
+                onClick: () => { setSelectedContent(item); setShowRejectModal(true); },
                 variant: "destructive",
               },
             ]}
@@ -182,7 +216,88 @@ export function ContentModerationQueue() {
         </div>
         <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
       </CardContent>
+
+      {/* Modal Modifier */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier le contenu</DialogTitle>
+            <DialogDescription>
+              Aperçu et édition du contenu "{selectedContent?.title}".
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="title" className="text-right">
+                Titre
+              </Label>
+              <Input id="title" defaultValue={selectedContent?.title} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="type" className="text-right">
+                Type
+              </Label>
+              <Input id="type" defaultValue={selectedContent?.type} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="course" className="text-right">
+                Cours
+              </Label>
+              <Input id="course" defaultValue={selectedContent?.course} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="instructor" className="text-right">
+                Instructeur
+              </Label>
+              <Input id="instructor" defaultValue={selectedContent?.instructor} className="col-span-3" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditModal(false)}>Annuler</Button>
+            <Button type="submit" onClick={() => { /* Logique de sauvegarde */ setShowEditModal(false); }}>Sauvegarder</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Valider */}
+      <Dialog open={showApproveModal} onOpenChange={setShowApproveModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Valider le contenu</DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir valider le contenu "{selectedContent?.title}".
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowApproveModal(false)}>Annuler</Button>
+            <Button onClick={confirmApprove}>Valider</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Rejeter */}
+      <Dialog open={showRejectModal} onOpenChange={setShowRejectModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rejeter le contenu</DialogTitle>
+            <DialogDescription>
+              Veuillez indiquer la raison pour laquelle vous rejetez le contenu "{selectedContent?.title}".
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder="Raison du rejet..."
+            value={rejectionReason}
+            onChange={(e) => setRejectionReason(e.target.value)}
+            className="min-h-[100px]"
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRejectModal(false)}>Annuler</Button>
+            <Button variant="destructive" onClick={confirmReject} disabled={!rejectionReason.trim()}>
+              Rejeter
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }
-
