@@ -8,13 +8,14 @@ export const userSchema = z.object({
   profession: z.string().optional(), // Added profession
   niveauEtude: z.string().optional(), // Added niveauEtude
   filiere: z.string().optional(), // Added filiere
-  cohorteId: z.number().optional(), // Added cohorteId for nested cohorte {id: ...}
+  cohorteId: z.coerce.number().optional(), // Added cohorteId for nested cohorte {id: ...} - use coerce to convert string to number
   role: z.enum(["Apprenant", "Instructeur", "Admin"], {
     required_error: "Le rôle est requis",
   }),
   status: z.enum(["Actif", "Inactif", "Suspendu"], {
     required_error: "Le statut est requis",
   }),
+  password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères").optional(), // Added password
 })
 
 export type UserFormData = z.infer<typeof userSchema>

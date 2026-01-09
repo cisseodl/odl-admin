@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useCallback } from "react"
 import { PageHeader } from "@/components/ui/page-header"
 import { SearchBar } from "@/components/ui/search-bar"
 import { DataTable } from "@/components/ui/data-table"
@@ -8,255 +8,213 @@ import { ActionMenu } from "@/components/ui/action-menu"
 import { StatusBadge } from "@/components/ui/status-badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { useModal } from "@/hooks/use-modal"
-import { useSearch } from "@/hooks/use-search"
-import { CourseBuilderWizard } from "@/components/admin/courses/course-builder-wizard"
-import type { CourseBuilderFormData } from "@/lib/validations/course-builder"
-import { ConfirmDialog } from "@/components/ui/confirm-dialog"
-import { ViewCourseModal } from "./modals/view-course-modal"
-import { CourseFormModal } from "@/components/shared/course-form-modal"
-import type { ColumnDef } from "@tanstack/react-table"
-import { Eye, Edit, Trash2, Power, Users, Clock, Star, BookOpen } from "lucide-react"
-import type { CourseFormData } from "@/lib/validations/course"
+import { useToast } from "@/hooks/use-toast";
+import { useSearch } from "@/hooks/use-search";
+import { FormationBuilderWizard } from "@/components/admin/courses/formation-builder-wizard";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { ViewCourseModal } from "./modals/view-course-modal";
+import { CourseFormModal } from "@/components/shared/course-form-modal";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Eye, Edit, Trash2, Power, Users, Clock, Star, BookOpen } from "lucide-react";
+import type { CourseFormData } from "@/lib/validations/course";
 
 import { Course as CourseModel, Categorie } from "@/models"; // Import Course from models/index.ts
-import { courseService, categorieService } from "@/services"; // Import courseService from services/index.ts
+import { courseService, categorieService, moduleService } from "@/services"; // Import courseService from services/index.ts
+import { convertDurationToSeconds, convertSecondsToDurationString } from "@/lib/utils"; // Import duration conversion utilities
 import { useEffect } from "react";
 import { PageLoader } from "@/components/ui/page-loader";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"; // Import DropdownMenu components
 import { Button } from "@/components/ui/button"; // Import Button for dropdown trigger
 import { ListFilter } from "lucide-react"; // Import icon for filter button
+import { ModulesPayload } from "@/services/module.service";
 
 // Helper function to map CourseModel to CourseDisplay
-const mapCourseModelToCourseDisplay = (courseModel: CourseModel): CourseDisplay => {
-  // Placeholder values for fields not directly available in CourseModel
-  const instructor = "N/A"; // No instructor in CourseModel
-  const students = 0; // No students count in CourseModel
-  const rating = 0; // No rating in CourseModel
-
-  const status: CourseDisplay['status'] = courseModel.activate ? "Publié" : "Brouillon"; // Simplified status mapping
-  const duration = courseModel.duration ? `${courseModel.duration}h 0min` : "0h 0min"; // Assuming duration is in hours
-
-  return {
-    id: courseModel.id || 0,
-    title: courseModel.title || "",
-    instructor: instructor,
-    category: courseModel.categorie?.title || "Unknown", // Get category title from nested object
-    students: students,
-    status: status,
-    duration: duration,
-    rating: rating,
-    thumbnail: courseModel.imagePath || undefined,
-  };
-};
+type CourseDisplay = CourseModel;
 
 export function CoursesList() {
-  const addModal = useModal<CourseDisplay>()
-  const editModal = useModal<CourseDisplay>()
-  const deleteModal = useModal<CourseDisplay>()
-  const viewModal = useModal<CourseDisplay>()
+  const addModal = useModal<CourseDisplay>();
+  const editModal = useModal<CourseDisplay>();
+  const deleteModal = useModal<CourseDisplay>();
+  const viewModal = useModal<CourseDisplay>();
+  const { toast } = useToast();
 
   const [courses, setCourses] = useState<CourseDisplay[]>([]);
   const [categories, setCategories] = useState<Categorie[]>([]); // State to store categories
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null); // State for selected category filter
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        // Fetch categories
-        const fetchedCategories = await categorieService.getAllCategories();
-        setCategories(fetchedCategories);
-
-        // Fetch courses based on selected category
-        let coursesResponse: CourseModel[];
-        if (selectedCategory) {
-          coursesResponse = await courseService.getCoursesByCategory(selectedCategory);
-        } else {
-          coursesResponse = await courseService.getAllCourses();
-        }
-        
-        console.log("API response for courses:", coursesResponse); // Debug log
-        const mappedCourses = coursesResponse.map(mapCourseModelToCourseDisplay);
-        console.log("Mapped courses:", mappedCourses); // Debug log
-        setCourses(mappedCourses);
-      } catch (err: any) {
-        setError(err.message || "Failed to fetch data.");
-        console.error("Error fetching data:", err);
-      } finally {
-        setLoading(false);
+  
+  const fetchCourses = useCallback(async () => {
+    setLoading(true);
+    try {
+      const categoriesResponse = await categorieService.getAllCategories();
+      if (categoriesResponse && Array.isArray(categoriesResponse.data)) {
+        setCategories(categoriesResponse.data);
+      } else {
+        console.error("Unexpected categories response structure:", categoriesResponse);
+        setCategories([]);
       }
-    };
-    fetchData();
-  }, [selectedCategory]); // Refetch when selectedCategory changes
+
+      let coursesResponse;
+      if (selectedCategory) {
+        coursesResponse = await courseService.getCoursesByCategory(selectedCategory);
+      } else {
+        coursesResponse = await courseService.getAllCourses();
+      }
+      
+      // getAllCourses peut retourner directement un tableau ou un objet avec data
+      if (Array.isArray(coursesResponse)) {
+        setCourses(coursesResponse);
+      } else if (coursesResponse && Array.isArray(coursesResponse.data)) {
+        setCourses(coursesResponse.data);
+      } else if (coursesResponse && coursesResponse.data && Array.isArray(coursesResponse.data)) {
+        setCourses(coursesResponse.data);
+      } else {
+        // Si c'est un objet mais pas un tableau, essayer d'extraire les données
+        console.warn("Unexpected courses response structure:", coursesResponse);
+        setCourses([]);
+      }
+    } catch (err: any) {
+      toast({
+        title: "Erreur de chargement",
+        description: "Impossible de charger les données.",
+        variant: "destructive",
+      });
+      console.error("Error fetching data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedCategory, toast]);
+
+  useEffect(() => {
+    fetchCourses();
+  }, [fetchCourses]);
 
 
     const { searchQuery, setSearchQuery, filteredData } = useSearch<CourseDisplay>({
-
-
       data: courses,
+      searchKeys: ["title", "instructor.fullName", "categorie.title"],
+    });
 
+  const handleAddCourse = async (courseId?: number) => {
+    try {
+      // Step 1: Create the basic course information
+      const coursePayload: Partial<CourseModel> = {
+        title: data.title,
+        subtitle: data.subtitle,
+        description: data.description,
+        level: data.level,
+        language: data.language,
+        status: "DRAFT", // Courses start as draft
+        activate: false,
+      };
 
-      searchKeys: ["title", "instructor", "category"],
-
-
-    }); // Added semicolon here
-
-
-  
-
-
-    console.log("CoursesList render - loading:", loading, "error:", error, "filteredData:", filteredData); // Debug log moved to here
-
-
-  
-
-
-    const handleAddCourse = async (data: CourseFormData | CourseBuilderFormData) => {
-
-
-      setError(null);
-
-
-      try {
-
-
-        let newCourseData: any;
-
-
-        let categoryId: number | undefined;
-
-
-        let chaptersToCreate: any[] = [];
-
-      // Extract category ID. This requires fetching categories first or assuming an ID from input.
-      // For now, let's assume category is directly available as a string and we need to map it to an ID.
-      // This is a simplification; a real app would have a category selector with IDs.
-      // For this example, let's try to find the category by name from the fetched categories.
-      const selectedCategoryFromForm = categories.find(cat => cat.title === data.category);
-      categoryId = selectedCategoryFromForm?.id || 1; // Default to 1 if not found
-
-      if ("structure" in data) {
-        // CourseBuilderFormData - this is where chapter info comes from
-        const builderData = data as CourseBuilderFormData;
-        newCourseData = {
-          title: builderData.title,
-          description: builderData.description,
-          duration: builderData.structure?.totalDuration ? parseInt(builderData.structure.totalDuration.split('h')[0]) : 0, // Assuming duration is "Xh Ymin"
-          courseType: "REGISTER", // Defaulting as per test.md examples
-          price: 0.00, // Default price
-        };
-        
-        // Collect chapters from builderData
-        builderData.structure.modules.forEach(module => {
-          module.chapters.forEach(chapter => {
-            chaptersToCreate.push({
-              title: chapter.title,
-              description: chapter.description,
-              // Other chapter fields if needed, like pdfPath, chapterLink
-            });
-          });
+      // Le wizard gère déjà toute la création, on rafraîchit juste la liste
+      if (courseId) {
+        addModal.close();
+        toast({
+          title: "Succès",
+          description: "La formation complète a été créée avec succès.",
         });
-
-      } else {
-        // CourseFormData - simpler form, no chapter info here
-        const formData = data as CourseFormData;
-        newCourseData = {
-          title: formData.title,
-          description: formData.description,
-          duration: parseInt(formData.duration.split('h')[0]),
-          courseType: "REGISTER",
-          price: 0.00, // Placeholder
-        };
+        fetchCourses(); // Refresh the list
       }
-
-      // 1. Create the course
-      const createdCourse = await courseService.createCourse(categoryId, newCourseData);
-      
-      // 2. Create chapters for the new course if any
-      if (createdCourse.id && chaptersToCreate.length > 0) {
-        // The chapterService.createChapter expects a specific structure:
-        // {"courseId": "...", "courseType": "REGISTER", "chapters": [{"title": "...", "description": "..."}]}
-        const chapterApiData = {
-          courseId: createdCourse.id,
-          courseType: "REGISTER", // Or get from newCourseData
-          chapters: chaptersToCreate,
-        };
-        await chapterService.createChapter(chapterApiData);
-      }
-
-      setCourses((prev) => [...prev, mapCourseModelToCourseDisplay(createdCourse)]);
-      addModal.close();
     } catch (err: any) {
-      setError(err.message || "Failed to add course.");
+      toast({
+        title: "Erreur",
+        description: err.message || "Une erreur est survenue lors de la création de la formation.",
+        variant: "destructive",
+      });
       console.error("Error adding course:", err);
     }
   };
-  const handleUpdateCourse = async (data: CourseFormData) => {
-    setError(null);
+  
+  const handleUpdateCourse = async (data: CourseFormData & { imageFile?: File | null }) => {
     if (editModal.selectedItem) {
       try {
         const updatedCourseData: Partial<CourseModel> = {
           id: editModal.selectedItem.id,
           title: data.title,
+          subtitle: data.subtitle,
           description: data.description,
-          duration: parseInt(data.duration.split('h')[0]),
-          // Other fields from editModal.selectedItem might need to be preserved
-          activate: editModal.selectedItem.status === "Publié" ? true : false,
+          duration: convertDurationToSeconds(data.duration),
+          level: data.level,
+          language: data.language,
+          bestseller: data.bestseller,
+          objectives: data.objectives,
+          features: data.features,
+          price: data.price,
+          status: data.status === "Publié" ? "PUBLISHED" : (data.status === "Brouillon" ? "DRAFT" : "IN_REVIEW"),
+          activate: data.status === "Publié" ? true : false,
         };
-        // Need to handle imageFile if it's part of the form
-        await courseService.updateCourse(updatedCourseData);
+        const updatedCourse = await courseService.updateCourse(editModal.selectedItem.id, updatedCourseData, data.imageFile);
         setCourses((prev) =>
           prev.map((course) =>
-            course.id === editModal.selectedItem!.id ? { ...course, ...mapCourseModelToCourseDisplay(updatedCourseData as CourseModel) } : course
+            course.id === editModal.selectedItem!.id ? { ...course, ...updatedCourse } : course
           )
         );
         editModal.close();
+        toast({
+          title: "Succès",
+          description: "La formation a été mise à jour.",
+        });
       } catch (err: any) {
-        setError(err.message || "Failed to update course.");
+        toast({
+          title: "Erreur",
+          description: "Impossible de mettre à jour la formation.",
+          variant: "destructive",
+        });
         console.error("Error updating course:", err);
       }
     }
   };
 
   const handleToggleActivate = async (course: CourseDisplay) => {
-    setError(null);
     try {
-        const newStatus = course.status !== "Publié";
+        const newActivateStatus = !course.activate;
+        const newBackendStatus: CourseModel['status'] = newActivateStatus ? "PUBLISHED" : "DRAFT";
 
-        // Construct a more complete object for the update to satisfy backend validation
-        const courseDataForUpdate = {
+        const courseDataForUpdate: Partial<CourseModel> = {
             id: course.id,
-            title: course.title,
-            description: course.description, // Assuming description is available on CourseDisplay
-            duration: parseInt(course.duration.split('h')[0]) || 0,
-            activate: newStatus,
-            // Include other fields from 'course' if necessary to build a valid CourseModel object
+            status: newBackendStatus,
+            activate: newActivateStatus,
         };
 
-        await courseService.updateCourse(courseDataForUpdate);
+        await courseService.updateCourse(courseDataForUpdate.id!, courseDataForUpdate);
 
         setCourses((prev) =>
             prev.map((c) =>
-                c.id === course.id ? { ...c, status: newStatus ? "Publié" : "Brouillon" } : c
+                c.id === course.id ? { ...c, status: newBackendStatus, activate: newActivateStatus } : c
             )
         );
+        toast({
+          title: "Succès",
+          description: `La formation a été ${newActivateStatus ? 'activée' : 'stoppée'}.`,
+        });
     } catch (err: any) {
-        setError(err.message || "Failed to update course status.");
+        toast({
+          title: "Erreur",
+          description: "Impossible de changer le statut de la formation.",
+          variant: "destructive",
+        });
         console.error("Error updating course status:", err);
     }
   };
 
   const handleDeleteCourse = async () => {
-    setError(null);
     if (deleteModal.selectedItem) {
       try {
         await courseService.deleteCourse(deleteModal.selectedItem.id);
         setCourses((prev) => prev.filter((course) => course.id !== deleteModal.selectedItem!.id));
         deleteModal.close();
+        toast({
+          title: "Succès",
+          description: "La formation a été supprimée.",
+        });
       } catch (err: any) {
-        setError(err.message || "Failed to delete course.");
+        toast({
+          title: "Erreur",
+          description: "Impossible de supprimer la formation.",
+          variant: "destructive",
+        });
         console.error("Error deleting course:", err);
       }
     }
@@ -275,20 +233,22 @@ export function CoursesList() {
         ),
       },
       {
-        accessorKey: "instructor",
-        header: "Instructeur",
+        accessorKey: "instructor.fullName", // Updated accessorKey
+        header: "Formateur",
+        cell: ({ row }) => row.original.instructor?.fullName || "N/A", // Display full name
       },
       {
-        accessorKey: "category",
+        accessorKey: "categorie.title", // Updated accessorKey
         header: "Catégorie",
+        cell: ({ row }) => row.original.categorie?.title || "N/A", // Display category title
       },
       {
-        accessorKey: "students",
+        accessorKey: "students", // This still needs to be populated from backend
         header: "Étudiants",
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
             <Users className="h-4 w-4 text-muted-foreground" />
-            {row.original.students}
+            {row.original.students || 0}
           </div>
         ),
       },
@@ -298,24 +258,24 @@ export function CoursesList() {
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4 text-muted-foreground" />
-            {row.original.duration}
+            {row.original.duration ? convertSecondsToDurationString(row.original.duration) : "0h 0min"}
           </div>
         ),
       },
       {
-        accessorKey: "rating",
+        accessorKey: "rating", // This still needs to be populated from backend
         header: "Note",
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
             <Star className="h-4 w-4 fill-primary text-primary" />
-            {row.original.rating}
+            {row.original.rating || 0}
           </div>
         ),
       },
       {
         accessorKey: "status",
         header: "Statut",
-        cell: ({ row }) => <StatusBadge status={row.original.status} />,
+        cell: ({ row }) => <StatusBadge status={row.original.status === "PUBLISHED" ? "Publié" : (row.original.status === "DRAFT" ? "Brouillon" : "En révision")} />,
       },
       {
         id: "actions",
@@ -336,10 +296,10 @@ export function CoursesList() {
                   onClick: () => editModal.open(course),
                 },
                 {
-                  label: course.status === 'Publié' ? 'Stopper' : 'Activer',
+                  label: course.activate ? 'Stopper' : 'Activer', // Use activate property for label
                   icon: <Power className="h-4 w-4" />,
                   onClick: () => handleToggleActivate(course),
-                  variant: course.status === 'Publié' ? 'destructive' : 'default',
+                  variant: course.activate ? 'destructive' : 'default',
                 },
                 {
                   label: "Supprimer",
@@ -356,7 +316,7 @@ export function CoursesList() {
     [viewModal, editModal, deleteModal, handleToggleActivate]
   )
 
-  console.log("CoursesList render - loading:", loading, "error:", error, "filteredData:", filteredData); // Debug log
+  console.log("CoursesList render - loading:", loading, "filteredData:", filteredData); // Debug log
   return (
     <>
       <PageHeader
@@ -398,14 +358,12 @@ export function CoursesList() {
           </div>
           {loading ? (
             <PageLoader />
-          ) : error ? (
-            <div className="text-center text-destructive p-4">{error}</div>
           ) : (
             <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
           )}
         </CardContent>
       </Card>
-      <CourseBuilderWizard
+      <FormationBuilderWizard
         open={addModal.isOpen}
         onOpenChange={(open) => !open && addModal.close()}
         onComplete={handleAddCourse}

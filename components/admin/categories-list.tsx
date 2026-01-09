@@ -8,6 +8,7 @@ import { ActionMenu } from "@/components/ui/action-menu"
 import { StatusBadge } from "@/components/ui/status-badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { useModal } from "@/hooks/use-modal"
+import { useToast } from "@/hooks/use-toast"
 import { useSearch } from "@/hooks/use-search"
 import { CategoryFormModal } from "@/components/shared/category-form-modal"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
@@ -45,6 +46,7 @@ export function CategoriesList() {
   const editModal = useModal<CategoryDisplay>()
   const deleteModal = useModal<CategoryDisplay>()
   const viewModal = useModal<CategoryDisplay>()
+  const { toast } = useToast();
 
   const [categories, setCategories] = useState<CategoryDisplay[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,16 +58,26 @@ export function CategoriesList() {
       setError(null);
       try {
         const response = await categorieService.getAllCategories();
-        setCategories(response.map(mapCategorieToCategoryDisplay));
+        if (response.data && Array.isArray(response.data)) {
+          setCategories(response.data.map(mapCategorieToCategoryDisplay));
+        } else {
+          console.error("Unexpected response structure:", response);
+          setCategories([]);
+        }
       } catch (err: any) {
         setError(err.message || "Failed to fetch categories.");
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les catégories.",
+          variant: "destructive",
+        });
         console.error("Error fetching categories:", err);
       } finally {
         setLoading(false);
       }
     };
     fetchCategories();
-  }, []); // Empty dependency array means this runs once on mount
+  }, [toast]); // Empty dependency array means this runs once on mount
 
 
   const { searchQuery, setSearchQuery, filteredData } = useSearch<CategoryDisplay>({
@@ -74,7 +86,6 @@ export function CategoriesList() {
   })
 
   const handleAddCategory = async (data: CategoryFormData) => {
-    setError(null);
     try {
       const newCategoryData = {
         title: data.title,
@@ -83,14 +94,21 @@ export function CategoriesList() {
       const createdCategory = await categorieService.createCategorie(newCategoryData);
       setCategories((prev) => [...prev, mapCategorieToCategoryDisplay(createdCategory)]);
       addModal.close();
+      toast({
+        title: "Succès",
+        description: "La catégorie a été créée avec succès.",
+      });
     } catch (err: any) {
-      setError(err.message || "Failed to add category.");
+      toast({
+        title: "Erreur",
+        description: "Impossible d'ajouter la catégorie.",
+        variant: "destructive",
+      });
       console.error("Error adding category:", err);
     }
   };
 
   const handleUpdateCategory = async (data: CategoryFormData) => {
-    setError(null);
     if (editModal.selectedItem) {
       try {
         const updatedCategoryData: Partial<Categorie> = {
@@ -105,30 +123,37 @@ export function CategoriesList() {
           )
         );
         editModal.close();
+        toast({
+          title: "Succès",
+          description: "La catégorie a été mise à jour.",
+        });
       } catch (err: any) {
-        setError(err.message || "Failed to update category.");
+        toast({
+          title: "Erreur",
+          description: "Impossible de mettre à jour la catégorie.",
+          variant: "destructive",
+        });
         console.error("Error updating category:", err);
       }
     }
   };
 
   const handleDeleteCategory = async () => { // Removed id parameter as deleteModal.selectedItem is used
-    setError(null);
     if (deleteModal.selectedItem) {
       try {
         await categorieService.deleteCategorie(deleteModal.selectedItem.id);
         setCategories((prev) => prev.filter((cat) => cat.id !== deleteModal.selectedItem!.id));
         deleteModal.close();
+        toast({
+          title: "Succès",
+          description: "La catégorie a été supprimée.",
+        });
       } catch (err: any) {
-        // More specific error message for 404 or other API errors during deletion
-        const errorMessage = err.message || "Failed to delete category.";
-        if (errorMessage.includes("404")) {
-          setError(`La catégorie ${deleteModal.selectedItem?.title || "sélectionnée"} n'a pas été trouvée ou a déjà été supprimée.`);
-        } else if (errorMessage.includes("401") || errorMessage.includes("403")) {
-          setError("Vous n'êtes pas autorisé à supprimer cette catégorie.");
-        } else {
-          setError(`Erreur lors de la suppression de la catégorie : ${errorMessage}`);
-        }
+        toast({
+          title: "Erreur",
+          description: "Impossible de supprimer la catégorie.",
+          variant: "destructive",
+        });
         console.error("Error deleting category:", err);
       }
     }
@@ -264,7 +289,7 @@ export function CategoriesList() {
         onOpenChange={(open) => !open && deleteModal.close()}
         onConfirm={handleDeleteCategory}
         title="Supprimer la catégorie"
-        description={`Êtes-vous sûr de vouloir supprimer ${deleteModal.selectedItem?.name} ? Cette action est irréversible.`}
+        description={`Êtes-vous sûr de vouloir supprimer ${deleteModal.selectedItem?.title} ? Cette action est irréversible.`}
         confirmText="Supprimer"
         variant="destructive"
       />

@@ -1,5 +1,5 @@
 // Types d'authentification
-export type UserRole = "admin" | "instructor"
+export type UserRole = "admin" | "instructor" | "apprenant"
 
 export interface User {
   id?: string

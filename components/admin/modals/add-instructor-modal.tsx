@@ -51,8 +51,8 @@ export function AddInstructorModal({ open, onOpenChange, onAddInstructor }: AddI
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Ajouter un instructeur</DialogTitle>
-          <DialogDescription>Créez un nouveau compte instructeur sur la plateforme</DialogDescription>
+          <DialogTitle>Ajouter un formateur</DialogTitle>
+          <DialogDescription>Créez un nouveau compte formateur sur la plateforme</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
@@ -104,7 +104,7 @@ export function AddInstructorModal({ open, onOpenChange, onAddInstructor }: AddI
               <Label htmlFor="bio">Biographie (optionnel)</Label>
               <Textarea
                 id="bio"
-                placeholder="Description de l'instructeur..."
+                placeholder="Description du formateur..."
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 rows={3}
@@ -115,7 +115,7 @@ export function AddInstructorModal({ open, onOpenChange, onAddInstructor }: AddI
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Annuler
             </Button>
-            <Button type="submit">Créer l'instructeur</Button>
+            <Button type="submit">Créer le formateur</Button>
           </DialogFooter>
         </form>
       </DialogContent>

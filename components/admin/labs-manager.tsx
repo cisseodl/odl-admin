@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { PageHeader } from "@/components/ui/page-header"
 import { SearchBar } from "@/components/ui/search-bar"
 import { DataTable } from "@/components/ui/data-table"
@@ -9,18 +9,19 @@ import { StatusBadge } from "@/components/ui/status-badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { useModal } from "@/hooks/use-modal"
 import { useSearch } from "@/hooks/use-search"
-import { ContentUploadWizard } from "@/components/admin/content/content-upload-wizard"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
-import { EmptyState } from "./empty-state"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Edit, Trash2, FileText, Video, Image, FileQuestion, File, Calendar, Clock, HardDrive } from "lucide-react"
-import type { ContentFormData } from "@/lib/validations/content"
-import { ContentFormModal } from "@/components/shared/content-form-modal" // Import ContentFormModal
 
 import { LabDefinition } from "@/models"; // Import LabDefinition from models/index.ts
 import { labDefinitionService } from "@/services"; // Import labDefinitionService from services/index.ts
-import { useEffect } from "react";
+
 import { PageLoader } from "@/components/ui/page-loader";
+import { EmptyState } from "./empty-state";
+
+// Import LabFormModal and LabFormData
+import { LabFormModal } from "@/components/shared/lab-form-modal";
+import { LabFormData } from "@/lib/validations/lab";
 
 
 type ContentDisplay = {
@@ -33,6 +34,12 @@ type ContentDisplay = {
   size?: string // Will be placeholder for Lab
   uploadDate: string // Derived from createdAt for Lab
   status: "Publié" | "Brouillon" // Derived from activate for Lab
+  // Champs spécifiques aux labs pour l'édition et l'affichage des détails
+  description?: string;
+  dockerImageName?: string;
+  estimatedDurationMinutes?: number;
+  instructions?: string;
+  activate?: boolean;
 }
 
 // Helper function to map LabDefinition to ContentDisplay
@@ -41,14 +48,32 @@ const mapLabDefinitionToContentDisplay = (lab: LabDefinition): ContentDisplay =>
     id: lab.id || 0,
     title: lab.title,
     type: "Lab", // Hardcode type for LabDefinition
-    course: "Lab Course", // Placeholder
-    module: "Lab Module", // Placeholder
+    course: "Lab Course", // Placeholder, as not in LabDefinition model
+    module: "Lab Module", // Placeholder, as not in LabDefinition model
     duration: lab.estimated_duration_minutes ? `${lab.estimated_duration_minutes} min` : "N/A",
-    size: "N/A", // Placeholder
+    size: "N/A", // Placeholder, as not in LabDefinition model
     uploadDate: lab.createdAt ? new Date(lab.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) : "",
     status: lab.activate ? "Publié" : "Brouillon", // Assuming activate maps to status
+    description: lab.description || "",
+    dockerImageName: lab.docker_image_name || "",
+    estimatedDurationMinutes: lab.estimated_duration_minutes,
+    instructions: lab.instructions || "",
+    activate: lab.activate,
   };
 };
+
+// Helper function to map ContentDisplay to LabFormData for editing
+const mapContentDisplayToLabFormData = (content: ContentDisplay): LabFormData => {
+  return {
+    title: content.title,
+    description: content.description || "",
+    dockerImageName: content.dockerImageName || "",
+    estimatedDurationMinutes: content.estimatedDurationMinutes || 0,
+    instructions: content.instructions || "",
+    activate: content.activate || false,
+  };
+};
+
 
 export function LabsManager() {
   const addModal = useModal<ContentDisplay>()
@@ -82,47 +107,63 @@ export function LabsManager() {
     searchKeys: ["title", "course", "type"],
   })
 
-  const handleAddContent = async (data: ContentFormData & { file?: File }) => {
+  const handleAddLab = async (data: LabFormData) => { // ContentUploadWizard onComplete
     setError(null);
     try {
-      // Assuming ContentUploadWizard data can be mapped to LabDefinition
-      // This mapping needs to be more robust based on actual wizard output
       const newLabDefinition: Omit<LabDefinition, 'id'> = {
         title: data.title,
         description: data.description || "",
-        docker_image_name: "placeholder", // Placeholder
-        estimated_duration_minutes: 60, // Placeholder
-        instructions: "placeholder", // Placeholder
-        activate: true, // Assuming active
+        docker_image_name: data.dockerImageName,
+        estimated_duration_minutes: data.estimatedDurationMinutes,
+        instructions: data.instructions,
+        activate: data.activate,
       };
       const createdLab = await labDefinitionService.createLabDefinition(newLabDefinition);
       setContent((prev) => [...prev, mapLabDefinitionToContentDisplay(createdLab)]);
       addModal.close();
     } catch (err: any) {
-      setError(err.message || "Failed to add content.");
-      console.error("Error adding content:", err);
+      setError(err.message || "Failed to add lab.");
+      console.error("Error adding lab:", err);
     }
   };
 
-  const handleUpdateContent = (data: ContentFormData) => {
-    // No explicit API endpoint for LabDefinition update in test.md
-    // For now, keeping as mock/placeholder
+  const handleUpdateLab = async (data: LabFormData) => { // ContentFormModal onSubmit
+    setError(null);
     if (editModal.selectedItem) {
-      setContent((prev) =>
-        prev.map((item) =>
-          item.id === editModal.selectedItem!.id ? { ...item, ...data } : item
-        )
-      );
-      editModal.close();
+      try {
+        const updatedLabDefinition: Partial<LabDefinition> = {
+          title: data.title,
+          description: data.description,
+          docker_image_name: data.dockerImageName,
+          estimated_duration_minutes: data.estimatedDurationMinutes,
+          instructions: data.instructions,
+          activate: data.activate,
+        };
+        const updatedLab = await labDefinitionService.updateLabDefinition(editModal.selectedItem.id, updatedLabDefinition);
+        setContent((prev) =>
+          prev.map((item) =>
+            item.id === editModal.selectedItem!.id ? mapLabDefinitionToContentDisplay(updatedLab as LabDefinition) : item
+          )
+        );
+        editModal.close();
+      } catch (err: any) {
+        setError(err.message || "Failed to update lab.");
+        console.error("Error updating lab:", err);
+      }
     }
   };
 
-  const handleDeleteContent = () => {
-    // No explicit API endpoint for LabDefinition delete in test.md
-    // For now, keeping as mock/placeholder
+  const handleDeleteLab = async () => {
+    setError(null);
     if (deleteModal.selectedItem) {
-      setContent((prev) => prev.filter((item) => item.id !== deleteModal.selectedItem!.id));
-      deleteModal.close();
+      try {
+        await labDefinitionService.deleteLabDefinition(deleteModal.selectedItem.id);
+        setContent((prev) => prev.filter((item) => item.id !== deleteModal.selectedItem!.id));
+        deleteModal.close();
+      } catch (err: any) {
+        setError(err.message || "Failed to delete lab.");
+        console.error("Error deleting lab:", err);
+      }
     }
   };
 
@@ -176,19 +217,6 @@ export function LabsManager() {
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4 text-muted-foreground" />
               {row.original.duration}
-            </div>
-          ) : (
-            "-"
-          ),
-      },
-      {
-        accessorKey: "size",
-        header: "Taille",
-        cell: ({ row }) =>
-          row.original.size ? (
-            <div className="flex items-center gap-1">
-              <HardDrive className="h-4 w-4 text-muted-foreground" />
-              {row.original.size}
             </div>
           ) : (
             "-"
@@ -274,21 +302,24 @@ export function LabsManager() {
         </CardContent>
       </Card>
 
-      {/* ContentUploadWizard -> LabUploadWizard (needs to be created or renamed) */}
-      <ContentUploadWizard
+      {/* LabFormModal for Add and Edit */}
+      <LabFormModal
         open={addModal.isOpen}
         onOpenChange={(open) => !open && addModal.close()}
-        onComplete={handleAddContent}
+        title="Ajouter un lab"
+        description="Créez une nouvelle définition de lab"
+        onSubmit={handleAddLab}
+        submitLabel="Créer le lab"
       />
 
       {editModal.selectedItem && (
-        <ContentFormModal // ContentFormModal -> LabFormModal (needs to be created or renamed)
+        <LabFormModal
           open={editModal.isOpen}
           onOpenChange={(open) => !open && editModal.close()}
           title="Modifier le lab"
           description="Modifiez les informations du lab"
-          defaultValues={editModal.selectedItem}
-          onSubmit={handleUpdateContent}
+          defaultValues={mapContentDisplayToLabFormData(editModal.selectedItem)} // Mappage pour LabFormData
+          onSubmit={handleUpdateLab}
           submitLabel="Enregistrer les modifications"
         />
       )}
@@ -296,7 +327,7 @@ export function LabsManager() {
       <ConfirmDialog
         open={deleteModal.isOpen}
         onOpenChange={(open) => !open && deleteModal.close()}
-        onConfirm={handleDeleteContent}
+        onConfirm={handleDeleteLab}
         title="Supprimer le lab"
         description={`Êtes-vous sûr de vouloir supprimer ${deleteModal.selectedItem?.title} ? Cette action est irréversible.`}
         confirmText="Supprimer"

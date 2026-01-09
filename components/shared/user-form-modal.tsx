@@ -54,7 +54,7 @@ export function UserFormModal({
             type="input"
             name="nom"
             label="Nom"
-            placeholder="Dupont"
+            placeholder="Traoré"
             register={formInstance.register}
             error={formInstance.formState.errors.nom?.message}
           />
@@ -62,7 +62,7 @@ export function UserFormModal({
             type="input"
             name="prenom"
             label="Prénom"
-            placeholder="Jean"
+            placeholder="Amadou"
             register={formInstance.register}
             error={formInstance.formState.errors.prenom?.message}
           />
@@ -70,7 +70,7 @@ export function UserFormModal({
             type="input"
             name="email"
             label="Email"
-            placeholder="jean.dupont@email.com"
+            placeholder="amadou.traore@example.ml"
             inputType="email"
             register={formInstance.register}
             error={formInstance.formState.errors.email?.message}
@@ -116,19 +116,20 @@ export function UserFormModal({
             register={formInstance.register}
             error={formInstance.formState.errors.cohorteId?.message}
           />
-          <FormField
-            type="select"
-            name="role"
-            label="Rôle"
-            control={formInstance.control}
-            options={[
-              { value: "Apprenant", label: "Apprenant" },
-              { value: "Instructeur", label: "Instructeur" },
-              { value: "Admin", label: "Administrateur" },
-            ]}
-            disabled={disableRoleField} // Disable field if prop is true
-            error={formInstance.formState.errors.role?.message}
-          />
+          {!disableRoleField && (
+            <FormField
+              type="select"
+              name="role"
+              label="Rôle"
+              control={formInstance.control}
+              options={[
+                { value: "Apprenant", label: "Apprenant" },
+                { value: "Instructeur", label: "Formateur" },
+                { value: "Admin", label: "Administrateur" },
+              ]}
+              error={formInstance.formState.errors.role?.message}
+            />
+          )}
           <FormField
             type="select"
             name="status"

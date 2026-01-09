@@ -21,11 +21,18 @@ export function useKeyboardShortcuts({ shortcuts, enabled = true }: UseKeyboardS
 
     const handleKeyDown = (e: KeyboardEvent) => {
       shortcuts.forEach((shortcut) => {
+        // --- Début du débogage ---
+        if (!shortcut || typeof shortcut.key !== 'string') { // Vérifier que shortcut.key est une string
+          console.error("Problème: raccourci malformé ou sans clé de type string", { shortcut, eventKey: e.key });
+          return; // Ignorer ce raccourci malformé
+        }
+        // --- Fin du débogage ---
+
         const ctrlMatch = shortcut.ctrl ? e.ctrlKey : !e.ctrlKey
         const metaMatch = shortcut.meta ? e.metaKey : !e.metaKey
         const shiftMatch = shortcut.shift !== undefined ? (shortcut.shift === e.shiftKey) : true
         const altMatch = shortcut.alt !== undefined ? (shortcut.alt === e.altKey) : true
-        const keyMatch = e.key.toLowerCase() === shortcut.key.toLowerCase()
+        const keyMatch = shortcut.key && e.key && e.key.toLowerCase() === shortcut.key.toLowerCase()
 
         if (ctrlMatch && metaMatch && shiftMatch && altMatch && keyMatch) {
           e.preventDefault()

@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-// Validation pour ContentItem
+// Validation pour ContentItem (conservé pour l'instant, mais non utilisé dans le nouveau lessonSchema)
 export const contentItemSchema = z.object({
   id: z.string(),
   type: z.enum(["video", "document", "image", "quiz", "file", "text"]),
@@ -14,14 +14,15 @@ export const contentItemSchema = z.object({
   metadata: z.record(z.unknown()).optional(),
 })
 
-// Validation pour Chapter
-export const chapterSchema = z.object({
+// Nouveau schéma pour Leçon, aligné avec l'API
+export const lessonSchema = z.object({
   id: z.string(),
   title: z.string().min(1, "Le titre est requis").min(3, "Le titre doit contenir au moins 3 caractères"),
   description: z.string().optional(),
-  contentItems: z.array(contentItemSchema).default([]),
   order: z.number().min(0),
-  duration: z.string().optional(),
+  type: z.enum(["VIDEO", "QUIZ", "TEXT"]).default("TEXT"),
+  contentUrl: z.string().url("Veuillez entrer une URL valide.").optional().or(z.literal('')),
+  duration: z.number().min(0).default(0), // Durée en minutes
   isPublished: z.boolean().default(false),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -32,7 +33,7 @@ export const moduleSchema = z.object({
   id: z.string(),
   title: z.string().min(1, "Le titre est requis").min(3, "Le titre doit contenir au moins 3 caractères"),
   description: z.string().optional(),
-  chapters: z.array(chapterSchema).default([]),
+  lessons: z.array(lessonSchema).default([]),
   order: z.number().min(0),
   isPublished: z.boolean().default(false),
   createdAt: z.string(),
@@ -45,8 +46,8 @@ export const courseStructureSchema = z.object({
   courseId: z.number().optional(),
   modules: z.array(moduleSchema).default([]),
   totalDuration: z.string().default("0h 0min"),
-  totalChapters: z.number().default(0),
-  totalContentItems: z.number().default(0),
+  totalLessons: z.number().default(0),
+  totalContentItems: z.number().default(0), // Conservé pour l'instant
   createdAt: z.string(),
   updatedAt: z.string(),
 })
@@ -56,8 +57,8 @@ export const step1BasicInfoSchema = z.object({
   title: z.string().min(1, "Le titre est requis").min(3, "Le titre doit contenir au moins 3 caractères"),
   subtitle: z.string().optional(),
   description: z.string().min(10, "La description doit contenir au moins 10 caractères"),
-  category: z.string().min(1, "La catégorie est requise"),
-  instructor: z.string().min(1, "L'instructeur est requis"),
+  category: z.coerce.number().min(1, "La catégorie est requise"), // Changed to coerce.number
+  instructor: z.coerce.number().min(1, "L'instructeur est requis"), // Changed to coerce.number
   language: z.string().min(1, "La langue est requise"),
   level: z.enum(["Débutant", "Intermédiaire", "Avancé", "Tous niveaux"]),
 })
@@ -94,7 +95,7 @@ export const courseBuilderSchema = step1BasicInfoSchema
   .merge(step5PublishSchema)
 
 export type ContentItemFormData = z.infer<typeof contentItemSchema>
-export type ChapterFormData = z.infer<typeof chapterSchema>
+export type LessonFormData = z.infer<typeof lessonSchema>
 export type ModuleFormData = z.infer<typeof moduleSchema>
 export type CourseStructureFormData = z.infer<typeof courseStructureSchema>
 export type Step1BasicInfoData = z.infer<typeof step1BasicInfoSchema>

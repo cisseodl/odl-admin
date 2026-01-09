@@ -1,37 +1,78 @@
+"use client"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { BookOpen, Users, TrendingUp, Award } from "lucide-react"
+import { PageLoader } from "@/components/ui/page-loader"
+import { BookOpen, Users, TrendingUp, Award, Star } from "lucide-react"
+import { useEffect, useState } from "react"; // Added useState and useEffect
+import { analyticsService, InstructorDashboardStats } from "@/services/analytics.service"; // Import analyticsService and InstructorDashboardStats type
 
 export function InstructorDashboardStats() {
+  const [summary, setSummary] = useState<InstructorDashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await analyticsService.getInstructorDashboardStats(); // Utilisation de la méthode correcte
+        setSummary(data);
+      } catch (err: any) {
+        if (err.message.includes("API Error 403")) {
+          setError("Accès refusé. Vous n'êtes pas autorisé à voir ces statistiques.");
+        } else if (err.message.includes("profil instructeur")) {
+          setError("Vous n'avez pas encore de profil instructeur. Veuillez créer un profil instructeur pour accéder au tableau de bord.");
+        } else {
+          setError(err.message || "Échec de la récupération du résumé du tableau de bord.");
+        }
+        console.error("Error fetching dashboard summary:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSummary();
+  }, []);
+
   const stats = [
     {
-      title: "Mes Formations",
-      value: "12",
-      change: "+2 ce mois",
+      title: "Formations Créées",
+      value: summary?.totalCoursesCreated !== undefined ? summary.totalCoursesCreated.toString() : "...",
+      change: summary?.publishedCourses !== undefined ? `${summary.publishedCourses} publiées` : "...",
       icon: BookOpen,
       color: "text-[hsl(var(--info))]",
     },
     {
-      title: "Apprenants Actifs",
-      value: "1,245",
-      change: "+156 ce mois",
+      title: "Total Apprenants",
+      value: summary?.totalStudents !== undefined ? summary.totalStudents.toLocaleString("fr-FR") : "...",
+      change: summary?.newEnrollmentsLast30Days !== undefined ? `+${summary.newEnrollmentsLast30Days} ce mois` : "...",
       icon: Users,
       color: "text-[hsl(var(--success))]",
     },
     {
-      title: "Taux de Complétion",
-      value: "78.5%",
-      change: "+5.2%",
-      icon: TrendingUp,
+      title: "Note Moyenne",
+      value: summary?.averageRating !== undefined ? summary.averageRating.toFixed(1) : "...",
+      change: summary?.newComments !== undefined ? `${summary.newComments} nouveaux avis (30j)` : "...",
+      icon: Star,
       color: "text-[hsl(var(--info))]",
     },
     {
-      title: "Certificats Délivrés",
-      value: "892",
-      change: "+45 ce mois",
+      title: "Taux de Complétion",
+      value: summary?.averageCompletionRate !== undefined ? `${summary.averageCompletionRate.toFixed(1)}%` : "...",
+      change: summary?.activeLearners !== undefined ? `${summary.activeLearners} apprenants actifs` : "...",
       icon: Award,
       color: "text-[hsl(var(--success))]",
     },
   ]
+
+
+  if (loading) {
+    return <PageLoader />;
+  }
+
+  if (error) {
+    return <div className="text-center text-destructive p-4">{error}</div>;
+  }
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

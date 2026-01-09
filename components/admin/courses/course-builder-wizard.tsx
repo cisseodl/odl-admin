@@ -29,6 +29,9 @@ import {
 } from "@/lib/validations/course-builder"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
+import { categorieService, instructorService } from "@/services"; // Import services
+import { Categorie } from "@/models";
+import { Instructor } from "@/services/instructor.service"; // Adjust if Instructor model is elsewhere
 
 type Step = "basic-info" | "curriculum" | "landing-page" | "settings" | "publish"
 
@@ -52,6 +55,33 @@ export function CourseBuilderWizard({ open, onOpenChange, onComplete, defaultVal
   const [completedSteps, setCompletedSteps] = useState<Set<Step>>(new Set())
   const [isSaving, setIsSaving] = useState(false)
   const [autoSaveStatus, setAutoSaveStatus] = useState<"saved" | "saving" | "error">("saved")
+  const [categories, setCategories] = useState<Categorie[]>([]);
+  const [instructors, setInstructors] = useState<Instructor[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
+
+  // Fetch categories and instructors on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoadingData(true);
+      try {
+        const categoriesResponse = await categorieService.getAllCategories();
+        if (categoriesResponse && Array.isArray(categoriesResponse.data)) {
+          setCategories(categoriesResponse.data);
+        }
+
+        const instructorsResponse = await instructorService.getAllInstructors();
+        if (instructorsResponse && Array.isArray(instructorsResponse.data)) {
+          setInstructors(instructorsResponse.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch categories or instructors:", error);
+        // Optionally show a toast error here
+      } finally {
+        setLoadingData(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   // Form pour chaque étape
   const step1Form = useForm<Step1BasicInfoData>({
@@ -60,8 +90,8 @@ export function CourseBuilderWizard({ open, onOpenChange, onComplete, defaultVal
       title: defaultValues?.title || "",
       subtitle: defaultValues?.subtitle,
       description: defaultValues?.description || "",
-      category: defaultValues?.category || "",
-      instructor: defaultValues?.instructor || "",
+      category: defaultValues?.category ? String(defaultValues.category) : "", // Ensure it's a string for select value
+      instructor: defaultValues?.instructor ? String(defaultValues.instructor) : "", // Ensure it's a string for select value
       language: defaultValues?.language || "Français",
       level: defaultValues?.level || "Tous niveaux",
     },
@@ -74,7 +104,7 @@ export function CourseBuilderWizard({ open, onOpenChange, onComplete, defaultVal
         id: `structure-${Date.now()}`,
         modules: [],
         totalDuration: "0h 0min",
-        totalChapters: 0,
+        totalLessons: 0,
         totalContentItems: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -302,7 +332,7 @@ export function CourseBuilderWizard({ open, onOpenChange, onComplete, defaultVal
 
         {/* Step Content */}
         <div className="px-6 py-6 min-h-[500px]">
-          {currentStep === "basic-info" && <Step1BasicInfo form={step1Form} />}
+          {currentStep === "basic-info" && <Step1BasicInfo form={step1Form} categories={categories} instructors={instructors} loading={loadingData} />}
           {currentStep === "curriculum" && <Step2Curriculum form={step2Form} />}
           {currentStep === "landing-page" && <Step3LandingPage form={step3Form} />}
           {currentStep === "settings" && <Step4Settings form={step4Form} />}

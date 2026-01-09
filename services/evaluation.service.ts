@@ -21,13 +21,18 @@ export class EvaluationService {
     return null;
   }
 
-  async updateEvaluation(id: number, evaluationData: Partial<Evaluation>): Promise<Evaluation | null> {
-    console.log(`Updating evaluation with ID: ${id}`, evaluationData);
-    return null;
+  async updateEvaluation(id: number, evaluationData: Partial<Evaluation>): Promise<Evaluation> {
+    const response = await fetchApi<any>(`/evaluations/update/${id}`, {
+      method: "PUT",
+      body: evaluationData,
+    });
+    return response.data || response;
   }
 
   async deleteEvaluation(id: number): Promise<void> {
-    console.log(`Deleting evaluation with ID: ${id}`);
+    await fetchApi<any>(`/evaluations/delete/${id}`, {
+      method: "DELETE",
+    });
   }
 }
 

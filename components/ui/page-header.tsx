@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 type PageHeaderProps = {
   title: string
   description?: string
-  action?: {
+  action?: ReactNode | {
     label: string
     onClick: () => void
     icon?: ReactNode
@@ -25,10 +25,14 @@ export function PageHeader({ title, description, action, className }: PageHeader
           {description && <p className="text-muted-foreground mt-2 text-sm leading-relaxed">{description}</p>}
         </div>
         {action && (
-          <Button onClick={action.onClick}>
-            {action.icon || <Plus className="mr-2 h-4 w-4" />}
-            {action.label}
-          </Button>
+          typeof action === 'object' && 'label' in action && 'onClick' in action ? (
+            <Button onClick={action.onClick}>
+              {action.icon || <Plus className="mr-2 h-4 w-4" />}
+              {action.label}
+            </Button>
+          ) : (
+            action
+          )
         )}
       </div>
     </div>

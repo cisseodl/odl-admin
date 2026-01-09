@@ -8,12 +8,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { UseFormReturn } from "react-hook-form"
 import type { Step1BasicInfoData } from "@/lib/validations/course-builder"
 import { BookOpen, User, Tag, Globe, GraduationCap } from "lucide-react"
+import { Categorie } from "@/models";
+import { Instructor } from "@/services/instructor.service";
+import { PageLoader } from "@/components/ui/page-loader";
+
 
 type Step1BasicInfoProps = {
-  form: UseFormReturn<Step1BasicInfoData>
+  form: UseFormReturn<Step1BasicInfoData>;
+  categories: Categorie[];
+  instructors: Instructor[];
+  loading: boolean;
 }
 
-export function Step1BasicInfo({ form }: Step1BasicInfoProps) {
+export function Step1BasicInfo({ form, categories, instructors, loading }: Step1BasicInfoProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -94,19 +101,23 @@ export function Step1BasicInfo({ form }: Step1BasicInfoProps) {
               <Select
                 value={form.watch("category")}
                 onValueChange={(value) => form.setValue("category", value)}
+                disabled={loading}
               >
                 <SelectTrigger id="category" className={form.formState.errors.category ? "border-destructive" : ""}>
-                  <SelectValue placeholder="Sélectionner une catégorie" />
+                  <SelectValue placeholder={loading ? "Chargement..." : "Sélectionner une catégorie"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Développement Web">Développement Web</SelectItem>
-                  <SelectItem value="Backend">Backend</SelectItem>
-                  <SelectItem value="Data Science">Data Science</SelectItem>
-                  <SelectItem value="Mobile">Mobile</SelectItem>
-                  <SelectItem value="DevOps">DevOps</SelectItem>
-                  <SelectItem value="Design">Design</SelectItem>
-                  <SelectItem value="Marketing">Marketing</SelectItem>
-                  <SelectItem value="Business">Business</SelectItem>
+                  {loading ? (
+                    <SelectItem value="loading-state" disabled>Chargement...</SelectItem>
+                  ) : categories.length === 0 ? (
+                    <SelectItem value="no-categories" disabled>Aucune catégorie disponible</SelectItem>
+                  ) : (
+                    categories.map((category) => (
+                      <SelectItem key={category.id} value={String(category.id)}>
+                        {category.title}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               {form.formState.errors.category && (
@@ -163,19 +174,35 @@ export function Step1BasicInfo({ form }: Step1BasicInfoProps) {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <User className="h-4 w-4" />
-            Instructeur
+            Formateur
           </CardTitle>
           <CardDescription>Qui enseigne cette formation ?</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <Label htmlFor="instructor">Instructeur *</Label>
-            <Input
-              id="instructor"
-              {...form.register("instructor")}
-              placeholder="Nom de l'instructeur"
-              className={form.formState.errors.instructor ? "border-destructive" : ""}
-            />
+            <Label htmlFor="instructor">Formateur *</Label>
+            <Select
+                value={form.watch("instructor")}
+                onValueChange={(value) => form.setValue("instructor", value)}
+                disabled={loading}
+              >
+                <SelectTrigger id="instructor" className={form.formState.errors.instructor ? "border-destructive" : ""}>
+                  <SelectValue placeholder={loading ? "Chargement..." : "Sélectionner un formateur"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {loading ? (
+                    <SelectItem value="loading-state" disabled>Chargement...</SelectItem>
+                  ) : instructors.length === 0 ? (
+                    <SelectItem value="no-instructors" disabled>Aucun formateur disponible</SelectItem>
+                  ) : (
+                    instructors.map((instructor) => (
+                      <SelectItem key={instructor.id} value={String(instructor.id)}>
+                        {instructor.fullName}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
             {form.formState.errors.instructor && (
               <p className="text-sm text-destructive">{form.formState.errors.instructor.message}</p>
             )}

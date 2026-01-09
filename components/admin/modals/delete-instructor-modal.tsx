@@ -39,9 +39,9 @@ export function DeleteInstructorModal({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer cet instructeur ?</AlertDialogTitle>
+          <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer ce formateur ?</AlertDialogTitle>
           <AlertDialogDescription>
-            Cette action est irréversible. L'instructeur <span className="font-semibold">{instructor.name}</span> (
+            Cette action est irréversible. Le formateur <span className="font-semibold">{instructor.name}</span> (
             {instructor.email}) sera définitivement supprimé de la plateforme.
           </AlertDialogDescription>
         </AlertDialogHeader>

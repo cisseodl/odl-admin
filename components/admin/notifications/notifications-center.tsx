@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { NotificationItem } from "./notification-item"
 import { NotificationStats } from "./notification-stats"
 import { NotificationPreferences } from "./notification-preferences"
-import { NotificationService } from "@/lib/notifications/notification-service"
+import { notificationsService } from "@/services/notifications.service"
+import { useToast } from "@/hooks/use-toast"
 import type { Notification, NotificationType } from "@/types/notifications"
 import { Bell, CheckCheck, Archive, Trash2, Download, Filter, X, Calendar } from "lucide-react"
 import { useSearch } from "@/hooks/use-search"
@@ -24,78 +25,42 @@ export function NotificationsCenter() {
   const [sortBy, setSortBy] = useState<SortOption>("newest")
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [showPreferences, setShowPreferences] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const { toast } = useToast()
 
-  const loadNotifications = () => {
-    const allNotifications = NotificationService.getAllNotifications()
-    setNotifications(allNotifications)
+  const loadNotifications = async () => {
+    try {
+      setIsLoading(true)
+      const apiNotifications = await notificationsService.getAllNotifications()
+      
+      // Convertir les notifications de l'API au format attendu par le composant
+      const formattedNotifications: Notification[] = apiNotifications.map((apiNotif: any) => ({
+        id: apiNotif.id,
+        type: (apiNotif.type?.toLowerCase() || "alert") as NotificationType,
+        title: apiNotif.message || "Notification", // Le backend n'a pas de title séparé, utiliser message
+        message: apiNotif.message || "",
+        status: apiNotif.isRead ? "read" : apiNotif.isArchived ? "archived" : "unread",
+        createdAt: apiNotif.createdAt || new Date().toISOString(),
+        actionUrl: apiNotif.link || undefined,
+        actionLabel: apiNotif.link ? "Voir" : undefined,
+        metadata: {},
+      }))
+      
+      setNotifications(formattedNotifications)
+    } catch (error: any) {
+      console.error("Error loading notifications:", error)
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de charger les notifications.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  // Initialiser avec des données de démonstration
   useEffect(() => {
-    const existing = NotificationService.getAllNotifications()
-    if (existing.length === 0) {
-      // Créer des notifications de démonstration avec un délai pour éviter les IDs dupliqués
-      const demoNotifications: Omit<Notification, "id" | "createdAt" | "status">[] = [
-        {
-          type: "moderation",
-          title: "Nouveau contenu à modérer",
-          message: "Un nouveau contenu vidéo nécessite votre validation",
-          actionUrl: "/admin/moderation",
-          actionLabel: "Voir le contenu",
-          metadata: { contentId: 123 },
-        },
-        {
-          type: "registration",
-          title: "Nouvelle inscription d'instructeur",
-          message: "Alexandre Moreau a soumis une demande d'inscription en tant qu'instructeur",
-          actionUrl: "/admin/moderation?tab=instructors",
-          actionLabel: "Examiner la demande",
-          metadata: { userId: 456 },
-        },
-        {
-          type: "alert",
-          title: "Alerte système - Stockage",
-          message: "L'espace de stockage atteint 85% de sa capacité. Pensez à nettoyer les fichiers inutilisés.",
-          actionUrl: "/admin/settings",
-          actionLabel: "Gérer le stockage",
-        },
-        {
-          type: "announcement",
-          title: "Nouvelle annonce publiée",
-          message: "L'annonce 'Nouvelle formation React disponible' a été envoyée à 1,234 utilisateurs",
-          actionUrl: "/admin/announcements",
-          actionLabel: "Voir l'annonce",
-        },
-        {
-          type: "moderation",
-          title: "Avis en attente de modération",
-          message: "3 nouveaux avis nécessitent votre attention",
-          actionUrl: "/admin/moderation?tab=reviews",
-          actionLabel: "Modérer les avis",
-        },
-        {
-          type: "registration",
-          title: "Nouvel utilisateur inscrit",
-          message: "Marie Dubois vient de s'inscrire sur la plateforme",
-          actionUrl: "/admin/users",
-          actionLabel: "Voir le profil",
-        },
-      ]
-
-      // Créer les notifications avec un délai pour garantir des IDs uniques
-      demoNotifications.forEach((notif, index) => {
-        setTimeout(() => {
-          NotificationService.createNotification(notif)
-          // Recharger après la dernière notification
-          if (index === demoNotifications.length - 1) {
-            setTimeout(loadNotifications, 100)
-          }
-        }, index * 10) // 10ms entre chaque création
-      })
-    } else {
-      loadNotifications()
-    }
-
+    loadNotifications()
     // Polling toutes les 30 secondes
     const interval = setInterval(loadNotifications, 30000)
     return () => clearInterval(interval)
@@ -138,58 +103,119 @@ export function NotificationsCenter() {
   const unreadCount = notifications.filter((n) => n.status === "unread").length
   const archivedCount = notifications.filter((n) => n.status === "archived").length
 
-  const handleMarkAsRead = (id: number) => {
-    NotificationService.markAsRead(id)
-    loadNotifications()
-    setSelectedIds((prev) => {
-      const next = new Set(prev)
-      next.delete(id)
-      return next
-    })
+  const handleMarkAsRead = async (id: number) => {
+    try {
+      await notificationsService.markNotificationAsRead(id)
+      await loadNotifications()
+      setSelectedIds((prev) => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+      toast({
+        title: "Succès",
+        description: "Notification marquée comme lue.",
+      })
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de marquer la notification comme lue.",
+        variant: "destructive",
+      })
+    }
   }
 
-  const handleMarkAllAsRead = () => {
-    NotificationService.markAllAsRead()
-    loadNotifications()
-    setSelectedIds(new Set())
+  const handleMarkAllAsRead = async () => {
+    try {
+      await notificationsService.markAllNotificationsAsRead()
+      await loadNotifications()
+      setSelectedIds(new Set())
+      toast({
+        title: "Succès",
+        description: "Toutes les notifications ont été marquées comme lues.",
+      })
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de marquer toutes les notifications comme lues.",
+        variant: "destructive",
+      })
+    }
   }
 
-  const handleArchive = (id: number) => {
-    NotificationService.archiveNotification(id)
-    loadNotifications()
-    setSelectedIds((prev) => {
-      const next = new Set(prev)
-      next.delete(id)
-      return next
-    })
+  const handleArchive = async (id: number) => {
+    try {
+      await notificationsService.archiveNotification(id)
+      await loadNotifications()
+      setSelectedIds((prev) => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+      toast({
+        title: "Succès",
+        description: "Notification archivée.",
+      })
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible d'archiver la notification.",
+        variant: "destructive",
+      })
+    }
   }
 
-  const handleDelete = (id: number) => {
-    NotificationService.deleteNotification(id)
-    loadNotifications()
-    setSelectedIds((prev) => {
-      const next = new Set(prev)
-      next.delete(id)
-      return next
-    })
+  const handleDelete = async (id: number) => {
+    try {
+      await notificationsService.deleteNotification(id)
+      await loadNotifications()
+      setSelectedIds((prev) => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+      toast({
+        title: "Succès",
+        description: "Notification supprimée.",
+      })
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de supprimer la notification.",
+        variant: "destructive",
+      })
+    }
   }
 
-  const handleBulkAction = (action: "read" | "archive" | "delete") => {
-    selectedIds.forEach((id) => {
-      switch (action) {
-        case "read":
-          NotificationService.markAsRead(id)
-          break
-        case "archive":
-          NotificationService.archiveNotification(id)
-          break
-        case "delete":
-          NotificationService.deleteNotification(id)
-          break
-      }
-    })
-    loadNotifications()
-    setSelectedIds(new Set())
+  const handleBulkAction = async (action: "read" | "archive" | "delete") => {
+    const count = selectedIds.size
+    if (count === 0) return
+    
+    try {
+      const promises = Array.from(selectedIds).map((id) => {
+        switch (action) {
+          case "read":
+            return notificationsService.markNotificationAsRead(id)
+          case "archive":
+            return notificationsService.archiveNotification(id)
+          case "delete":
+            return notificationsService.deleteNotification(id)
+        }
+      })
+      await Promise.all(promises)
+      await loadNotifications()
+      setSelectedIds(new Set())
+      toast({
+        title: "Succès",
+        description: `Action "${action}" effectuée sur ${count} notification(s).`,
+      })
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || `Impossible d'effectuer l'action "${action}".`,
+        variant: "destructive",
+      })
+    }
   }
 
   const toggleSelection = (id: number) => {
@@ -240,6 +266,17 @@ export function NotificationsCenter() {
   }
 
   const hasActiveFilters = filter !== "all" || statusFilter !== "all" || searchQuery.length > 0
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[rgb(255,102,0)] mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Chargement des notifications...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">

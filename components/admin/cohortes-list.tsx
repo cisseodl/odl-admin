@@ -109,17 +109,18 @@ export function CohortesList() {
     setError(null);
     if (editModal.selectedItem) {
       try {
-        const updatedCohorteData: Partial<Cohorte> = {
+        const updatedCohorteData: Cohorte = {
+          id: editModal.selectedItem.id,
           nom: data.nom,
           description: data.description,
-          dateDebut: data.dateDebut, // Already ISO string from form
-          dateFin: data.dateFin,     // Already ISO string from form
-          activate: editModal.selectedItem.status !== "Terminée", // Assuming activate based on existing status
+          dateDebut: data.dateDebut,
+          dateFin: data.dateFin,
+          activate: editModal.selectedItem.status !== "Terminée",
         };
-        await cohorteService.updateCohorte(editModal.selectedItem.id, updatedCohorteData);
+        await cohorteService.updateCohorte(updatedCohorteData);
         setCohortes((prev) =>
           prev.map((cohorte) =>
-            cohorte.id === editModal.selectedItem!.id ? { ...cohorte, ...mapCohorteToCohorteDisplay({ ...updatedCohorteData, id: cohorte.id } as Cohorte) } : cohorte
+            cohorte.id === editModal.selectedItem!.id ? { ...cohorte, ...mapCohorteToCohorteDisplay(updatedCohorteData) } : cohorte
           )
         );
         editModal.close();
@@ -130,15 +131,17 @@ export function CohortesList() {
     }
   };
 
-  const handleDeleteCohorte = async (id: number) => {
+  const handleDeleteCohorte = async () => {
     setError(null);
-    try {
-      await cohorteService.deleteCohorte(id);
-      setCohortes((prev) => prev.filter((cohorte) => cohorte.id !== id));
-      deleteModal.close();
-    } catch (err: any) {
-      setError(err.message || "Failed to delete cohorte.");
-      console.error("Error deleting cohorte:", err);
+    if (deleteModal.selectedItem) {
+      try {
+        await cohorteService.deleteCohorte(deleteModal.selectedItem.id);
+        setCohortes((prev) => prev.filter((cohorte) => cohorte.id !== deleteModal.selectedItem!.id));
+        deleteModal.close();
+      } catch (err: any) {
+        setError(err.message || "Failed to delete cohorte.");
+        console.error("Error deleting cohorte:", err);
+      }
     }
   };
 
@@ -284,7 +287,7 @@ export function CohortesList() {
       <ConfirmDialog
         open={deleteModal.isOpen}
         onOpenChange={(open) => !open && deleteModal.close()}
-        onConfirm={() => handleDeleteCohorte(deleteModal.selectedItem?.id || 0)}
+        onConfirm={handleDeleteCohorte}
         title="Supprimer la cohorte"
         description={`Êtes-vous sûr de vouloir supprimer ${deleteModal.selectedItem?.nom} ? Cette action est irréversible.`}
         confirmText="Supprimer"

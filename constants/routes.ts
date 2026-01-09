@@ -35,17 +35,12 @@ export const adminRoutes: Route[] = [
     href: "/admin/users", // Parent route can still point to a general users list
     children: [
       {
-        label: "Tous les utilisateurs",
-        icon: Users,
-        href: "/admin/users",
-      },
-      {
         label: "Apprenants",
         icon: Users, // Or another icon
         href: "/admin/users/apprenants",
       },
       {
-        label: "Instructeurs",
+        label: "Formateurs",
         icon: GraduationCap,
         href: "/admin/users/instructeurs",
       },

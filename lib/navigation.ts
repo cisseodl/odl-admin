@@ -17,6 +17,7 @@ export function getDashboardUrl(role: UserRole): string {
  */
 export function redirectToDashboard(role: UserRole, router: { push: (url: string) => void }): void {
   const url = getDashboardUrl(role)
+  console.log("Redirecting user with role:", role, "to URL:", url);
   router.push(url)
 }
 

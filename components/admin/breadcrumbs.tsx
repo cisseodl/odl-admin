@@ -9,7 +9,7 @@ const routeLabels: Record<string, string> = {
   "/admin": "Tableau de bord",
   "/admin/users": "Utilisateurs",
   "/admin/courses": "Formations",
-  "/admin/instructors": "Instructeurs",
+  "/admin/instructors": "Formateurs",
   "/admin/categories": "Catégories",
   "/admin/certifications": "Certifications",
   "/admin/analytics": "Statistiques",

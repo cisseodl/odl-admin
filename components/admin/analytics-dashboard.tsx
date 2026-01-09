@@ -19,29 +19,56 @@ import {
   Printer, // Import Printer icon
 } from "lucide-react"
 import { Button } from "@/components/ui/button" // Import Button component
+import { useEffect, useState, useMemo } from "react" // Import hooks
+import { analyticsService, type AnalyticsMetrics } from "@/services/analytics.service" // Import service
+import { PageLoader } from "@/components/ui/page-loader" // Import PageLoader
 
 export function AnalyticsDashboard() {
+  const [analyticsMetricsData, setAnalyticsMetricsData] = useState<AnalyticsMetrics | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchAnalyticsMetrics = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const data = await analyticsService.getAnalyticsMetrics()
+        setAnalyticsMetricsData(data)
+      } catch (err: any) {
+        setError(err.message || "Impossible de charger les métriques analytics.")
+        console.error("Error fetching analytics metrics:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchAnalyticsMetrics()
+  }, [])
+
   const handlePrint = () => {
     window.print()
   }
 
-  // Métriques spécifiques à l'analytics (différentes du dashboard principal)
-  const analyticsMetrics = [
-    {
-      title: "Note moyenne",
-      value: "4.7/5",
-      change: "Basé sur 1,234 avis",
-      icon: Star,
-      color: "text-[hsl(var(--warning))]",
-    },
-    {
-      title: "Taux d'engagement",
-      value: "82.5%",
-      change: "+3.1%",
-      icon: TrendingUp,
-      color: "text-[hsl(var(--warning))]",
-    },
-  ]
+  // Métriques spécifiques à l'analytics (dynamiques depuis le backend)
+  const analyticsMetrics = useMemo(() => {
+    if (!analyticsMetricsData) return []
+    return [
+      {
+        title: "Note moyenne",
+        value: `${analyticsMetricsData.averageRating.toFixed(1)}/5`,
+        change: `Basé sur ${analyticsMetricsData.totalReviews.toLocaleString("fr-FR")} avis`,
+        icon: Star,
+        color: "text-[hsl(var(--warning))]",
+      },
+      {
+        title: "Taux d'engagement",
+        value: `${analyticsMetricsData.engagementRate.toFixed(1)}%`,
+        change: `${analyticsMetricsData.activeUsers.toLocaleString("fr-FR")} utilisateurs actifs sur ${analyticsMetricsData.totalUsers.toLocaleString("fr-FR")}`,
+        icon: TrendingUp,
+        color: "text-[hsl(var(--warning))]",
+      },
+    ]
+  }, [analyticsMetricsData])
 
   return (
     <div className="space-y-6">
@@ -53,18 +80,24 @@ export function AnalyticsDashboard() {
       </div>
 
       {/* Métriques Analytics - Spécifiques à cette page */}
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
-        {analyticsMetrics.map((metric) => (
-          <StatCard
-            key={metric.title}
-            title={metric.title}
-            value={metric.value}
-            change={metric.change}
-            icon={metric.icon}
-            color={metric.color}
-          />
-        ))}
-      </div>
+      {loading ? (
+        <PageLoader />
+      ) : error ? (
+        <div className="text-center text-destructive p-4">{error}</div>
+      ) : (
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
+          {analyticsMetrics.map((metric) => (
+            <StatCard
+              key={metric.title}
+              title={metric.title}
+              value={metric.value}
+              change={metric.change}
+              icon={metric.icon}
+              color={metric.color}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Graphiques principaux */}
       <div className="grid gap-6 lg:grid-cols-2">
@@ -108,23 +141,29 @@ export function AnalyticsDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="p-6 rounded-lg border shadow-sm bg-card">
-                  <p className="text-sm text-muted-foreground mb-2 leading-relaxed">Temps moyen par session</p>
-                  <p className="text-3xl font-bold leading-tight">24 min</p>
-                  <p className="text-xs text-muted-foreground mt-2">+2.5% vs mois dernier</p>
+              {loading ? (
+                <PageLoader />
+              ) : error ? (
+                <div className="text-center text-destructive p-4">{error}</div>
+              ) : analyticsMetricsData ? (
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="p-6 rounded-lg border shadow-sm bg-card">
+                    <p className="text-sm text-muted-foreground mb-2 leading-relaxed">Temps moyen par session</p>
+                    <p className="text-3xl font-bold leading-tight">{Math.round(analyticsMetricsData.averageSessionTimeMinutes)} min</p>
+                    <p className="text-xs text-muted-foreground mt-2">Approximation basée sur l'activité</p>
+                  </div>
+                  <div className="p-6 rounded-lg border shadow-sm bg-card">
+                    <p className="text-sm text-muted-foreground mb-2 leading-relaxed">Sessions actives</p>
+                    <p className="text-3xl font-bold leading-tight">{analyticsMetricsData.activeSessions.toLocaleString("fr-FR")}</p>
+                    <p className="text-xs text-muted-foreground mt-2">7 derniers jours</p>
+                  </div>
+                  <div className="p-6 rounded-lg border shadow-sm bg-card">
+                    <p className="text-sm text-muted-foreground mb-2 leading-relaxed">Taux d'interaction</p>
+                    <p className="text-3xl font-bold leading-tight">{analyticsMetricsData.interactionRate.toFixed(1)}%</p>
+                    <p className="text-xs text-muted-foreground mt-2">Utilisateurs avec progression</p>
+                  </div>
                 </div>
-                <div className="p-6 rounded-lg border shadow-sm bg-card">
-                  <p className="text-sm text-muted-foreground mb-2 leading-relaxed">Sessions actives</p>
-                  <p className="text-3xl font-bold leading-tight">1,234</p>
-                  <p className="text-xs text-muted-foreground mt-2">+156 ce mois</p>
-                </div>
-                <div className="p-6 rounded-lg border shadow-sm bg-card">
-                  <p className="text-sm text-muted-foreground mb-2 leading-relaxed">Taux d'interaction</p>
-                  <p className="text-3xl font-bold leading-tight">68.5%</p>
-                  <p className="text-xs text-muted-foreground mt-2">+4.2% vs mois dernier</p>
-                </div>
-              </div>
+              ) : null}
             </CardContent>
           </Card>
         </TabsContent>

@@ -76,7 +76,7 @@ export function EditCourseModal({ open, onOpenChange, course, onUpdateCourse }: 
               <Input id="edit-title" value={title} onChange={(e) => setTitle(e.target.value)} required />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="edit-instructor">Instructeur</Label>
+              <Label htmlFor="edit-instructor">Formateur</Label>
               <Input id="edit-instructor" value={instructor} onChange={(e) => setInstructor(e.target.value)} required />
             </div>
             <div className="grid grid-cols-2 gap-4">

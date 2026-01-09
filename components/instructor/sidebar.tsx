@@ -41,15 +41,15 @@ export function InstructorSidebar() {
         <div className="flex h-full flex-col">
           <div className="flex h-16 items-center justify-center border-b px-6">
             <Link href="/instructor" className="flex items-center justify-center">
-              <Image 
-                src="/logo.png" 
-                alt="Logo E-Learning" 
-                width={120} 
-                height={40} 
-                className="h-10 w-auto object-contain"
-                priority
-              />
-            </Link>
+                                          <Image
+                                            src="/logo.png"
+                                            alt="Logo E-Learning"
+                                            width={120}
+                                            height={40}
+                                            className="h-10 w-auto object-contain"
+                                            priority
+                                            unoptimized
+                                          />            </Link>
           </div>
 
           <ScrollArea className="flex-1 px-3 py-4">

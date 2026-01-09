@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react" // Added useEffect
 import { PageHeader } from "@/components/ui/page-header"
 import { SearchBar } from "@/components/ui/search-bar"
 import { DataTable } from "@/components/ui/data-table"
@@ -19,104 +19,109 @@ import { Badge as BadgeComponent } from "@/components/ui/badge"
 import type { Badge, BadgeAward } from "@/types/gamification"
 import type { BadgeFormData } from "@/lib/validations/badge"
 
+import { gamificationService } from "@/services"; // Import gamificationService
+import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
+
+
 export default function BadgesPage() {
   const addModal = useModal<Badge>()
   const viewModal = useModal<Badge>()
   const editModal = useModal<Badge>()
   const deleteModal = useModal<Badge>()
 
-  const [badges, setBadges] = useState<Badge[]>([
-    {
-      id: 1,
-      name: "Premier Pas",
-      description: "Complétez votre première formation",
-      type: "completion",
-      icon: "🎯",
-      color: "bg-blue-500",
-      criteria: {
-        type: "completion",
-        minCourses: 1,
-      },
-      enabled: true,
-      createdAt: "2024-01-15T10:00:00Z",
-      awardedCount: 1250,
-    },
-    {
-      id: 2,
-      name: "Expert",
-      description: "Obtenez un score de 90% ou plus",
-      type: "score",
-      icon: "⭐",
-      color: "bg-yellow-500",
-      criteria: {
-        type: "score",
-        minScore: 90,
-      },
-      enabled: true,
-      createdAt: "2024-01-15T10:00:00Z",
-      awardedCount: 450,
-    },
-    {
-      id: 3,
-      name: "Assidu",
-      description: "Connectez-vous 30 jours consécutifs",
-      type: "streak",
-      icon: "🔥",
-      color: "bg-orange-500",
-      criteria: {
-        type: "streak",
-        consecutiveDays: 30,
-      },
-      enabled: true,
-      createdAt: "2024-01-15T10:00:00Z",
-      awardedCount: 320,
-    },
-  ])
+  const [badges, setBadges] = useState<Badge[]>([]); // Initialiser vide
+  const [awards, setAwards] = useState<BadgeAward[]>([]); // Initialiser vide pour les awards
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Données simulées pour les statistiques
-  const [awards] = useState<BadgeAward[]>([
-    { id: 1, badgeId: 1, userId: 1, awardedAt: "2024-01-20T10:00:00Z" },
-    { id: 2, badgeId: 2, userId: 2, awardedAt: "2024-01-21T10:00:00Z" },
-    { id: 3, badgeId: 1, userId: 3, awardedAt: "2024-01-22T10:00:00Z" },
-  ])
+  useEffect(() => {
+    const fetchBadgesData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const fetchedBadges = await gamificationService.getAllBadges();
+        const fetchedAwards = await gamificationService.getBadgeAwards();
+        setBadges(fetchedBadges);
+        setAwards(fetchedAwards);
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch badges data.");
+        console.error("Error fetching badges data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBadgesData();
+  }, []); // Exécuter une fois au montage
 
-  const handleAddBadge = (data: BadgeFormData) => {
-    const newBadge: Badge = {
-      id: badges.length + 1,
-      ...data,
-      criteria: {
-        ...data.criteria,
+  const handleAddBadge = async (data: BadgeFormData) => {
+    setError(null);
+    try {
+      // Les champs id, createdAt, awardedCount sont gérés par le backend
+      const newBadge: Omit<Badge, 'id' | 'createdAt' | 'awardedCount'> = {
+        name: data.name,
+        description: data.description,
         type: data.type,
-      },
-      createdAt: new Date().toISOString(),
-      awardedCount: 0,
+        icon: data.icon,
+        color: data.color,
+        criteria: {
+          ...data.criteria,
+          type: data.type, // Ensure criteria type matches badge type
+        },
+        enabled: data.enabled,
+      };
+      const createdBadge = await gamificationService.createBadge(newBadge);
+      setBadges((prev) => [...prev, createdBadge]);
+      addModal.close();
+    } catch (err: any) {
+      setError(err.message || "Failed to add badge.");
+      console.error("Error adding badge:", err);
     }
-    setBadges([...badges, newBadge])
   }
 
-  const handleUpdateBadge = (data: BadgeFormData) => {
+  const handleUpdateBadge = async (data: BadgeFormData) => {
+    setError(null);
     if (editModal.selectedItem) {
-      setBadges(
-        badges.map((badge) =>
-          badge.id === editModal.selectedItem!.id
-            ? {
-                ...badge,
-                ...data,
-                criteria: {
-                  ...data.criteria,
-                  type: data.type,
-                },
-                updatedAt: new Date().toISOString(),
-              }
-            : badge
-        )
-      )
+      try {
+        const updatedBadgeData: Partial<Badge> = {
+          name: data.name,
+          description: data.description,
+          type: data.type,
+          icon: data.icon,
+          color: data.color,
+          criteria: {
+            ...data.criteria,
+            type: data.type,
+          },
+          enabled: data.enabled,
+          // createdAt et awardedCount ne sont pas mis à jour par le formulaire d'édition
+        };
+        const updatedBadge = await gamificationService.updateBadge(editModal.selectedItem.id, updatedBadgeData);
+        setBadges((prev) =>
+          prev.map((badge) =>
+            badge.id === editModal.selectedItem!.id
+              ? updatedBadge
+              : badge
+          )
+        );
+        editModal.close();
+      } catch (err: any) {
+        setError(err.message || "Failed to update badge.");
+        console.error("Error updating badge:", err);
+      }
     }
   }
 
-  const handleDeleteBadge = () => {
+  const handleDeleteBadge = async () => {
+    setError(null);
     if (deleteModal.selectedItem) {
-      setBadges(badges.filter((badge) => badge.id !== deleteModal.selectedItem!.id))
+      try {
+        await gamificationService.deleteBadge(deleteModal.selectedItem.id);
+        setBadges((prev) => prev.filter((badge) => badge.id !== deleteModal.selectedItem!.id));
+        deleteModal.close();
+      } catch (err: any) {
+        setError(err.message || "Failed to delete badge.");
+        console.error("Error deleting badge:", err);
+      }
     }
   }
 
@@ -257,16 +262,28 @@ export default function BadgesPage() {
           }}
         />
 
-        <BadgeStats badges={badges} awards={awards} totalUsers={12543} />
+        {loading ? (
+            <PageLoader />
+        ) : error ? (
+            <div className="text-center text-destructive p-4">{error}</div>
+        ) : (
+            <>
+                <BadgeStats badges={badges} awards={awards} totalUsers={12543} /> {/* totalUsers reste statique */}
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="mb-4">
-              <SearchBar placeholder="Rechercher un badge..." value={searchQuery} onChange={setSearchQuery} />
-            </div>
-            <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
-          </CardContent>
-        </Card>
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="mb-4">
+                            <SearchBar placeholder="Rechercher un badge..." value={searchQuery} onChange={setSearchQuery} />
+                        </div>
+                        {badges.length === 0 ? (
+                            <div className="text-center text-muted-foreground p-4">Aucun badge trouvé.</div>
+                        ) : (
+                            <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
+                        )}
+                    </CardContent>
+                </Card>
+            </>
+        )}
       </div>
 
       <BadgeFormModal
@@ -339,4 +356,3 @@ export default function BadgesPage() {
     </>
   )
 }
-

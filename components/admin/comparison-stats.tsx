@@ -3,6 +3,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { TrendingUp, TrendingDown, Minus } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useEffect, useState, useMemo } from "react"; // Ajout de useEffect, useState, useMemo
+import { analyticsService, OverallComparisonStats } from "@/services/analytics.service"; // Corrected Import service et type
+import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
 
 type ComparisonMetric = {
   label: string
@@ -12,14 +15,34 @@ type ComparisonMetric = {
   format?: "number" | "currency" | "percentage"
 }
 
-type ComparisonStatsProps = {
+interface ComparisonStatsProps {
   title?: string
   description?: string
-  period?: "month" | "year"
-  metrics: ComparisonMetric[]
+  // Removed period, timeFilter, startDate, endDate from props
 }
 
-export function ComparisonStats({ title = "Comparaison", description, period = "month", metrics }: ComparisonStatsProps) {
+export function ComparisonStats({ title = "Comparaison", description }: ComparisonStatsProps) { // Removed period, timeFilter, startDate, endDate
+  const [statsData, setStatsData] = useState<OverallComparisonStats | null>(null); // Corrected type
+  const [loading, setLoading] = useState(true);
+  const [error, setError, ] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchComparisonStats = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const fetchedData = await analyticsService.getComparisonStats(); // Removed arguments
+        setStatsData(fetchedData);
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch comparison stats data.");
+        console.error("Error fetching comparison stats data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchComparisonStats();
+  }, []); // Empty dependency array as period and timeFilter are no longer props
+
   const formatValue = (value: number | string, format?: string, unit?: string) => {
     if (typeof value === "string") return value
 
@@ -47,7 +70,52 @@ export function ComparisonStats({ title = "Comparaison", description, period = "
     return { value: change, percentage }
   }
 
-  const periodLabel = period === "month" ? "mois précédent" : "année précédente"
+  const metrics: ComparisonMetric[] = useMemo(() => {
+    if (!statsData) return [];
+
+    return [
+      {
+        label: "Inscriptions",
+        current: statsData.registrationsCurrentPeriod,
+        previous: statsData.registrationsPreviousPeriod,
+        format: "number",
+      },
+      {
+        label: "Taux de complétion",
+        current: statsData.completionRateCurrentPeriod,
+        previous: statsData.completionRatePreviousPeriod,
+        format: "percentage",
+      },
+      {
+        label: "Formations créées",
+        current: statsData.coursesCreatedCurrentPeriod,
+        previous: statsData.coursesCreatedPreviousPeriod,
+        format: "number",
+      },
+      {
+        label: "Utilisateurs actifs",
+        current: statsData.activeUsersCurrentPeriod,
+        previous: statsData.activeUsersPreviousPeriod,
+        format: "number",
+      },
+    ];
+  }, [statsData]);
+
+
+  // Removed periodLabel as period is no longer a prop
+  const periodLabel = "période précédente"; // Default label
+
+  if (loading) {
+    return <PageLoader />;
+  }
+
+  if (error) {
+    return <div className="text-center text-destructive p-4">{error}</div>;
+  }
+
+  if (!statsData || metrics.length === 0) {
+    return <div className="text-center text-muted-foreground p-4">Aucune donnée de comparaison disponible pour la période.</div>;
+  }
 
   return (
     <Card>
@@ -59,11 +127,11 @@ export function ComparisonStats({ title = "Comparaison", description, period = "
         <div className="space-y-4">
           {metrics.map((metric, index) => {
             const currentNum = typeof metric.current === "string" ? parseFloat(metric.current.replace(/[^\d.-]/g, "")) : metric.current
-            const previousNum = typeof metric.previous === "string" ? parseFloat(metric.previous.replace(/[^\d.-]/g, "")) : metric.previous
+            const previousNum = typeof metric.previous === "string" ? parseFloat(metric.previous.replace(/[^\d.-]/g, "")) : metric.previous // Corrected line
 
             const { value: changeValue, percentage } = calculateChange(currentNum, previousNum)
-            const isPositive = changeValue > 0
-            const isNeutral = changeValue === 0
+            const isPositive = percentage > 0
+            const isNeutral = percentage === 0
 
             return (
               <div key={index} className="flex items-center justify-between p-4 rounded-lg border shadow-sm bg-card">
@@ -110,10 +178,9 @@ export function ComparisonStats({ title = "Comparaison", description, period = "
           })}
         </div>
         <div className="mt-4 pt-4 border-t text-xs text-muted-foreground text-center">
-          Comparaison avec le {periodLabel}
+          Comparaison avec la {periodLabel}
         </div>
       </CardContent>
     </Card>
   )
 }
-

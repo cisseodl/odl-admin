@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { reviewService, type Review as ApiReview } from "@/services/review.service"
+import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -42,60 +44,56 @@ type Review = {
   date: string
   status: "Approuvé" | "En attente" | "Rejeté"
   avatar?: string
-  rejectionReason?: string // Added for consistency
+  rejectionReason?: string
 }
 
 export function ReviewsList() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedReview, setSelectedReview] = useState<Review | null>(null)
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const { toast } = useToast()
 
   const [showEditModal, setShowEditModal] = useState(false)
-  const [showApproveModal, setShowApproveModal] = useState(false) // Pour la confirmation de validation
-  const [showRejectModal, setShowRejectModal] = useState(false) // Pour la confirmation de rejet avec raison
-  const [showDeleteModal, setShowDeleteModal] = useState(false) // Pour la confirmation de suppression
+  const [showApproveModal, setShowApproveModal] = useState(false)
+  const [showRejectModal, setShowRejectModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [rejectionReason, setRejectionReason] = useState("")
-  // const [approveAction, setApproveAction] = useState<"approve" | "reject">("approve") // Non nécessaire avec des modaux séparés
 
+  useEffect(() => {
+    fetchReviews()
+  }, [])
 
-  const [reviews, setReviews] = useState<Review[]>([
-    {
-      id: 1,
-      user: "Marie Dupont",
-      course: "Formation React Avancé",
-      rating: 5,
-      comment: "Excellente formation, très complète et bien structurée. Je recommande vivement !",
-      date: "15 Jan 2024",
-      status: "Approuvé",
-      avatar: "/diverse-woman-portrait.png",
-    },
-    {
-      id: 2,
-      user: "Jean Martin",
-      course: "Formation Full Stack",
-      rating: 4,
-      comment: "Très bon contenu, mais certains chapitres pourraient être plus détaillés.",
-      date: "12 Jan 2024",
-      status: "Approuvé",
-    },
-    {
-      id: 3,
-      user: "Sophie Bernard",
-      course: "Formation Design UI/UX",
-      rating: 5,
-      comment: "Parfait ! Les exemples pratiques sont très utiles.",
-      date: "10 Jan 2024",
-      status: "En attente",
-    },
-    {
-      id: 4,
-      user: "Pierre Dubois",
-      course: "Formation Data Science",
-      rating: 3,
-      comment: "Le contenu est correct mais manque de profondeur sur certains sujets.",
-      date: "08 Jan 2024",
-      status: "Rejeté",
-    },
-  ])
+  const fetchReviews = async () => {
+    setIsLoading(true)
+    try {
+      const apiReviews = await reviewService.getAllReviews()
+      // Convertir les reviews de l'API au format attendu par le composant
+      const formattedReviews: Review[] = apiReviews.map((apiReview: ApiReview) => ({
+        id: apiReview.id,
+        user: apiReview.user?.fullName || apiReview.user?.email || "Utilisateur inconnu",
+        course: apiReview.course?.title || "Cours inconnu",
+        rating: apiReview.rating || 0,
+        comment: apiReview.comment || "",
+        date: apiReview.createdAt ? new Date(apiReview.createdAt).toLocaleDateString("fr-FR", {
+          day: "numeric",
+          month: "short",
+          year: "numeric"
+        }) : "Date inconnue",
+        status: "Approuvé" as const, // Le backend n'a pas de statut, on considère tout comme approuvé
+      }))
+      setReviews(formattedReviews)
+    } catch (error: any) {
+      console.error("Error fetching reviews:", error)
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de charger les commentaires.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const filteredReviews = reviews.filter(
     (review) =>
@@ -210,7 +208,13 @@ export function ReviewsList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredReviews.length === 0 ? (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8">
+                    Chargement des commentaires...
+                  </TableCell>
+                </TableRow>
+              ) : filteredReviews.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7}>
                     <EmptyState icon={MessageSquare} title="Aucun avis trouvé" description="Aucun avis ne correspond à votre recherche" />

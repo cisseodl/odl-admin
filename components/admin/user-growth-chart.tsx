@@ -1,22 +1,64 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Line, LineChart } from "recharts"
-import { Users, TrendingUp } from "lucide-react"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts"
+import { analyticsService, UserGrowthDataPoint } from "@/services/analytics.service" // Import analyticsService and UserGrowthDataPoint
+import { PageLoader } from "@/components/ui/page-loader" // Import PageLoader
 
 export function UserGrowthChart() {
-  const data = [
-    { month: "Jan", newUsers: 1200, totalUsers: 1200 },
-    { month: "Fév", newUsers: 1500, totalUsers: 2700 },
-    { month: "Mar", newUsers: 1800, totalUsers: 4500 },
-    { month: "Avr", newUsers: 2100, totalUsers: 6600 },
-    { month: "Mai", newUsers: 1900, totalUsers: 8500 },
-    { month: "Juin", newUsers: 2300, totalUsers: 10800 },
-  ]
+  const [data, setData] = useState<UserGrowthDataPoint[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const totalGrowth = ((data[data.length - 1].totalUsers - data[0].totalUsers) / data[0].totalUsers) * 100
-  const averageMonthly = data.reduce((sum, d) => sum + d.newUsers, 0) / data.length
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await analyticsService.getUserGrowthData("6-months"); // Corrected method call and argument
+        setData(result);
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch user growth data.");
+        console.error("Error fetching user growth data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const totalGrowth = data && data.length > 1 ? ((data[data.length - 1].totalUsers - data[0].totalUsers) / data[0].totalUsers) * 100 : 0;
+  const averageMonthly = data && data.length > 0 ? data.reduce((sum, d) => sum + d.newUsers, 0) / data.length : 0;
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>KPI</CardTitle>
+          <CardDescription>Évolution des inscriptions</CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center items-center h-[300px]">
+          <PageLoader />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>KPI</CardTitle>
+          <CardDescription>Évolution des inscriptions</CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center items-center h-[300px] text-destructive">
+          {error}
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -99,4 +141,3 @@ export function UserGrowthChart() {
     </Card>
   )
 }
-

@@ -73,11 +73,11 @@ export function RubriquesList() {
     searchKeys: ["rubrique", "description", "objectifs", "public_cible"],
   });
 
-  const handleAddRubrique = async (data: RubriqueFormData) => {
+  const handleAddRubrique = async (data: RubriqueFormData & { imageFile?: File | undefined }) => { // Mise à jour du type de `data`
     setError(null);
     try {
       const { imageFile, ...rubriqueData } = data; // Separate imageFile from other data
-      const createdRubrique = await rubriqueService.createRubrique(rubriqueData, imageFile && imageFile.length > 0 ? imageFile[0] : undefined);
+      const createdRubrique = await rubriqueService.createRubrique(rubriqueData, imageFile); // imageFile est déjà un File | undefined
       setRubriques((prev) => [...prev, mapApiRubriqueToRubriqueDisplay(createdRubrique)]);
       addModal.close();
     } catch (err: any) {
@@ -86,7 +86,7 @@ export function RubriquesList() {
     }
   };
 
-  const handleUpdateRubrique = async (data: RubriqueFormData) => {
+  const handleUpdateRubrique = async (data: RubriqueFormData & { imageFile?: File | undefined }) => { // Mise à jour du type de `data`
     setError(null);
     if (editModal.selectedItem) {
       try {
@@ -105,7 +105,8 @@ export function RubriquesList() {
 
         const updatedRubrique = await rubriqueService.updateRubrique(
           editModal.selectedItem.id, 
-          payload // Send JSON payload
+          payload, // Send JSON payload
+          imageFile // Passer imageFile
         );
         setRubriques((prev) =>
           prev.map((rubrique) =>
@@ -261,14 +262,13 @@ export function RubriquesList() {
         />
       )}
       
-      {/* Assuming a ViewRubriqueModal is not strictly needed for MVP but can be added */}
-      {/* {viewModal.selectedItem && (
+      {viewModal.selectedItem && (
         <ViewRubriqueModal
           open={viewModal.isOpen}
           onOpenChange={(open) => !open && viewModal.close()}
           rubrique={viewModal.selectedItem}
         />
-      )} */}
+      )}
 
       <ConfirmDialog
         open={deleteModal.isOpen}

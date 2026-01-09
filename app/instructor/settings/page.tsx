@@ -1,4 +1,4 @@
-import { SettingsPanel } from "@/components/admin/settings-panel"
+import { SiteConfigurationForm } from "@/components/admin/settings/site-configuration-form"
 
 export default function InstructorSettingsPage() {
   return (
@@ -7,7 +7,7 @@ export default function InstructorSettingsPage() {
         <h1 className="text-3xl font-bold tracking-tight">Paramètres</h1>
         <p className="text-muted-foreground">Configurez vos paramètres de formateur</p>
       </div>
-      <SettingsPanel />
+      <SiteConfigurationForm />
     </div>
   )
 }

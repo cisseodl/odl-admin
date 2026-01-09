@@ -1,58 +1,51 @@
+// services/rubrique.service.ts
 import { fetchApi } from './api.service';
-
-export interface ApiRubrique {
-  id: number;
-  rubrique: string; // Nom de la rubrique
-  image: string | null; // URL ou chemin de l'image
-  description: string | null; // Description du programme
-  objectifs: string | null; // Objectifs principaux
-  public_cible: string | null; // Public cible
-  duree_format: string | null; // Durée et format de la formation
-  lien_ressources: string | null; // Lien vers site ou ressources
-}
+import { Rubrique } from '@/models/rubrique.model';
 
 export class RubriqueService {
-  async getAllRubriques(): Promise<ApiRubrique[]> {
-    const response = await fetchApi<any>("/rubriques/read", { method: "GET" });
-    if (response && response.data && Array.isArray(response.data)) {
-      return response.data;
-    } else {
-      console.error("API response for /rubriques/read is not in expected format:", response);
-      throw new Error("Invalid API response format for rubriques.");
-    }
+  async getAllRubriques(): Promise<any> {
+    const response = await fetchApi<any>("/api/v1/rubriques/read", { method: "GET" });
+    return response;
   }
 
-  async createRubrique(rubriqueData: Omit<ApiRubrique, 'id'>, imageFile?: File): Promise<ApiRubrique> {
+  async getRubriqueById(id: number): Promise<any> {
+    const response = await fetchApi<any>(`/api/v1/rubriques/read/${id}`, { method: "GET" });
+    return response;
+  }
+
+  async createRubrique(rubriqueData: Omit<Rubrique, 'id'>, imageFile?: File): Promise<any> {
     const formData = new FormData();
     formData.append("rubrique", JSON.stringify(rubriqueData));
     if (imageFile) {
       formData.append("imageFile", imageFile);
     }
 
-    const response = await fetchApi<any>("/rubriques/save", {
+    const response = await fetchApi<any>("/api/v1/rubriques/save", {
       method: "POST",
       body: formData,
     });
-    return response.data || response;
+    return response;
   }
 
-  async updateRubrique(id: number, rubriqueData: Partial<ApiRubrique>, imageFile?: File): Promise<ApiRubrique> {
+  async updateRubrique(id: number, rubriqueData: Partial<Omit<Rubrique, 'id'>>, imageFile?: File): Promise<any> {
     const formData = new FormData();
     formData.append("rubrique", JSON.stringify(rubriqueData));
     if (imageFile) {
       formData.append("imageFile", imageFile);
     }
-    const response = await fetchApi<any>(`/rubriques/update/${id}`, {
+
+    const response = await fetchApi<any>(`/api/v1/rubriques/update/${id}`, {
       method: "PUT",
       body: formData,
     });
-    return response.data || response;
+    return response;
   }
 
-  async deleteRubrique(id: number): Promise<void> {
-    await fetchApi<any>(`/rubriques/delete/${id}`, {
+  async deleteRubrique(id: number): Promise<any> {
+    const response = await fetchApi<any>(`/api/v1/rubriques/delete/${id}`, {
       method: "DELETE",
     });
+    return response;
   }
 }
 

@@ -20,10 +20,10 @@ export class CohorteService {
     return response.data;
   }
 
-  async updateCohorte(id: number, cohorteData: Partial<Cohorte>): Promise<Cohorte> {
-    const response = await fetchApi<any>(`/cohorte/update/${id}`, {
+  async updateCohorte(cohorte: Cohorte): Promise<Cohorte> { // cohorte complète avec ID
+    const response = await fetchApi<any>("/cohorte/update", { // CORRECTION ICI
       method: "PUT",
-      body: cohorteData,
+      body: cohorte, // L'objet cohorte complet avec l'ID
     });
     return response.data;
   }

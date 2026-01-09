@@ -4,17 +4,31 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User, Mail, Calendar, BookOpen, Shield, GraduationCap, CheckCircle2, XCircle, Ban } from "lucide-react"
+import { User, Mail, Calendar, BookOpen, Shield, GraduationCap, CheckCircle2, XCircle, Ban, Briefcase, School, Users, Award, Phone, FileText } from "lucide-react"
+import { Cohorte } from "@/models" // Import Cohorte model
 
 type UserDisplay = {
   id: number;
   name: string;
   email: string;
-  role: "Apprenant" | "Instructeur" | "Admin";
+  role: "Apprenant" | "Formateur" | "Admin";
   status: "Actif" | "Inactif" | "Suspendu";
   joinedDate: string;
-  courses: number;
+  courses: number; // For general users
   avatar?: string;
+  phone?: string; // Phone number
+  // Learner-specific fields
+  filiere?: string;
+  niveauEtude?: string;
+  profession?: string;
+  numero?: string; // Phone for apprenant
+  cohorte?: Cohorte | null;
+  coursesEnrolled?: number;
+  completedCourses?: number;
+  totalCertificates?: number;
+  // Instructor-specific fields
+  biography?: string;
+  specialization?: string;
 };
 
 type ViewUserModalProps = {
@@ -28,7 +42,7 @@ export function ViewUserModal({ open, onOpenChange, user }: ViewUserModalProps) 
     switch (user.role) {
       case "Admin":
         return <Shield className="h-5 w-5 text-primary" />
-      case "Instructeur":
+      case "Formateur":
         return <GraduationCap className="h-5 w-5 text-primary" />
       default:
         return <User className="h-5 w-5 text-[hsl(var(--success))]" />
@@ -61,7 +75,7 @@ export function ViewUserModal({ open, onOpenChange, user }: ViewUserModalProps) 
         <div className="space-y-6">
           <div className="flex items-center gap-2">
             <Badge
-              variant={user.role === "Admin" ? "default" : user.role === "Instructeur" ? "secondary" : "outline"}
+              variant={user.role === "Admin" ? "default" : user.role === "Formateur" ? "secondary" : "outline"}
               className="flex items-center gap-1"
             >
               {getRoleIcon()}
@@ -88,6 +102,15 @@ export function ViewUserModal({ open, onOpenChange, user }: ViewUserModalProps) 
                 <p className="font-medium">{user.email}</p>
               </div>
             </div>
+            {(user.phone || user.numero) && (
+              <div className="flex items-center gap-3">
+                <Phone className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Téléphone</p>
+                  <p className="font-medium">{user.phone || user.numero}</p>
+                </div>
+              </div>
+            )}
             <div className="flex items-center gap-3">
               <Calendar className="h-5 w-5 text-muted-foreground" />
               <div>
@@ -98,7 +121,9 @@ export function ViewUserModal({ open, onOpenChange, user }: ViewUserModalProps) 
             <div className="flex items-center gap-3">
               <BookOpen className="h-5 w-5 text-muted-foreground" />
               <div>
-                <p className="text-sm text-muted-foreground">Formations suivies</p>
+                <p className="text-sm text-muted-foreground">
+                  {user.role === "Formateur" ? "Formations gérées" : user.role === "Admin" ? "Cours gérés" : "Formations suivies"}
+                </p>
                 <p className="font-bold text-lg">{user.courses}</p>
               </div>
             </div>
@@ -111,46 +136,123 @@ export function ViewUserModal({ open, onOpenChange, user }: ViewUserModalProps) 
             </div>
           </div>
 
-          <Separator />
+          {user.role === "Formateur" && (
+            <>
+              <Separator />
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                    <GraduationCap className="h-5 w-5" />
+                    Informations formateur
+                  </h3>
+                  <div className="grid grid-cols-1 gap-4">
+                    {user.specialization && (
+                      <div className="flex items-start gap-3">
+                        <BookOpen className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Spécialisation</p>
+                          <p className="font-medium">{user.specialization}</p>
+                        </div>
+                      </div>
+                    )}
+                    {user.biography && (
+                      <div className="flex items-start gap-3">
+                        <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm text-muted-foreground mb-1">Biographie</p>
+                          <p className="text-sm">{user.biography}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
 
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Informations complémentaires</p>
-            <p className="text-sm text-muted-foreground">
-              {user.role === "Admin"
-                ? "Cet utilisateur a les droits d'administration complets sur la plateforme."
-                : user.role === "Instructeur"
-                  ? "Cet instructeur peut créer et gérer des formations sur la plateforme."
-                  : "Cet apprenant peut suivre des formations et obtenir des certifications."}
-            </p>
-          </div>
+          {user.role === "Admin" && (
+            <>
+              <Separator />
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    Informations administrateur
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center gap-3">
+                      <Shield className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Rôle</p>
+                        <p className="font-medium">Administrateur</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <BookOpen className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Cours gérés</p>
+                        <p className="font-bold text-lg">{user.courses}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
 
           {user.role === "Apprenant" && (
             <>
               <Separator />
-              <div className="space-y-2">
-                <p className="text-sm font-medium flex items-center gap-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-3">
+                  <Briefcase className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Profession</p>
+                    <p className="font-medium">{user.profession || "N/A"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <School className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Niveau d'étude</p>
+                    <p className="font-medium">{user.niveauEtude || "N/A"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
                   <BookOpen className="h-5 w-5 text-muted-foreground" />
-                  Progression des cours
-                </p>
-                <div className="text-sm text-muted-foreground">
-                  {/* Placeholder for course progress */}
-                  <p>API pour la progression des cours non implémentée.</p>
-                  <p>Exemple : "Introduction à React" : 75% complété</p>
-                  <p>Exemple : "Node.js Avancé" : En cours (50%)</p>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Filière</p>
+                    <p className="font-medium">{user.filiere || "N/A"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Users className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Cohorte</p>
+                    <p className="font-medium">{user.cohorte?.nom || "N/A"}</p>
+                  </div>
                 </div>
               </div>
 
               <Separator />
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Actions pour l'apprenant</p>
-                <Button variant="destructive" size="sm" onClick={() => console.log(`Stop course for learner ${user.name}`)}>
-                  <Ban className="h-4 w-4 mr-2" />
-                  Arrêter le cours
-                </Button>
-                <p className="text-xs text-muted-foreground mt-1">
-                  (Cette fonctionnalité est un placeholder. L'API pour arrêter un cours n'est pas implémentée.)
-                </p>
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <BookOpen className="h-6 w-6 text-muted-foreground mx-auto mb-1" />
+                  <p className="text-sm text-muted-foreground">Cours inscrits</p>
+                  <p className="font-bold text-lg">{user.coursesEnrolled ?? 0}</p>
+                </div>
+                <div>
+                  <CheckCircle2 className="h-6 w-6 text-muted-foreground mx-auto mb-1" />
+                  <p className="text-sm text-muted-foreground">Cours complétés</p>
+                  <p className="font-bold text-lg">{user.completedCourses ?? 0}</p>
+                </div>
+                <div>
+                  <Award className="h-6 w-6 text-muted-foreground mx-auto mb-1" />
+                  <p className="text-sm text-muted-foreground">Certificats</p>
+                  <p className="font-bold text-lg">{user.totalCertificates ?? 0}</p>
+                </div>
               </div>
+
             </>
           )}
         </div>

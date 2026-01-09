@@ -1,0 +1,28 @@
+auth-context.tsx:74 Login failed in AuthContext: ReferenceError: rawUser is not defined
+    at AuthProvider.useCallback[login] (auth-context.tsx:60:7)
+    at async onSubmit (page.tsx:48:7)
+page.tsx:54 Login page error: ReferenceError: rawUser is not defined
+    at AuthProvider.useCallback[login] (auth-context.tsx:60:7)
+    at async onSubmit (page.tsx:48:7)
+forward-logs-shared.ts:95 [Fast Refresh] rebuilding
+forward-logs-shared.ts:95 [Fast Refresh] done in 517ms
+auth-context.tsx:58 Logged in user data from authService.signIn: 
+{success: true, user: {…}}
+auth-context.tsx:74 Login failed in AuthContext: ReferenceError: rawUser is not defined
+    at AuthProvider.useCallback[login] (auth-context.tsx:60:7)
+    at async onSubmit (page.tsx:48:7)
+AuthProvider.useCallback[login]	@	auth-context.tsx:74
+await in AuthProvider.useCallback[login]		
+onSubmit	@	page.tsx:48
+<form>		
+LoginPage	@	page.tsx:96
+"use client"		
+Function.all	@	VM2292 <anonymous>:1
+"use server"		
+ProtectedRoute.useEffect	@	protected-route.tsx:23
+
+page.tsx:54 Login page error: ReferenceError: rawUser is not defined
+    at AuthProvider.useCallback[login] (auth-context.tsx:60:7)
+    at async onSubmit (page.tsx:48:7)
+﻿
+

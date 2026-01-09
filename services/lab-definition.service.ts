@@ -10,23 +10,30 @@ export class LabDefinitionService {
   // Other methods (getLabDefinitionById, createLabDefinition, updateLabDefinition, deleteLabDefinition)
   // not explicitly defined in test.md GET section.
   async getLabDefinitionById(id: number): Promise<LabDefinition | null> {
-    console.log(`Fetching labDefinition with ID: ${id}... (No explicit endpoint)`);
-    return null;
+    const response = await fetchApi<any>(`/api/labs/${id}`, { method: "GET" });
+    return response.data;
   }
 
   async createLabDefinition(labDefinition: Omit<LabDefinition, 'id'>): Promise<LabDefinition> {
-    console.log('Creating a new labDefinition...', labDefinition);
-    const newLabDefinition = { id: Math.floor(Math.random() * 1000), ...labDefinition };
-    return newLabDefinition;
+    const response = await fetchApi<any>("/api/labs/", {
+      method: "POST",
+      body: labDefinition,
+    });
+    return response.data;
   }
 
   async updateLabDefinition(id: number, labDefinitionData: Partial<LabDefinition>): Promise<LabDefinition | null> {
-    console.log(`Updating labDefinition with ID: ${id}`, labDefinitionData);
-    return null;
+    const response = await fetchApi<any>(`/api/labs/${id}`, {
+      method: "PUT",
+      body: labDefinitionData,
+    });
+    return response.data || response;
   }
 
   async deleteLabDefinition(id: number): Promise<void> {
-    console.log(`Deleting labDefinition with ID: ${id}`);
+    await fetchApi<any>(`/api/labs/${id}`, {
+      method: "DELETE",
+    });
   }
 }
 

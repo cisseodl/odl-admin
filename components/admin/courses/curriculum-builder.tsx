@@ -8,9 +8,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Plus, GripVertical, Trash2, Edit, ChevronDown, ChevronUp, BookOpen, FileText, Clock } from "lucide-react"
-import type { CourseStructureFormData, ModuleFormData, ChapterFormData } from "@/lib/validations/course-builder"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Plus, GripVertical, Trash2, Edit, ChevronDown, ChevronUp, BookOpen, FileText, Clock, Video, FileQuestion } from "lucide-react"
+import type { CourseStructureFormData, ModuleFormData, LessonFormData } from "@/lib/validations/course-builder"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 type CurriculumBuilderProps = {
   structure: CourseStructureFormData
@@ -19,17 +19,17 @@ type CurriculumBuilderProps = {
 
 export function CurriculumBuilder({ structure, onStructureChange }: CurriculumBuilderProps) {
   const [editingModule, setEditingModule] = useState<string | null>(null)
-  const [editingChapter, setEditingChapter] = useState<{ moduleId: string; chapterId: string } | null>(null)
+  const [editingLesson, setEditingLesson] = useState<{ moduleId: string; lessonId: string } | null>(null)
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set(structure.modules.map((m) => m.id)))
   const [moduleForm, setModuleForm] = useState({ title: "", description: "" })
-  const [chapterForm, setChapterForm] = useState({ title: "", description: "" })
+  const [lessonForm, setLessonForm] = useState<Partial<LessonFormData>>({ title: "", description: "", type: "TEXT", duration: 0, contentUrl: "" })
 
   const addModule = () => {
     const newModule: ModuleFormData = {
       id: `module-${Date.now()}`,
       title: "Nouveau module",
       description: "",
-      chapters: [],
+      lessons: [],
       order: structure.modules.length,
       isPublished: false,
       createdAt: new Date().toISOString(),
@@ -56,16 +56,18 @@ export function CurriculumBuilder({ structure, onStructureChange }: CurriculumBu
     updateStructure({ ...structure, modules: newModules })
   }
 
-  const addChapter = (moduleId: string) => {
+  const addLesson = (moduleId: string) => {
     const module = structure.modules.find((m) => m.id === moduleId)
     if (!module) return
 
-    const newChapter: ChapterFormData = {
-      id: `chapter-${Date.now()}`,
-      title: "Nouveau chapitre",
+    const newLesson: LessonFormData = {
+      id: `lesson-${Date.now()}`,
+      title: "Nouvelle leçon",
       description: "",
-      contentItems: [],
-      order: module.chapters.length,
+      order: module.lessons.length,
+      type: "TEXT",
+      contentUrl: "",
+      duration: 0,
       isPublished: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -75,24 +77,24 @@ export function CurriculumBuilder({ structure, onStructureChange }: CurriculumBu
       m.id === moduleId
         ? {
             ...m,
-            chapters: [...m.chapters, newChapter],
+            lessons: [...m.lessons, newLesson],
             updatedAt: new Date().toISOString(),
           }
         : m
     )
 
     updateStructure({ ...structure, modules: newModules })
-    setEditingChapter({ moduleId, chapterId: newChapter.id })
-    setChapterForm({ title: "Nouveau chapitre", description: "" })
+    setEditingLesson({ moduleId, lessonId: newLesson.id })
+    setLessonForm({ title: "Nouvelle leçon", description: "", type: "TEXT", duration: 0, contentUrl: "" })
   }
 
-  const updateChapter = (moduleId: string, chapterId: string, updates: Partial<ChapterFormData>) => {
+  const updateLesson = (moduleId: string, lessonId: string, updates: Partial<LessonFormData>) => {
     const newModules = structure.modules.map((m) =>
       m.id === moduleId
         ? {
             ...m,
-            chapters: m.chapters.map((c) =>
-              c.id === chapterId ? { ...c, ...updates, updatedAt: new Date().toISOString() } : c
+            lessons: m.lessons.map((l) =>
+              l.id === lessonId ? { ...l, ...updates, updatedAt: new Date().toISOString() } : l
             ),
             updatedAt: new Date().toISOString(),
           }
@@ -101,13 +103,13 @@ export function CurriculumBuilder({ structure, onStructureChange }: CurriculumBu
     updateStructure({ ...structure, modules: newModules })
   }
 
-  const deleteChapter = (moduleId: string, chapterId: string) => {
+  const deleteLesson = (moduleId: string, lessonId: string) => {
     const newModules = structure.modules.map((m) =>
       m.id === moduleId
         ? {
             ...m,
-            chapters: m.chapters.filter((c) => c.id !== chapterId).map((c, index) => ({
-              ...c,
+            lessons: m.lessons.filter((l) => l.id !== lessonId).map((l, index) => ({
+              ...l,
               order: index,
             })),
             updatedAt: new Date().toISOString(),
@@ -130,20 +132,17 @@ export function CurriculumBuilder({ structure, onStructureChange }: CurriculumBu
   }
 
   const updateStructure = (newStructure: CourseStructureFormData) => {
-    // Calculer les totaux
-    const totalChapters = newStructure.modules.reduce((sum, m) => sum + m.chapters.length, 0)
-    const totalContentItems = newStructure.modules.reduce(
-      (sum, m) => sum + m.chapters.reduce((s, c) => s + c.contentItems.length, 0),
-      0
+    const totalLessons = newStructure.modules.reduce((sum, m) => sum + m.lessons.length, 0)
+    const totalDurationMinutes = newStructure.modules.reduce(
+        (sum, m) => sum + m.lessons.reduce((s, l) => s + (l.duration || 0), 0), 0
     )
-
-    // Calculer la durée totale (simplifié - nécessiterait le calcul réel des durées)
-    const totalDuration = `${newStructure.modules.length}h ${totalChapters}min`
+    const hours = Math.floor(totalDurationMinutes / 60);
+    const minutes = totalDurationMinutes % 60;
+    const totalDuration = `${hours}h ${minutes}min`
 
     onStructureChange({
       ...newStructure,
-      totalChapters,
-      totalContentItems,
+      totalLessons,
       totalDuration,
       updatedAt: new Date().toISOString(),
     })
@@ -160,14 +159,11 @@ export function CurriculumBuilder({ structure, onStructureChange }: CurriculumBu
     }
   }
 
-  const saveChapterEdit = () => {
-    if (editingChapter && chapterForm.title.trim()) {
-      updateChapter(editingChapter.moduleId, editingChapter.chapterId, {
-        title: chapterForm.title,
-        description: chapterForm.description,
-      })
-      setEditingChapter(null)
-      setChapterForm({ title: "", description: "" })
+  const saveLessonEdit = () => {
+    if (editingLesson && lessonForm.title?.trim()) {
+      updateLesson(editingLesson.moduleId, editingLesson.lessonId, lessonForm)
+      setEditingLesson(null)
+      setLessonForm({ title: "", description: "", type: "TEXT", duration: 0, contentUrl: "" })
     }
   }
 
@@ -227,7 +223,7 @@ export function CurriculumBuilder({ structure, onStructureChange }: CurriculumBu
                         <div className="flex items-center gap-2">
                           <CardTitle className="text-base">{module.title}</CardTitle>
                           <Badge variant="outline" className="text-xs">
-                            {module.chapters.length} chapitre{module.chapters.length > 1 ? "s" : ""}
+                            {module.lessons.length} leçon{module.lessons.length > 1 ? "s" : ""}
                           </Badge>
                         </div>
                         {module.description && (
@@ -280,23 +276,23 @@ export function CurriculumBuilder({ structure, onStructureChange }: CurriculumBu
             {isExpanded && (
               <CardContent className="pt-0">
                 <div className="space-y-3">
-                  {module.chapters.length === 0 ? (
+                  {module.lessons.length === 0 ? (
                     <div className="text-center py-6 border border-dashed rounded-lg">
                       <FileText className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground mb-4">Aucun chapitre dans ce module</p>
-                      <Button size="sm" variant="outline" onClick={() => addChapter(module.id)}>
+                      <p className="text-sm text-muted-foreground mb-4">Aucune leçon dans ce module</p>
+                      <Button size="sm" variant="outline" onClick={() => addLesson(module.id)}>
                         <Plus className="h-4 w-4 mr-2" />
-                        Ajouter un chapitre
+                        Ajouter une leçon
                       </Button>
                     </div>
                   ) : (
-                    module.chapters.map((chapter, chapterIndex) => {
-                      const isEditingChapter =
-                        editingChapter?.moduleId === module.id && editingChapter?.chapterId === chapter.id
+                    module.lessons.map((lesson, lessonIndex) => {
+                      const isEditingLesson =
+                        editingLesson?.moduleId === module.id && editingLesson?.lessonId === lesson.id
 
                       return (
                         <div
-                          key={chapter.id}
+                          key={lesson.id}
                           className="border rounded-lg p-4 bg-muted/50 hover:bg-muted transition-colors"
                         >
                           <div className="flex items-start justify-between">
@@ -305,38 +301,71 @@ export function CurriculumBuilder({ structure, onStructureChange }: CurriculumBu
                                 variant="ghost"
                                 size="icon"
                                 className="h-6 w-6 cursor-grab active:cursor-grabbing"
-                                aria-label="Réorganiser le chapitre"
+                                aria-label="Réorganiser la leçon"
                               >
                                 <GripVertical className="h-3 w-3 text-muted-foreground" />
                               </Button>
                               <div className="flex-1">
-                                {isEditingChapter ? (
-                                  <div className="space-y-2">
+                                {isEditingLesson ? (
+                                  <div className="space-y-3">
                                     <Input
-                                      value={chapterForm.title}
-                                      onChange={(e) => setChapterForm({ ...chapterForm, title: e.target.value })}
-                                      placeholder="Titre du chapitre"
+                                      value={lessonForm.title}
+                                      onChange={(e) => setLessonForm({ ...lessonForm, title: e.target.value })}
+                                      placeholder="Titre de la leçon"
                                       className="font-medium"
                                       autoFocus
                                     />
                                     <Textarea
-                                      value={chapterForm.description}
+                                      value={lessonForm.description}
                                       onChange={(e) =>
-                                        setChapterForm({ ...chapterForm, description: e.target.value })
+                                        setLessonForm({ ...lessonForm, description: e.target.value })
                                       }
-                                      placeholder="Description du chapitre (optionnel)"
+                                      placeholder="Description de la leçon (optionnel)"
                                       rows={2}
                                     />
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div>
+                                        <Label>Type de contenu</Label>
+                                        <Select value={lessonForm.type} onValueChange={(value) => setLessonForm({...lessonForm, type: value as "VIDEO" | "QUIZ" | "TEXT"})}>
+                                          <SelectTrigger>
+                                            <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="TEXT">Texte</SelectItem>
+                                            <SelectItem value="VIDEO">Vidéo</SelectItem>
+                                            <SelectItem value="QUIZ">Quiz</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                      <div>
+                                        <Label>Durée (minutes)</Label>
+                                        <Input
+                                          type="number"
+                                          value={lessonForm.duration}
+                                          onChange={(e) => setLessonForm({ ...lessonForm, duration: parseInt(e.target.value) || 0 })}
+                                        />
+                                      </div>
+                                    </div>
+                                    {lessonForm.type === 'VIDEO' && (
+                                       <div>
+                                         <Label>URL de la vidéo</Label>
+                                         <Input
+                                           value={lessonForm.contentUrl}
+                                           onChange={(e) => setLessonForm({ ...lessonForm, contentUrl: e.target.value })}
+                                           placeholder="https://example.com/video.mp4"
+                                         />
+                                       </div>
+                                    )}
                                     <div className="flex items-center gap-2">
-                                      <Button size="sm" onClick={saveChapterEdit}>
+                                      <Button size="sm" onClick={saveLessonEdit}>
                                         Enregistrer
                                       </Button>
                                       <Button
                                         size="sm"
                                         variant="outline"
                                         onClick={() => {
-                                          setEditingChapter(null)
-                                          setChapterForm({ title: "", description: "" })
+                                          setEditingLesson(null)
+                                          setLessonForm({ title: "", description: "", type: "TEXT", duration: 0, contentUrl: "" })
                                         }}
                                       >
                                         Annuler
@@ -346,35 +375,34 @@ export function CurriculumBuilder({ structure, onStructureChange }: CurriculumBu
                                 ) : (
                                   <>
                                     <div className="flex items-center gap-2">
-                                      <h4 className="font-medium">{chapter.title}</h4>
-                                      <Badge variant="secondary" className="text-xs">
-                                        {chapter.contentItems.length} contenu{chapter.contentItems.length > 1 ? "s" : ""}
-                                      </Badge>
+                                      {lesson.type === 'VIDEO' && <Video className="h-4 w-4 text-muted-foreground"/>}
+                                      {lesson.type === 'QUIZ' && <FileQuestion className="h-4 w-4 text-muted-foreground"/>}
+                                      {lesson.type === 'TEXT' && <FileText className="h-4 w-4 text-muted-foreground"/>}
+                                      <h4 className="font-medium">{lesson.title}</h4>
+                                      <Badge variant="secondary" className="text-xs">{lesson.type}</Badge>
                                     </div>
-                                    {chapter.description && (
-                                      <p className="text-sm text-muted-foreground mt-1">{chapter.description}</p>
+                                    {lesson.description && (
+                                      <p className="text-sm text-muted-foreground mt-1">{lesson.description}</p>
                                     )}
-                                    {chapter.duration && (
-                                      <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                                    <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
                                         <Clock className="h-3 w-3" />
-                                        {chapter.duration}
-                                      </div>
-                                    )}
+                                        {lesson.duration || 0} minutes
+                                    </div>
                                   </>
                                 )}
                               </div>
                             </div>
-                            {!isEditingChapter && (
+                            {!isEditingLesson && (
                               <div className="flex items-center gap-1">
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   className="h-6 w-6"
                                   onClick={() => {
-                                    setEditingChapter({ moduleId: module.id, chapterId: chapter.id })
-                                    setChapterForm({ title: chapter.title, description: chapter.description || "" })
+                                    setEditingLesson({ moduleId: module.id, lessonId: lesson.id })
+                                    setLessonForm(lesson)
                                   }}
-                                  aria-label="Modifier le chapitre"
+                                  aria-label="Modifier la leçon"
                                 >
                                   <Edit className="h-3 w-3" />
                                 </Button>
@@ -382,8 +410,8 @@ export function CurriculumBuilder({ structure, onStructureChange }: CurriculumBu
                                   variant="ghost"
                                   size="icon"
                                   className="h-6 w-6"
-                                  onClick={() => deleteChapter(module.id, chapter.id)}
-                                  aria-label="Supprimer le chapitre"
+                                  onClick={() => deleteLesson(module.id, lesson.id)}
+                                  aria-label="Supprimer la leçon"
                                 >
                                   <Trash2 className="h-3 w-3 text-destructive" />
                                 </Button>
@@ -399,10 +427,10 @@ export function CurriculumBuilder({ structure, onStructureChange }: CurriculumBu
                     variant="outline"
                     size="sm"
                     className="w-full"
-                    onClick={() => addChapter(module.id)}
+                    onClick={() => addLesson(module.id)}
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Ajouter un chapitre
+                    Ajouter une leçon
                   </Button>
                 </div>
               </CardContent>
@@ -425,8 +453,8 @@ export function CurriculumBuilder({ structure, onStructureChange }: CurriculumBu
               <p className="text-xs text-muted-foreground">Modules</p>
             </div>
             <div>
-              <p className="text-2xl font-bold">{structure.totalChapters}</p>
-              <p className="text-xs text-muted-foreground">Chapitres</p>
+              <p className="text-2xl font-bold">{structure.totalLessons}</p>
+              <p className="text-xs text-muted-foreground">Leçons</p>
             </div>
             <div>
               <p className="text-2xl font-bold">{structure.totalDuration}</p>

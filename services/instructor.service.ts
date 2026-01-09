@@ -1,44 +1,86 @@
 import { fetchApi } from './api.service';
+import { UserDb } from '@/models/user-db.model'; // Assuming instructor update might involve UserDb fields
 
+// Interface pour InstructorRequest du backend
+export interface InstructorRequest {
+  biography?: string;
+  specialization?: string;
+}
+
+// Interface pour InstructorWithUserDto du backend (avec jointure JPA)
 export interface ApiInstructor {
   id: number;
-  createdBy: string | null;
-  lastModifiedBy: string | null;
-  activate: boolean;
-  createdAt: string | null;
-  lastModifiedAt: string | null;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  bio: string;
-  qualifications: string;
-  imagePath: string | null;
+  createdAt?: string;
+  lastModifiedAt?: string;
+  activate?: boolean;
+  biography?: string;
+  specialization?: string;
+  // Données User directement dans le DTO (pas dans un sous-objet user)
+  userId?: number;
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  avatar?: string;
+  userActivate?: boolean;
 }
 
 export class InstructorService {
-  async getAllInstructors(): Promise<ApiInstructor[]> {
-    const response = await fetchApi<any>("/instructors/read", { method: "GET" });
-    
-    if (response && response.data && Array.isArray(response.data)) {
-      return response.data;
-    } else {
-      console.error("API response for /instructors/read is not in expected format:", response);
-      throw new Error("Invalid API response format for instructors.");
+  async getAllInstructors(): Promise<any> {
+    const response = await fetchApi<any>("/instructors/get-all", { method: "GET" });
+    // Backend retourne CResponse avec structure { ok: boolean, data: Instructor[], message: string }
+    // Mais peut aussi retourner directement un tableau
+    if (Array.isArray(response)) {
+      return { data: response };
     }
-  }
-
-  async updateInstructor(id: number, instructorData: Partial<ApiInstructor>): Promise<ApiInstructor> {
-    const response = await fetchApi<any>(`/instructors/update/${id}`, {
-      method: "PUT",
-      body: instructorData, // Body should be raw JSON, as per a.txt
-    });
-    // Assuming the API returns the updated instructor directly in the response.
-    // If it returns a wrapper like { data: ApiInstructor }, adjust this line.
     return response.data || response;
   }
 
-  // Potentially add other methods like getInstructorById, createInstructor, updateInstructor, deleteInstructor
+  async getInstructorById(id: number): Promise<any> {
+    try {
+      const response = await fetchApi<any>(`/instructors/${id}`, { method: "GET" });
+      return response.data || response;
+    } catch (error) {
+      console.error(`Error fetching instructor with ID ${id}:`, error);
+      throw error;
+    }
+  }
+
+  async updateInstructor(id: number, instructorData: Partial<ApiInstructor & UserDb>): Promise<any> {
+    const response = await fetchApi<any>(`/instructors/${id}`, {
+      method: "PUT",
+      body: instructorData,
+    });
+    return response.data || response;
+  }
+
+  async promoteUserAndCreateInstructorProfile(
+    userId: number,
+    instructorProfileData: { biography?: string; specialization?: string }
+  ): Promise<any> {
+    // Le backend accepte maintenant userId dans InstructorRequest pour permettre aux admins
+    // de créer un profil instructor pour un autre utilisateur
+    const payload: InstructorRequest = {
+      userId: userId,
+      biography: instructorProfileData.biography,
+      specialization: instructorProfileData.specialization,
+    };
+    
+    const response = await fetchApi<any>("/instructors/create", {
+      method: "POST",
+      body: payload,
+    });
+    
+    // Le backend retourne CResponse<Instructor>
+    // Structure: { ok: boolean, data: Instructor, message: string }
+    return response.data || response;
+  }
+
+  async deleteInstructor(id: number): Promise<any> {
+    const response = await fetchApi<any>(`/instructors/${id}`, {
+      method: "DELETE",
+    });
+    return response.data || response;
+  }
 }
 
 export const instructorService = new InstructorService();

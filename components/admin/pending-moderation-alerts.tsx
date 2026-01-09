@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { AlertCircle, FileText, BookOpen, MessageSquare, Users, CheckCircle2, XCircle, Eye } from "lucide-react"
 import Link from "next/link"
+import { useEffect, useState } from "react"
+import { analyticsService, ModerationSummaryData } from "@/services/analytics.service"
+import { PageLoader } from "@/components/ui/page-loader"
 
 type PendingItem = {
   id: number
@@ -16,7 +19,8 @@ type PendingItem = {
 }
 
 export function PendingModerationAlerts() {
-  const pendingItems: PendingItem[] = [
+  // Keeping mock data for detailed items as /api/analytics/moderation/summary only provides counts
+  const mockPendingItems: PendingItem[] = [
     {
       id: 1,
       type: "course",
@@ -30,7 +34,7 @@ export function PendingModerationAlerts() {
       type: "content",
       title: "Vidéo : Introduction à TypeScript",
       author: "Marie Martin",
-      submittedAt: "Il y a 5 heures",
+      submittedAt: "Il y-a 5 heures",
       priority: "medium",
     },
     {
@@ -50,6 +54,27 @@ export function PendingModerationAlerts() {
       priority: "medium",
     },
   ]
+
+  const [moderationSummary, setModerationSummary] = useState<ModerationSummaryData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const summary = await analyticsService.getModerationSummary()
+        setModerationSummary(summary)
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch moderation summary.")
+        console.error("Error fetching moderation summary:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchSummary()
+  }, [])
 
   const getTypeIcon = (type: PendingItem["type"]) => {
     switch (type) {
@@ -90,11 +115,40 @@ export function PendingModerationAlerts() {
     }
   }
 
-  const totalPending = pendingItems.length
-  const highPriorityCount = pendingItems.filter((item) => item.priority === "high").length
+  // Use fetched summary data for total counts
+  const totalPending = moderationSummary ? moderationSummary.pendingReviews + moderationSummary.flaggedContent : mockPendingItems.length;
+  // highPriorityCount is not directly provided by the API, keep using mock data or derive differently if possible
+  const highPriorityCount = mockPendingItems.filter((item) => item.priority === "high").length;
 
-  if (totalPending === 0) {
-    return null
+  if (loading) {
+    return (
+      <Card className="border-primary/30 dark:border-primary/20 shadow-lg">
+        <CardHeader>
+          <CardTitle>Actions Requises</CardTitle>
+        </CardHeader>
+        <CardContent className="flex justify-center items-center h-[150px]">
+          <PageLoader />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="border-primary/30 dark:border-primary/20 shadow-lg">
+        <CardHeader>
+          <CardTitle>Actions Requises</CardTitle>
+        </CardHeader>
+        <CardContent className="flex justify-center items-center h-[150px] text-destructive">
+          {error}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Display only if there are pending items from API or mock
+  if (totalPending === 0 && mockPendingItems.length === 0) {
+    return null;
   }
 
   return (
@@ -119,7 +173,7 @@ export function PendingModerationAlerts() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {pendingItems.slice(0, 3).map((item) => (
+          {mockPendingItems.slice(0, 3).map((item) => (
             <div
               key={item.id}
               className="flex items-center justify-between p-3 rounded-lg border shadow-sm hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors duration-200"
@@ -173,11 +227,11 @@ export function PendingModerationAlerts() {
               </div>
             </div>
           ))}
-          {pendingItems.length > 3 && (
+          {mockPendingItems.length > 3 && (
             <div className="pt-2 border-t">
               <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground" asChild>
                 <Link href="/admin/moderation">
-                  Voir tous les éléments en attente ({totalPending})
+                  Voir tous les éléments en attente ({mockPendingItems.length})
                 </Link>
               </Button>
             </div>

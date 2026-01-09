@@ -42,6 +42,15 @@ const mapEvaluationToEvaluationDisplay = (evaluation: Evaluation): EvaluationDis
   };
 };
 
+// Helper function to map EvaluationDisplay to EvaluationFormData
+const mapEvaluationDisplayToEvaluationFormData = (evaluation: EvaluationDisplay): EvaluationFormData => {
+  return {
+    title: evaluation.title,
+    description: evaluation.description || "",
+    status: evaluation.status as "Draft" | "Active" | "Archived", // Assuming status maps directly
+  };
+};
+
 export function EvaluationsList() {
   const addModal = useModal<EvaluationDisplay>()
   const editModal = useModal<EvaluationDisplay>()
@@ -93,14 +102,41 @@ export function EvaluationsList() {
     }
   };
 
-  const handleUpdateEvaluation = (data: any) => {
-    console.log("Update evaluation:", data);
-    editModal.close();
+  const handleUpdateEvaluation = async (data: any) => { // 'data' type should be more specific, e.g., EvaluationFormData
+    setError(null);
+    if (editModal.selectedItem) {
+      try {
+        const updatedEvaluationData: Partial<Evaluation> = {
+          title: data.title,
+          description: data.description,
+          status: data.status,
+          imagePath: data.imagePath, // Assuming imagePath comes from form data
+          // other fields from data
+        };
+        const updatedEvaluation = await evaluationService.updateEvaluation(editModal.selectedItem.id, updatedEvaluationData);
+        setEvaluations((prev) =>
+          prev.map((evalItem) =>
+            evalItem.id === editModal.selectedItem!.id ? mapEvaluationToEvaluationDisplay(updatedEvaluation) : evalItem
+          )
+        );
+        editModal.close();
+      } catch (err: any) {
+        setError(err.message || "Failed to update evaluation.");
+        console.error("Error updating evaluation:", err);
+      }
+    }
   };
 
-  const handleDeleteEvaluation = (id: number) => {
-    console.log("Delete evaluation with ID:", id);
-    deleteModal.close();
+  const handleDeleteEvaluation = async (id: number) => {
+    setError(null);
+    try {
+      await evaluationService.deleteEvaluation(id);
+      setEvaluations((prev) => prev.filter((evalItem) => evalItem.id !== id));
+      deleteModal.close();
+    } catch (err: any) {
+      setError(err.message || "Failed to delete evaluation.");
+      console.error("Error deleting evaluation:", err);
+    }
   };
 
 
@@ -215,7 +251,7 @@ export function EvaluationsList() {
           onOpenChange={(open) => !open && editModal.close()}
           title="Modifier l'évaluation"
           description="Modifiez les informations de l'évaluation"
-          defaultValues={editModal.selectedItem}
+          defaultValues={mapEvaluationDisplayToEvaluationFormData(editModal.selectedItem)}
           onSubmit={handleUpdateEvaluation}
           submitLabel="Enregistrer les modifications"
         />

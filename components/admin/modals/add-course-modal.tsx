@@ -72,10 +72,10 @@ export function AddCourseModal({ open, onOpenChange, onAddCourse }: AddCourseMod
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="instructor">Instructeur</Label>
+              <Label htmlFor="instructor">Formateur</Label>
               <Input
                 id="instructor"
-                placeholder="Nom de l'instructeur"
+                placeholder="Nom du formateur"
                 value={instructor}
                 onChange={(e) => setInstructor(e.target.value)}
                 required

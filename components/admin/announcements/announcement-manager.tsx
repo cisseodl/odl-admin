@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react" // Added useEffect
 import { PageHeader } from "@/components/ui/page-header"
 import { Card, CardContent } from "@/components/ui/card"
 import { DataTable } from "@/components/ui/data-table"
@@ -16,101 +16,121 @@ import { Eye, Edit, Trash2, Send, Calendar, Users } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import type { Announcement } from "@/types/notifications"
 
+import { notificationsService } from "@/services"; // Import notificationsService
+import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
+
+
 export function AnnouncementManager() {
   const addModal = useModal<Announcement>()
   const viewModal = useModal<Announcement>()
   const editModal = useModal<Announcement>()
   const deleteModal = useModal<Announcement>()
 
-  const [announcements, setAnnouncements] = useState<Announcement[]>([
-    {
-      id: 1,
-      title: "Nouvelle formation React disponible",
-      content: "Découvrez notre nouvelle formation React Avancé avec des concepts modernes.",
-      targetAudience: "all",
-      scheduledAt: undefined,
-      sentAt: "2024-01-15T10:00:00Z",
-      readCount: 1250,
-      totalRecipients: 12543,
-      status: "sent",
-      createdAt: "2024-01-15T09:00:00Z",
-    },
-    {
-      id: 2,
-      title: "Maintenance programmée",
-      content: "Une maintenance est prévue le 20 janvier de 2h à 4h du matin.",
-      targetAudience: "all",
-      scheduledAt: "2024-01-20T02:00:00Z",
-      sentAt: undefined,
-      readCount: 0,
-      totalRecipients: 12543,
-      status: "scheduled",
-      createdAt: "2024-01-16T10:00:00Z",
-    },
-    {
-      id: 3,
-      title: "Nouveaux badges disponibles",
-      content: "De nouveaux badges ont été ajoutés à la plateforme.",
-      targetAudience: "student",
-      scheduledAt: undefined,
-      sentAt: undefined,
-      readCount: 0,
-      totalRecipients: 0,
-      status: "draft",
-      createdAt: "2024-01-17T14:00:00Z",
-    },
-  ])
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]); // Initialiser vide
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAnnouncements = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await notificationsService.getAllAnnouncements();
+        setAnnouncements(data);
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch announcements.");
+        console.error("Error fetching announcements:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAnnouncements();
+  }, []); // Exécuter une fois au montage
 
   const { searchQuery, setSearchQuery, filteredData } = useSearch<Announcement>({
     data: announcements,
     searchKeys: ["title", "content"],
   })
 
-  const handleAddAnnouncement = (data: Omit<Announcement, "id" | "createdAt" | "readCount" | "totalRecipients">) => {
-    const newAnnouncement: Announcement = {
-      ...data,
-      id: announcements.length + 1,
-      readCount: 0,
-      totalRecipients: 0,
-      createdAt: new Date().toISOString(),
+  const handleAddAnnouncement = async (data: Omit<Announcement, "id" | "createdAt" | "readCount" | "totalRecipients" | "sentAt" | "status">) => {
+    setError(null);
+    try {
+      // Les champs id, createdAt, readCount, totalRecipients, sentAt, status sont gérés par le backend
+      const createdAnnouncement = await notificationsService.createAnnouncement({
+        title: data.title,
+        content: data.content,
+        targetAudience: data.targetAudience,
+        scheduledAt: data.scheduledAt,
+      });
+      setAnnouncements((prev) => [...prev, createdAnnouncement]);
+      addModal.close();
+    } catch (err: any) {
+      setError(err.message || "Failed to add announcement.");
+      console.error("Error adding announcement:", err);
     }
-    setAnnouncements([...announcements, newAnnouncement])
   }
 
-  const handleUpdateAnnouncement = (data: Omit<Announcement, "id" | "createdAt" | "readCount" | "totalRecipients">) => {
+  const handleUpdateAnnouncement = async (data: Omit<Announcement, "id" | "createdAt" | "readCount" | "totalRecipients">) => {
+    setError(null);
     if (editModal.selectedItem) {
-      setAnnouncements(
-        announcements.map((announcement) =>
-          announcement.id === editModal.selectedItem!.id
+      try {
+        const updatedAnnouncement = await notificationsService.updateAnnouncement(editModal.selectedItem.id, {
+          title: data.title,
+          content: data.content,
+          targetAudience: data.targetAudience,
+          scheduledAt: data.scheduledAt,
+          // Le statut et sentAt ne sont pas mis à jour via le formulaire d'édition ici
+        });
+        setAnnouncements((prev) =>
+          prev.map((announcement) =>
+            announcement.id === editModal.selectedItem!.id
+              ? updatedAnnouncement
+              : announcement
+          )
+        );
+        editModal.close();
+      } catch (err: any) {
+        setError(err.message || "Failed to update announcement.");
+        console.error("Error updating announcement:", err);
+      }
+    }
+  }
+
+  const handleDeleteAnnouncement = async () => {
+    setError(null);
+    if (deleteModal.selectedItem) {
+      try {
+        await notificationsService.deleteAnnouncement(deleteModal.selectedItem.id);
+        setAnnouncements((prev) => prev.filter((announcement) => announcement.id !== deleteModal.selectedItem!.id));
+        deleteModal.close();
+      } catch (err: any) {
+        setError(err.message || "Failed to delete announcement.");
+        console.error("Error deleting announcement:", err);
+      }
+    }
+  }
+
+  const handleSendNow = async (id: number) => {
+    setError(null);
+    try {
+      await notificationsService.sendAnnouncement(id);
+      // Après l'envoi, rafraîchir la liste ou mettre à jour l'état local
+      setAnnouncements((prev) =>
+        prev.map((announcement) =>
+          announcement.id === id
             ? {
                 ...announcement,
-                ...data,
+                status: "sent",
+                sentAt: new Date().toISOString(),
+                // readCount et totalRecipients peuvent être mis à jour par le backend
               }
             : announcement
         )
-      )
+      );
+    } catch (err: any) {
+      setError(err.message || "Failed to send announcement.");
+      console.error("Error sending announcement:", err);
     }
-  }
-
-  const handleDeleteAnnouncement = () => {
-    if (deleteModal.selectedItem) {
-      setAnnouncements(announcements.filter((announcement) => announcement.id !== deleteModal.selectedItem!.id))
-    }
-  }
-
-  const handleSendNow = (id: number) => {
-    setAnnouncements(
-      announcements.map((announcement) =>
-        announcement.id === id
-          ? {
-              ...announcement,
-              status: "sent" as const,
-              sentAt: new Date().toISOString(),
-              totalRecipients: 12543, // Simulé
-            }
-          : announcement
-      )
-    )
   }
 
   const getAudienceLabel = (audience: Announcement["targetAudience"]) => {
@@ -236,17 +256,30 @@ export function AnnouncementManager() {
 
       <Card>
         <CardContent className="pt-6">
-          <div className="mb-4">
-            <SearchBar
-              placeholder="Rechercher une annonce..."
-              value={searchQuery}
-              onChange={setSearchQuery}
-            />
-          </div>
-          <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
+          {loading ? (
+            <PageLoader />
+          ) : error ? (
+            <div className="text-center text-destructive p-4">{error}</div>
+          ) : (
+            <>
+              <div className="mb-4">
+                <SearchBar
+                  placeholder="Rechercher une annonce..."
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                />
+              </div>
+              {announcements.length === 0 ? (
+                <div className="text-center text-muted-foreground p-4">Aucune annonce trouvée.</div>
+              ) : (
+                <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
+              )}
+            </>
+          )}
         </CardContent>
       </Card>
 
+      {/* Modals remain the same */}
       <AnnouncementFormModal
         open={addModal.isOpen}
         onOpenChange={(open) => !open && addModal.close()}

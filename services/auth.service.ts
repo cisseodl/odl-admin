@@ -23,13 +23,19 @@ export class AuthService {
   }
 
   // Add other authentication related methods as needed (e.g., changePassword)
-  async changePassword(passwordData: any, token: string): Promise<any> {
+  async forgetPassword(username: string): Promise<any> { // Nouvelle méthode
+    return fetchApi(`/auth/forget-pass/${username}`, {
+      method: "GET",
+    });
+  }
+
+  // Adapter changePassword pour correspondre à la spécification du backend
+  async changePassword(passwordData: { username: string, token: string, password: string }): Promise<any> {
+    // Le token du backend est passé dans le body, pas dans les headers pour cet endpoint.
+    // L'endpoint `POST /auth/change-pass` attend `username`, `token`, `password` dans le JSON body.
     return fetchApi("/auth/change-pass", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: passwordData,
+      body: passwordData, // Le body contient déjà username, token, password
     });
   }
 
@@ -47,4 +53,4 @@ export class AuthService {
   }
 }
 
-export const authApiService = new AuthService();
+export const authService = new AuthService();

@@ -1,242 +1,116 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { PageHeader } from "@/components/ui/page-header"
-import { SearchBar } from "@/components/ui/search-bar"
-import { DataTable } from "@/components/ui/data-table"
-import { ActionMenu } from "@/components/ui/action-menu"
-import { StatusBadge } from "@/components/ui/status-badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { useModal } from "@/hooks/use-modal"
-import { useSearch } from "@/hooks/use-search"
-import { ContentFormModal } from "@/components/shared/content-form-modal"
-import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { EmptyState } from "@/components/admin/empty-state"
-import type { ColumnDef } from "@tanstack/react-table"
-import { Edit, Trash2, FileText, Video, Image, FileQuestion, File, Calendar, Clock, HardDrive, Upload } from "lucide-react"
-import type { ContentFormData } from "@/lib/validations/content"
-
-type Content = {
-  id: number
-  title: string
-  type: "Vidéo" | "Document" | "Image" | "Quiz" | "Fichier"
-  course: string
-  module?: string
-  duration?: string
-  size?: string
-  uploadDate: string
-  status: "Publié" | "Brouillon"
-}
+import { FileText, Upload } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
+import { courseService, moduleService } from "@/services"
+import { PageLoader } from "@/components/ui/page-loader"
+import { ModuleLessonFormModal, ModuleFormData } from "@/components/instructor/module-lesson-form-modal"
+import { Course } from "@/models"
 
 export function ContentManager() {
-  const addModal = useModal<Content>()
-  const editModal = useModal<Content>()
-  const deleteModal = useModal<Content>()
+  const { user, isLoading: authLoading } = useAuth();
+  const addModuleModal = useModal();
 
-  const [content, setContent] = useState<Content[]>([])
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const { searchQuery, setSearchQuery, filteredData } = useSearch<Content>({
-    data: content,
-    searchKeys: ["title", "course", "type"],
-  })
-
-  const handleAddContent = (data: ContentFormData) => {
-    const newContent: Content = {
-      id: content.length + 1,
-      ...data,
-      uploadDate: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }),
+  useEffect(() => {
+    if (authLoading || !user) {
+      setLoading(false);
+      return;
     }
-    setContent([...content, newContent])
-  }
 
-  const handleUpdateContent = (data: ContentFormData) => {
-    if (editModal.selectedItem) {
-      setContent(
-        content.map((item) =>
-          item.id === editModal.selectedItem!.id ? { ...editModal.selectedItem, ...data } : item
-        )
-      )
+    const fetchCourses = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await courseService.getCoursesByInstructorId(Number(user.id));
+        setCourses(data || []);
+      } catch (err: any) {
+        console.error("Failed to load courses:", err);
+        setError(err.message || "Failed to load courses.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, [user, authLoading]);
+
+  const handleAddModule = async (data: ModuleFormData) => {
+    try {
+      // The endpoint POST /modules/save expects a JSON object with courseId and an array of modules
+      const payload = {
+        courseId: data.courseId,
+        modules: [
+          {
+            title: data.title,
+            moduleOrder: data.moduleOrder,
+            lessons: data.lessons.map(lesson => ({
+              title: lesson.title,
+              lessonOrder: lesson.lessonOrder,
+              type: lesson.type,
+              ...(lesson.contentUrl && { contentUrl: lesson.contentUrl }),
+              ...(lesson.duration && { duration: lesson.duration }),
+            })),
+          },
+        ],
+      };
+      await moduleService.saveModules(payload);
+      addModuleModal.close();
+      // Optionally, refresh a list of modules if displayed here, or redirect
+    } catch (err: any) {
+      setError(err.message || "Failed to add module.");
     }
-  }
-
-  const handleDeleteContent = () => {
-    if (deleteModal.selectedItem) {
-      setContent(content.filter((item) => item.id !== deleteModal.selectedItem!.id))
-    }
-  }
-
-  const getTypeIcon = (type: Content["type"]) => {
-    switch (type) {
-      case "Vidéo":
-        return <Video className="h-4 w-4" />
-      case "Document":
-        return <FileText className="h-4 w-4" />
-      case "Image":
-        return <Image className="h-4 w-4" />
-      case "Quiz":
-        return <FileQuestion className="h-4 w-4" />
-      case "Fichier":
-        return <File className="h-4 w-4" />
-    }
-  }
-
-  const columns: ColumnDef<Content>[] = useMemo(
-    () => [
-      {
-        accessorKey: "title",
-        header: "Titre",
-        cell: ({ row }) => (
-          <div className="font-medium flex items-center gap-2">
-            {getTypeIcon(row.original.type)}
-            {row.original.title}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "type",
-        header: "Type",
-      },
-      {
-        accessorKey: "course",
-        header: "Formation",
-      },
-      {
-        accessorKey: "module",
-        header: "Module",
-        cell: ({ row }) => row.original.module || "-",
-      },
-      {
-        accessorKey: "duration",
-        header: "Durée",
-        cell: ({ row }) =>
-          row.original.duration ? (
-            <div className="flex items-center gap-1">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              {row.original.duration}
-            </div>
-          ) : (
-            "-"
-          ),
-      },
-      {
-        accessorKey: "size",
-        header: "Taille",
-        cell: ({ row }) =>
-          row.original.size ? (
-            <div className="flex items-center gap-1">
-              <HardDrive className="h-4 w-4 text-muted-foreground" />
-              {row.original.size}
-            </div>
-          ) : (
-            "-"
-          ),
-      },
-      {
-        accessorKey: "uploadDate",
-        header: "Date d'upload",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-1">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            {row.original.uploadDate}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "status",
-        header: "Statut",
-        cell: ({ row }) => <StatusBadge status={row.original.status} />,
-      },
-      {
-        id: "actions",
-        header: "Actions",
-        cell: ({ row }) => {
-          const item = row.original
-          return (
-            <ActionMenu
-              actions={[
-                {
-                  label: "Modifier",
-                  icon: <Edit className="h-4 w-4" />,
-                  onClick: () => editModal.open(item),
-                },
-                {
-                  label: "Supprimer",
-                  icon: <Trash2 className="h-4 w-4" />,
-                  onClick: () => deleteModal.open(item),
-                  variant: "destructive",
-                },
-              ]}
-            />
-          )
-        },
-      },
-    ],
-    [editModal, deleteModal]
-  )
+  };
 
   return (
     <>
       <PageHeader
-        title="Mes Contenus"
-        description="Gérez vos contenus pédagogiques"
+        title="Gestion des Modules et Leçons"
+        description="Créez et organisez les modules et leçons de vos formations"
         action={{
-          label: "Uploader du contenu",
+          label: "Ajouter un module",
           icon: <Upload className="h-4 w-4" />,
-          onClick: () => addModal.open(),
+          onClick: addModuleModal.open,
         }}
       />
 
       <Card className="mt-6">
         <CardContent>
-          <div className="mb-4">
-            <SearchBar
-              placeholder="Rechercher du contenu..."
-              value={searchQuery}
-              onChange={setSearchQuery}
-            />
-          </div>
-
-          {filteredData.length === 0 ? (
+          {loading ? (
+            <PageLoader />
+          ) : error ? (
+            <div className="text-center text-destructive p-4">{error}</div>
+          ) : courses.length === 0 ? (
             <EmptyState
               icon={FileText}
-              title="Aucun contenu"
-              description="Commencez par uploader du contenu"
+              title="Aucune formation disponible"
+              description="Veuillez d'abord créer une formation pour pouvoir y ajouter des modules."
             />
           ) : (
-            <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
+            // In the future, this area could list existing modules and lessons
+            <div className="p-4 text-center text-muted-foreground">
+              Utilisez le bouton "Ajouter un module" pour commencer à organiser votre contenu.
+            </div>
           )}
         </CardContent>
       </Card>
 
-      <ContentFormModal
-        open={addModal.isOpen}
-        onOpenChange={(open) => !open && addModal.close()}
-        title="Uploader du contenu"
-        description="Ajoutez un nouveau contenu à votre formation"
-        onSubmit={handleAddContent}
-        submitLabel="Uploader"
-      />
-
-      {editModal.selectedItem && (
-        <ContentFormModal
-          open={editModal.isOpen}
-          onOpenChange={(open) => !open && editModal.close()}
-          title="Modifier le contenu"
-          description="Modifiez les informations du contenu"
-          defaultValues={editModal.selectedItem}
-          onSubmit={handleUpdateContent}
-          submitLabel="Enregistrer les modifications"
-        />
-      )}
-
-      <ConfirmDialog
-        open={deleteModal.isOpen}
-        onOpenChange={(open) => !open && deleteModal.close()}
-        onConfirm={handleDeleteContent}
-        title="Supprimer le contenu"
-        description={`Êtes-vous sûr de vouloir supprimer ${deleteModal.selectedItem?.title} ? Cette action est irréversible.`}
-        confirmText="Supprimer"
-        variant="destructive"
+      <ModuleLessonFormModal
+        open={addModuleModal.isOpen}
+        onOpenChange={addModuleModal.close}
+        title="Ajouter un nouveau module"
+        description="Remplissez les informations pour créer un nouveau module dans votre formation."
+        onSubmit={handleAddModule}
+        submitLabel="Ajouter le module"
+        courses={courses}
       />
     </>
   )

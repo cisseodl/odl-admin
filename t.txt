@@ -1,0 +1,98 @@
+# Documentation API pour l'intégration Frontend (Next.js) - Logs d'Audit
+
+---
+
+## Logs d'Audit (ActivityLog)
+
+Le backend dispose d'une entité dédiée pour enregistrer les activités importantes des utilisateurs. Cette fonctionnalité est déjà implémentée et ne nécessite **aucune modification du schéma de la base de données**.
+
+### 1. Entité `ActivityLog`
+
+L'entité `ActivityLog` est utilisée pour suivre les actions effectuées par les utilisateurs. Elle étend `BaseEntity`, héritant ainsi des champs d'audit comme `createdAt` (date de l'activité).
+
+#### Champs principaux de l'entité `ActivityLog` :
+
+-   `id` (Long): Identifiant unique de l'entrée du log.
+-   `user` (User): Référence à l'utilisateur qui a effectué l'action.
+-   `userName` (String): Nom d'utilisateur (dénormalisé pour faciliter le reporting).
+-   `action` (String): Description de l'action effectuée (ex: "COURSE_ENROLL", "LOGIN", "QUIZ_SUBMITTED").
+-   `resource` (String): Ressource affectée par l'action (ex: "Course: Introduction to S3", "Quiz: AWS Basics Exam").
+-   `details` (String): Informations additionnelles (JSON ou texte brut) sur l'action.
+-   `createdAt` (LocalDateTime): Date et heure de l'enregistrement de l'activité (hérité de `BaseEntity`).
+
+### 2. Endpoints Proposés pour Accéder aux Logs d'Audit
+
+Ces endpoints peuvent être ajoutés au `AdminReportsController` ou à un nouveau `AuditLogController` pour une meilleure organisation.
+
+#### 2.1 Récupérer tous les logs d'activité (paginé)
+
+-   **Méthode:** `GET`
+-   **URL:** `/api/admin/reports/audit/logs` (ou `/api/audit/logs`)
+-   **Paramètres de Requête:**
+    *   `page` (number, optionnel, défaut: `0`): Le numéro de la page.
+    *   `size` (number, optionnel, défaut: `20`): Nombre d'éléments par page.
+    *   `userId` (Long, optionnel): Filtrer par l'ID d'un utilisateur spécifique.
+    *   `action` (String, optionnel): Filtrer par type d'action.
+    *   `resource` (String, optionnel): Filtrer par ressource affectée (peut être partiel).
+    *   `startDate` (String, optionnel): Date de début du filtre (format "YYYY-MM-DD").
+    *   `endDate` (String, optionnel): Date de fin du filtre (format "YYYY-MM-DD").
+-   **Rôle requis:** `ADMIN`
+-   **Authentification:** Le token JWT d'un administrateur est requis.
+
+#### 2.2 Récupérer les logs d'activité d'un utilisateur spécifique
+
+-   **Méthode:** `GET`
+-   **URL:** `/api/admin/reports/audit/logs/{userId}` (ou `/api/audit/logs/{userId}`)
+-   **Paramètres de Requête:** (pagination et filtres similaires au point 2.1, mais le `userId` est dans le path)
+-   **Rôle requis:** `ADMIN` (ou potentiellement `USER` pour ses propres logs)
+-   **Authentification:** Le token JWT est requis.
+
+### 3. Exemple de Réponse JSON (`200 OK` pour une liste de logs)
+
+```json
+{
+  "ok": true,
+  "data": {
+    "content": [
+      {
+        "id": 1,
+        "userId": 101,
+        "userName": "Alice Dupont",
+        "action": "COURSE_ENROLL",
+        "resource": "Course: Introduction to Cloud",
+        "details": "{ \"courseId\": 123, \"enrollmentDate\": \"2026-01-05T10:00:00\" }",
+        "createdAt": "2026-01-05T10:00:00"
+      },
+      {
+        "id": 2,
+        "userId": 101,
+        "userName": "Alice Dupont",
+        "action": "LESSON_COMPLETED",
+        "resource": "Lesson: Cloud Basics",
+        "details": "{ \"lessonId\": 456, \"score\": 100 }",
+        "createdAt": "2026-01-05T10:30:00"
+      },
+      {
+        "id": 3,
+        "userId": 202,
+        "userName": "Bob Martin",
+        "action": "LOGIN",
+        "resource": "Platform",
+        "details": "{ \"ipAddress\": \"192.168.1.1\" }",
+        "createdAt": "2026-01-05T11:15:00"
+      }
+    ],
+    // ... informations de pagination
+  },
+  "message": "Audit logs fetched successfully."
+}
+```
+
+### 4. Utilisation Actuelle des Logs d'Audit
+
+Ces `ActivityLog` sont déjà utilisés par le backend :
+-   La métrique `lastSeen` dans le "Rapport d'Activité des Utilisateurs" (`/analytics/user-activity`) est dérivée de la `createdAt` de la dernière `ActivityLog` d'un utilisateur.
+
+---
+
+**Conclusion :** Le système de logs d'audit est en place. Il serait simple d'implémenter les endpoints ci-dessus pour exposer ces données au frontend, sans modifier la structure des tables existantes.

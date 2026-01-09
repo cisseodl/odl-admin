@@ -25,7 +25,7 @@ export interface AuditLog {
   details?: Record<string, unknown> // Détails supplémentaires
   ipAddress?: string
   userAgent?: string
-  timestamp: string
+  createdAt: string
   changes?: {
     field: string
     oldValue: unknown

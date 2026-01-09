@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { DataTable } from "@/components/ui/data-table"
 import { ActionMenu } from "@/components/ui/action-menu"
@@ -24,52 +24,119 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
+import { auditService, courseService } from "@/services"; // Import services
+import { Course } from "@/models/course.model"; // Import Course model
+import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
+import { CourseFormModal } from "@/components/shared/course-form-modal"; // Import CourseFormModal
+import { CourseFormData } from "@/lib/validations/course";
+import { convertDurationToSeconds, convertSecondsToDurationString } from "@/lib/utils";
+
+
+// Type pour les éléments de cours dans la file de modération
 type CourseItem = {
   id: number
   title: string
   instructor: string
   category: string
-  submittedAt: string
+  submittedAt: string // Formaté
   status: "En attente" | "Approuvé" | "Rejeté" | "Modifications demandées"
   priority?: "high" | "medium" | "low"
   modules: number
-  duration: string
-  rejectionReason?: string // Added for consistency
+  duration: string // Formaté
+  rejectionReason?: string
+  // Champs supplémentaires pour l'édition via CourseFormModal
+  subtitle?: string;
+  description?: string;
+  imagePath?: string;
+  level?: string;
+  language?: string;
+  bestseller?: boolean;
+  objectives?: string[];
+  features?: string[];
+  price?: number;
+  categoryId?: number;
+  instructorId?: number;
+  activate?: boolean;
 }
 
+// Helper function to map CourseModel to CourseItem
+const mapCourseModelToCourseItem = (course: Course): CourseItem => {
+  return {
+    id: course.id || 0,
+    title: course.title || "",
+    instructor: course.instructor?.fullName || course.instructor?.email || "N/A",
+    category: course.categorie?.title || "N/A",
+    submittedAt: course.createdAt ? new Date(course.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) : "N/A",
+    status: course.status === "PENDING" ? "En attente" :
+            (course.status === "APPROVED" ? "Approuvé" :
+            (course.status === "REJECTED" ? "Rejeté" : "Modifications demandées")), // Assumer ces statuts
+    modules: course.modules?.length || 0,
+    duration: course.duration ? convertSecondsToDurationString(course.duration) : "N/A",
+    // Pour l'édition:
+    subtitle: course.subtitle || "",
+    description: course.description || "",
+    imagePath: course.imagePath || undefined,
+    level: course.level || "N/A",
+    language: course.language || "N/A",
+    bestseller: course.bestseller || false,
+    objectives: course.objectives || [],
+    features: course.features || [],
+    price: course.price || 0,
+    categoryId: course.categorie?.id || 0,
+    instructorId: course.instructor?.id || 0,
+    activate: course.activate || false,
+  };
+};
+
+// Helper to map CourseItem to CourseFormData for CourseFormModal defaultValues
+const mapCourseItemToCourseFormData = (item: CourseItem): CourseFormData => {
+  return {
+    title: item.title,
+    subtitle: item.subtitle,
+    description: item.description,
+    duration: item.duration, // Already formatted string
+    level: item.level as "Beginner" | "Intermediate" | "Advanced",
+    language: item.language as "Français" | "Anglais" | "Espagnol" | "Allemand",
+    bestseller: item.bestseller,
+    objectives: Array.isArray(item.objectives) ? item.objectives.join('\n') : "",
+    features: Array.isArray(item.features) ? item.features.join('\n') : "",
+    status: item.activate ? "Publié" : "Brouillon", // Map activate to Publié/Brouillon for form
+    price: item.price,
+    categoryId: item.categoryId || 0,
+    instructorId: item.instructorId || 0,
+  };
+};
+
+
 export function CourseModerationQueue() {
-  const [courses, setCourses] = useState<CourseItem[]>([
-    {
-      id: 1,
-      title: "Formation React Avancé - Nouvelle version",
-      instructor: "Jean Dupont",
-      category: "Développement Web",
-      submittedAt: "Il y a 2 heures",
-      status: "En attente",
-      priority: "high",
-      modules: 12,
-      duration: "8h 30min",
-    },
-    {
-      id: 2,
-      title: "Introduction à Python pour Data Science",
-      instructor: "Marie Martin",
-      category: "Data Science",
-      submittedAt: "Il y a 1 jour",
-      status: "En attente",
-      priority: "medium",
-      modules: 8,
-      duration: "6h 15min",
-    },
-  ])
+  const [courses, setCourses] = useState<CourseItem[]>([])
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [selectedCourse, setSelectedCourse] = useState<CourseItem | null>(null)
-  const [showEditModal, setShowEditModal] = useState(false)
   const [showApproveModal, setShowApproveModal] = useState(false)
   const [showRejectModal, setShowRejectModal] = useState(false)
-  const [showRequestChangesModal, setShowRequestChangesModal] = useState(false) // Renommé de showCommentDialog
+  const [showRequestChangesModal, setShowRequestChangesModal] = useState(false)
   const [rejectionReason, setRejectionReason] = useState("")
-  const [requestChangesComment, setRequestChangesComment] = useState("") // Pour le modal "Demander modifications"
+  const [requestChangesComment, setRequestChangesComment] = useState("")
+
+  useEffect(() => {
+    const fetchPendingCourses = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const pendingCourses = await auditService.getPendingCoursesForModeration();
+        setCourses(pendingCourses.map(mapCourseModelToCourseItem));
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch pending courses.");
+        console.error("Error fetching pending courses:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPendingCourses();
+  }, []);
+
 
   const { searchQuery, setSearchQuery, filteredData } = useSearch<CourseItem>({
     data: courses,
@@ -89,55 +156,86 @@ export function CourseModerationQueue() {
     }
   }
 
-  const confirmApprove = () => {
+  const handleApproveCourse = async () => {
+    setError(null);
     if (selectedCourse) {
-      setCourses(courses.map((item) => (item.id === selectedCourse.id ? { ...item, status: "Approuvé" as const } : item)))
-      setShowApproveModal(false)
-      setSelectedCourse(null)
+      try {
+        await auditService.approveCourse(selectedCourse.id);
+        setCourses(courses.filter(item => item.id !== selectedCourse.id)); // Remove from list
+        setShowApproveModal(false);
+        setSelectedCourse(null);
+      } catch (err: any) {
+        setError(err.message || "Failed to approve course.");
+        console.error("Error approving course:", err);
+      }
     }
-  }
+  };
 
-  const confirmReject = () => {
+  const handleRejectCourse = async () => {
+    setError(null);
+    if (selectedCourse && rejectionReason.trim()) {
+      try {
+        await auditService.rejectCourse(selectedCourse.id, rejectionReason);
+        setCourses(courses.filter(item => item.id !== selectedCourse.id)); // Remove from list
+        setShowRejectModal(false);
+        setRejectionReason("");
+        setSelectedCourse(null);
+      } catch (err: any) {
+        setError(err.message || "Failed to reject course.");
+        console.error("Error rejecting course:", err);
+      }
+    }
+  };
+
+  const handleRequestChangesCourse = async () => {
+    setError(null);
+    if (selectedCourse && requestChangesComment.trim()) {
+      try {
+        await auditService.requestChangesCourse(selectedCourse.id, requestChangesComment);
+        setCourses(courses.filter(item => item.id !== selectedCourse.id)); // Remove from list
+        setShowRequestChangesModal(false);
+        setRequestChangesComment("");
+        setSelectedCourse(null);
+      } catch (err: any) {
+        setError(err.message || "Failed to request changes for course.");
+        console.error("Error requesting changes for course:", err);
+      }
+    }
+  };
+
+  const handleSaveEdit = async (data: CourseFormData & { imageFile?: File | null }) => {
+    setError(null);
     if (selectedCourse) {
-      setCourses(
-        courses.map((item) =>
-          item.id === selectedCourse.id
-            ? { ...item, status: "Rejeté" as const, rejectionReason }
-            : item
-        )
-      )
-      setShowRejectModal(false)
-      setRejectionReason("")
-      setSelectedCourse(null)
+      try {
+        const updatedCourseData: Partial<Course> = {
+          title: data.title,
+          subtitle: data.subtitle,
+          description: data.description,
+          duration: convertDurationToSeconds(data.duration),
+          level: data.level,
+          language: data.language,
+          bestseller: data.bestseller,
+          objectives: Array.isArray(data.objectives) ? data.objectives : (data.objectives ? data.objectives.split('\n').filter(s => s.trim() !== '') : []),
+          features: Array.isArray(data.features) ? data.features : (data.features ? data.features.split('\n').filter(s => s.trim() !== '') : []),
+          price: data.price,
+          status: data.status === "Publié" ? "PUBLISHED" : (data.status === "Brouillon" ? "DRAFT" : "IN_REVIEW"),
+          activate: data.status === "Publié" ? true : false,
+          categorie: data.categoryId ? { id: data.categoryId } : undefined,
+          instructor: data.instructorId ? { id: data.instructorId } : undefined,
+        };
+        const updatedCourse = await courseService.updateCourse(selectedCourse.id, updatedCourseData, data.imageFile);
+        // Après modification, la remettre en attente ou rafraîchir la liste
+        setCourses((prev) => 
+          prev.map((item) => item.id === selectedCourse.id ? mapCourseModelToCourseItem(updatedCourse as Course) : item)
+        );
+        setShowEditModal(false);
+        setSelectedCourse(null);
+      } catch (err: any) {
+        setError(err.message || "Failed to update course.");
+        console.error("Error updating course:", err);
+      }
     }
-  }
-
-  const confirmRequestChanges = () => {
-    if (selectedCourse) {
-      setCourses(
-        courses.map((item) =>
-          item.id === selectedCourse.id ? { ...item, status: "Modifications demandées" as const } : item
-        )
-      )
-      setShowRequestChangesModal(false)
-      setRequestChangesComment("")
-      setSelectedCourse(null)
-    }
-  }
-
-  const handleEdit = (item: CourseItem) => {
-    setSelectedCourse(item)
-    setShowEditModal(true)
-    // Ici, vous pourriez charger les données complètes du cours pour l'édition
-  }
-
-  const handleSaveEdit = (editedCourse: CourseItem) => {
-    setCourses(
-      courses.map((item) => (item.id === editedCourse.id ? { ...editedCourse, status: "En attente" as const } : item)) // Mettre à jour et remettre en attente si modifié
-    )
-    setShowEditModal(false)
-    setSelectedCourse(null)
-  }
+  };
 
   const columns: ColumnDef<CourseItem>[] = [
     {
@@ -205,7 +303,7 @@ export function CourseModerationQueue() {
               {
                 label: "Modifier",
                 icon: <Edit className="h-4 w-4" />,
-                onClick: () => handleEdit(item),
+                onClick: () => { setSelectedCourse(item); setShowEditModal(true); },
               },
               {
                 label: "Valider",
@@ -232,65 +330,35 @@ export function CourseModerationQueue() {
 
   return (
     <>
-      <Card>
-        <CardContent className="pt-6">
-          <div className="mb-4">
-            <SearchBar placeholder="Rechercher une formation..." value={searchQuery} onChange={setSearchQuery} />
-          </div>
-          <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
-        </CardContent>
-      </Card>
+      {loading ? (
+        <PageLoader />
+      ) : error ? (
+        <div className="text-center text-destructive p-4">{error}</div>
+      ) : filteredData.length === 0 ? (
+        <div className="text-center text-muted-foreground p-4">Aucun cours en attente de modération.</div>
+      ) : (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="mb-4">
+              <SearchBar placeholder="Rechercher un cours..." value={searchQuery} onChange={setSearchQuery} />
+            </div>
+            <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Modal Modifier (Edit Course) */}
-      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Modifier la formation</DialogTitle>
-            <DialogDescription>
-              Ajustez les détails de la formation "{selectedCourse?.title}".
-            </DialogDescription>
-          </DialogHeader>
-          {selectedCourse && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="title" className="text-right">
-                  Titre
-                </Label>
-                <Input id="title" value={selectedCourse.title} onChange={(e) => setSelectedCourse({ ...selectedCourse, title: e.target.value })} className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="instructor" className="text-right">
-                  Instructeur
-                </Label>
-                <Input id="instructor" value={selectedCourse.instructor} onChange={(e) => setSelectedCourse({ ...selectedCourse, instructor: e.target.value })} className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="category" className="text-right">
-                  Catégorie
-                </Label>
-                <Input id="category" value={selectedCourse.category} onChange={(e) => setSelectedCourse({ ...selectedCourse, category: e.target.value })} className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="modules" className="text-right">
-                  Modules
-                </Label>
-                <Input id="modules" type="number" value={selectedCourse.modules} onChange={(e) => setSelectedCourse({ ...selectedCourse, modules: parseInt(e.target.value) || 0 })} className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="duration" className="text-right">
-                  Durée
-                </Label>
-                <Input id="duration" value={selectedCourse.duration} onChange={(e) => setSelectedCourse({ ...selectedCourse, duration: e.target.value })} className="col-span-3" />
-              </div>
-              {/* Ajoutez d'autres champs à éditer si nécessaire */}
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditModal(false)}>Annuler</Button>
-            <Button onClick={() => selectedCourse && handleSaveEdit(selectedCourse)}>Sauvegarder</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {selectedCourse && (
+        <CourseFormModal
+          open={showEditModal}
+          onOpenChange={setShowEditModal}
+          title="Modifier la formation"
+          description={`Modifiez les détails de la formation "${selectedCourse.title}"`}
+          defaultValues={mapCourseItemToCourseFormData(selectedCourse)}
+          onSubmit={handleSaveEdit}
+          submitLabel="Enregistrer les modifications"
+        />
+      )}
 
       {/* Modal Valider (Approve Course) */}
       <Dialog open={showApproveModal} onOpenChange={setShowApproveModal}>
@@ -303,7 +371,7 @@ export function CourseModerationQueue() {
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowApproveModal(false)}>Annuler</Button>
-            <Button onClick={confirmApprove}>Valider</Button>
+            <Button onClick={handleApproveCourse}>Valider</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -325,14 +393,14 @@ export function CourseModerationQueue() {
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowRejectModal(false)}>Annuler</Button>
-            <Button variant="destructive" onClick={confirmReject} disabled={!rejectionReason.trim()}>
+            <Button variant="destructive" onClick={handleRejectCourse} disabled={!rejectionReason.trim()}>
               Rejeter
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Modal Demander modifications (Request Changes) - Ancien showCommentDialog */}
+      {/* Modal Demander modifications (Request Changes) */}
       <Dialog open={showRequestChangesModal} onOpenChange={setShowRequestChangesModal}>
         <DialogContent>
           <DialogHeader>
@@ -351,7 +419,7 @@ export function CourseModerationQueue() {
             <Button variant="outline" onClick={() => setShowRequestChangesModal(false)}>
               Annuler
             </Button>
-            <Button onClick={confirmRequestChanges} disabled={!requestChangesComment.trim()}>
+            <Button onClick={handleRequestChangesCourse} disabled={!requestChangesComment.trim()}>
               Envoyer
             </Button>
           </DialogFooter>
@@ -360,4 +428,3 @@ export function CourseModerationQueue() {
     </>
   )
 }
-

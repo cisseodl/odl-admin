@@ -3,6 +3,10 @@
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Cell } from "recharts"
 import { BookOpen } from "lucide-react"
+import { useEffect, useState } from "react"
+import { useAuth } from "@/contexts/auth-context"
+import { fetchApi } from "@/services/api.service"
+import { PageLoader } from "@/components/ui/page-loader"
 
 const COLORS = [
   "hsl(var(--chart-1))",
@@ -13,12 +17,55 @@ const COLORS = [
 ]
 
 export function CoursePerformanceChart() {
-  const data = [
-    { course: "React Avancé", students: 450, label: "React" },
-    { course: "Node.js Complet", students: 380, label: "Node.js" },
-    { course: "TypeScript", students: 340, label: "TypeScript" },
-    { course: "Python", students: 420, label: "Python" },
-  ]
+  const { user } = useAuth()
+  const [data, setData] = useState<Array<{ course: string; students: number; label: string }>>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user?.id) {
+        setLoading(false)
+        return
+      }
+
+      try {
+        setLoading(true)
+        // Utiliser l'endpoint pour récupérer les performances des cours de l'instructeur
+        const response = await fetchApi<{ data: Array<{ courseId: number; courseTitle: string; studentsCount: number }> }>(
+          `/api/analytics/instructor-dashboard-performance?instructorId=${user.id}`,
+          { method: 'GET' }
+        )
+        
+        const courseData = response.data || []
+        const mappedData = courseData.map((item: any) => ({
+          course: item.courseTitle || `Cours ${item.courseId}`,
+          students: item.studentsCount || 0,
+          label: (item.courseTitle || `Cours ${item.courseId}`).substring(0, 10),
+        }))
+        
+        setData(mappedData)
+      } catch (err) {
+        console.error("Error fetching course performance:", err)
+        setData([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [user?.id])
+
+  if (loading) {
+    return <PageLoader />
+  }
+
+  if (data.length === 0) {
+    return (
+      <div className="text-center text-muted-foreground p-4">
+        Aucune donnée de performance disponible pour vos formations.
+      </div>
+    )
+  }
 
   return (
     <div className="w-full space-y-4">

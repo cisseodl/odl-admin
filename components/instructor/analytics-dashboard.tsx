@@ -1,12 +1,42 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CoursePerformanceChart } from "@/components/instructor/course-performance-chart"
-import { StudentsAnalyticsChart } from "@/components/instructor/students-analytics-chart"
-import { TrendingUp, Users, BookOpen, Award, Clock, Star } from "lucide-react"
+import { TrendingUp, Users, Clock, Star } from "lucide-react"
+import { useEffect, useState } from "react"
+import { analyticsService, type InstructorDashboardStats } from "@/services/analytics.service"
+import { PageLoader } from "@/components/ui/page-loader"
 
 export function InstructorAnalyticsDashboard() {
+  const [stats, setStats] = useState<InstructorDashboardStats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const data = await analyticsService.getInstructorDashboardStats()
+        setStats(data)
+      } catch (err: any) {
+        setError(err.message || "Impossible de charger les statistiques.")
+        console.error("Error fetching instructor stats:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchStats()
+  }, [])
+
+  if (loading) {
+    return <PageLoader />
+  }
+
+  if (error) {
+    return <div className="text-center text-destructive p-4">{error}</div>
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -16,8 +46,8 @@ export function InstructorAnalyticsDashboard() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">78.5%</div>
-            <p className="text-xs text-muted-foreground">+5.2% par rapport au mois dernier</p>
+            <div className="text-2xl font-bold">{stats?.averageCompletionRate.toFixed(1) || "0.0"}%</div>
+            <p className="text-xs text-muted-foreground">{stats?.totalEnrollments || 0} inscriptions totales</p>
           </CardContent>
         </Card>
         <Card>
@@ -26,18 +56,18 @@ export function InstructorAnalyticsDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,245</div>
-            <p className="text-xs text-muted-foreground">+156 ce mois</p>
+            <div className="text-2xl font-bold">{stats?.activeLearners.toLocaleString("fr-FR") || "0"}</div>
+            <p className="text-xs text-muted-foreground">30 derniers jours</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Temps moyen d'apprentissage</CardTitle>
+            <CardTitle className="text-sm font-medium">Score moyen quiz</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4.2h</div>
-            <p className="text-xs text-muted-foreground">Par semaine par apprenant</p>
+            <div className="text-2xl font-bold">{stats?.averageQuizScore.toFixed(1) || "0.0"}%</div>
+            <p className="text-xs text-muted-foreground">Moyenne des quiz</p>
           </CardContent>
         </Card>
         <Card>
@@ -46,63 +76,21 @@ export function InstructorAnalyticsDashboard() {
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4.7/5</div>
-            <p className="text-xs text-muted-foreground">Basé sur 1,234 avis</p>
+            <div className="text-2xl font-bold">{stats?.averageRating.toFixed(1) || "0.0"}/5</div>
+            <p className="text-xs text-muted-foreground">{stats?.newComments || 0} nouveaux avis (30j)</p>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-          <TabsTrigger value="courses">Formations</TabsTrigger>
-          <TabsTrigger value="students">Apprenants</TabsTrigger>
-        </TabsList>
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance des formations</CardTitle>
-                <CardDescription>Analyse détaillée de vos formations</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CoursePerformanceChart />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Statistiques des apprenants</CardTitle>
-                <CardDescription>Engagement et progression</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <StudentsAnalyticsChart />
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-        <TabsContent value="courses" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Performance des formations</CardTitle>
-              <CardDescription>Analyse détaillée de vos formations</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <CoursePerformanceChart />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="students" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Statistiques des apprenants</CardTitle>
-              <CardDescription>Engagement et progression</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <StudentsAnalyticsChart />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      <Card>
+        <CardHeader>
+          <CardTitle>Performance des formations</CardTitle>
+          <CardDescription>Analyse détaillée de vos formations</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CoursePerformanceChart />
+        </CardContent>
+      </Card>
     </div>
   )
 }

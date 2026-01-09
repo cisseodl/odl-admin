@@ -7,25 +7,49 @@ import { Label } from "@/components/ui/label"
 import { Trash2, AlertTriangle } from "lucide-react"
 import { useState } from "react"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { userService } from "@/services"
+import { useToast } from "@/hooks/use-toast"
 
 export function DataDeletion() {
   const [userId, setUserId] = useState("")
   const [showConfirm, setShowConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const { toast } = useToast()
 
   const handleDelete = () => {
     if (!userId) {
-      alert("Veuillez entrer un ID utilisateur")
+      toast({
+        title: "Erreur",
+        description: "Veuillez entrer un ID utilisateur",
+        variant: "destructive",
+      })
       return
     }
     setShowConfirm(true)
   }
 
-  const confirmDelete = () => {
-    // Simuler la suppression
-    console.log("Suppression des données pour l'utilisateur:", userId)
-    alert("Données supprimées avec succès (simulation)")
-    setUserId("")
-    setShowConfirm(false)
+  const confirmDelete = async () => {
+    if (!userId) return
+    
+    setIsDeleting(true)
+    try {
+      await userService.deleteUser(Number(userId))
+      toast({
+        title: "Succès",
+        description: "L'utilisateur et toutes ses données associées ont été supprimés avec succès.",
+      })
+      setUserId("")
+      setShowConfirm(false)
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de supprimer l'utilisateur.",
+        variant: "destructive",
+      })
+      console.error("Error deleting user:", error)
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   return (
@@ -51,9 +75,9 @@ export function DataDeletion() {
               onChange={(e) => setUserId(e.target.value)}
             />
           </div>
-          <Button variant="destructive" onClick={handleDelete}>
+          <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
             <Trash2 className="mr-2 h-4 w-4" />
-            Supprimer les données
+            {isDeleting ? "Suppression en cours..." : "Supprimer les données"}
           </Button>
         </CardContent>
       </Card>
@@ -63,8 +87,8 @@ export function DataDeletion() {
         onOpenChange={setShowConfirm}
         onConfirm={confirmDelete}
         title="Confirmer la suppression"
-        description="Cette action est irréversible. Toutes les données de l'utilisateur seront définitivement supprimées."
-        confirmText="Supprimer définitivement"
+        description={`Cette action est irréversible. Toutes les données de l'utilisateur (ID: ${userId}) seront définitivement supprimées, y compris ses rôles (Admin, Formateur, Apprenant) et toutes ses données associées.`}
+        confirmText={isDeleting ? "Suppression..." : "Supprimer définitivement"}
         variant="destructive"
       />
     </>

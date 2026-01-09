@@ -1,15 +1,14 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { PageHeader } from "@/components/ui/page-header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Trophy, Medal, Award, Star, BookOpen, GraduationCap } from "lucide-react" // Added BookOpen, GraduationCap
+import { Trophy, Medal, Award, Star, BookOpen, GraduationCap } from "lucide-react"
 import { MonthlyLeaderboard } from "@/components/admin/leaderboard/monthly-leaderboard"
 import { CourseLeaderboard } from "@/components/admin/leaderboard/course-leaderboard"
-import { PointsCalculator } from "@/lib/gamification/points-calculator"
 import type { LeaderboardEntry } from "@/types/gamification"
 import {
   Dialog,
@@ -22,6 +21,10 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 
+import { leaderboardService, courseService } from "@/services"; // Import services
+import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
+import { Course } from "@/models/course.model"; // Import Course model
+
 // Extension du type LeaderboardEntry pour inclure les détails des formations et certifications
 interface UserDetails extends LeaderboardEntry {
   completedCoursesList: { id: number, title: string }[]
@@ -32,75 +35,69 @@ export default function LeaderboardPage() {
   const [selectedUser, setSelectedUser] = useState<UserDetails | null>(null)
   const [showUserDetailsModal, setShowUserDetailsModal] = useState(false)
 
-  // Données simulées pour le classement général
-  const overallData: Omit<LeaderboardEntry, "rank">[] = [
-    { userId: 1, userName: "Marie Dupont", avatar: "/diverse-woman-portrait.png", coursesCompleted: 24, certifications: 5 },
-    { userId: 2, userName: "Thomas Martin", coursesCompleted: 22, certifications: 4 },
-    { userId: 3, userName: "Sophie Bernard", avatar: "/diverse-woman-portrait.png", coursesCompleted: 20, certifications: 3 },
-    { userId: 4, userName: "Lucas Petit", coursesCompleted: 18, certifications: 2 },
-    { userId: 5, userName: "Emma Moreau", avatar: "/diverse-woman-portrait.png", coursesCompleted: 17, certifications: 1 },
-  ]
+  const [overallLeaderboard, setOverallLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [monthlyLeaderboard, setMonthlyLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [coursesList, setCoursesList] = useState<Course[]>([]); // For course filter
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Données mensuelles (simulées)
-  const monthlyData: LeaderboardEntry[] = [
-    { rank: 1, userId: 1, userName: "Marie Dupont", avatar: "/diverse-woman-portrait.png", coursesCompleted: 6, certifications: 1, change: 0 },
-    { rank: 2, userId: 2, userName: "Thomas Martin", coursesCompleted: 5, certifications: 0, change: 1 },
-    { rank: 3, userId: 3, userName: "Sophie Bernard", avatar: "/diverse-woman-portrait.png", coursesCompleted: 4, certifications: 1, change: -1 },
-    { rank: 4, userId: 4, userName: "Lucas Petit", coursesCompleted: 4, certifications: 0, change: 0 },
-    { rank: 5, userId: 5, userName: "Emma Moreau", avatar: "/diverse-woman-portrait.png", coursesCompleted: 3, certifications: 0, change: 2 },
-  ]
-
-  // Données par formation (simulées)
-  const courses = [
-    { id: 1, title: "React Avancé" },
-    { id: 2, title: "Node.js" },
-    { id: 3, title: "Python" },
-    { id: 4, title: "JavaScript" },
-    { id: 5, title: "TypeScript" },
-  ]
-
-  const getLeaderboardForCourse = (courseId: number): LeaderboardEntry[] => {
-    // Simuler des données différentes par formation
-    return [
-      { rank: 1, userId: 1, userName: "Marie Dupont", avatar: "/diverse-woman-portrait.png", coursesCompleted: 1, certifications: 1 },
-      { rank: 2, userId: 2, userName: "Thomas Martin", coursesCompleted: 1, certifications: 1 },
-      { rank: 3, userId: 3, userName: "Sophie Bernard", avatar: "/diverse-woman-portrait.png", coursesCompleted: 1, certifications: 0 },
-      { rank: 4, userId: 4, userName: "Lucas Petit", coursesCompleted: 1, certifications: 0 },
-      { rank: 5, userId: 5, userName: "Emma Moreau", avatar: "/diverse-woman-portrait.png", coursesCompleted: 1, certifications: 0 },
-    ]
-  }
-
-  // Fonction pour obtenir les détails simulés d'un utilisateur
-  const getUserDetails = (entry: LeaderboardEntry): UserDetails => {
-    // Ceci simulerait un appel API ou une recherche dans une base de données
-    const simulatedUserDetails: UserDetails = {
-      ...entry,
-      completedCoursesList: [
-        { id: 101, title: "Introduction au Dev Web" },
-        { id: 102, title: "Bases de Python" },
-        { id: 103, title: "UX/UI Design" },
-      ].filter((_, idx) => idx < entry.coursesCompleted), // Simule les cours terminés
-      certificationsList: [
-        { id: 201, title: "Certificat React", issuedDate: "2023-03-15" },
-        { id: 202, title: "Certificat Python", issuedDate: "2023-06-20" },
-      ].filter((_, idx) => idx < entry.certifications), // Simule les certifications
-    }
-    return simulatedUserDetails
-  }
-
-
-  // Calculer les rangs pour le classement général
-  const overallLeaderboard = useMemo(() => {
-    // PointsCalculator.sortLeaderboard n'est plus pertinent si on n'a plus de points globaux
-    // On va simplement trier par coursesCompleted puis certifications pour le classement
-    const sorted = [...overallData].sort((a, b) => {
-      if (b.coursesCompleted !== a.coursesCompleted) {
-        return b.coursesCompleted - a.coursesCompleted // Plus de cours terminés = mieux
+  useEffect(() => {
+    const fetchLeaderboardData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [overall, monthly, courses] = await Promise.all([
+          leaderboardService.getOverall(),
+          leaderboardService.getMonthly(),
+          courseService.getAllCourses(),
+        ]);
+        setOverallLeaderboard(overall.map((entry: any, index: number) => ({ ...entry, rank: index + 1 })));
+        setMonthlyLeaderboard(monthly);
+        setCoursesList(courses);
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch leaderboard data.");
+        console.error("Error fetching leaderboard data:", err);
+      } finally {
+        setLoading(false);
       }
-      return b.certifications - a.certifications // Puis par certifications
-    })
-    return sorted.map((entry, index) => ({ ...entry, rank: index + 1 }))
-  }, [overallData])
+    };
+    fetchLeaderboardData();
+  }, []);
+
+  const getUserDetails = async (entry: LeaderboardEntry) => { // Make async
+    setShowUserDetailsModal(true); // Open modal immediately
+    setSelectedUser(null); // Clear previous user details while loading
+
+    try {
+      const userDetails = await leaderboardService.getUserDetails(entry.userId); // Fetch details from API
+      // Map API response to UserDetails interface
+      const mappedDetails: UserDetails = {
+        ...entry,
+        completedCoursesList: userDetails.completedCoursesList || [],
+        certificationsList: userDetails.certificationsList || [],
+        // Assuming userDetails from API also contains basic LeaderboardEntry fields
+      };
+      setSelectedUser(mappedDetails);
+    } catch (err: any) {
+      console.error("Error fetching user details:", err);
+      setSelectedUser({
+        ...entry,
+        completedCoursesList: [],
+        certificationsList: [],
+      }); // Fallback to basic info + empty lists on error
+    }
+  };
+
+
+  const getLeaderboardForCourse = async (courseId: number): Promise<LeaderboardEntry[]> => { // Make async
+    try {
+      const response = await leaderboardService.getCourseLeaderboard(courseId);
+      return response;
+    } catch (err: any) {
+      console.error(`Error fetching leaderboard for course ${courseId}:`, err);
+      return [];
+    }
+  };
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -122,77 +119,86 @@ export default function LeaderboardPage() {
         description="Consultez les classements et performances des utilisateurs"
       />
 
-      <Tabs defaultValue="overall" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 bg-[rgb(50,50,50)]/10 dark:bg-[rgb(50,50,50)]/20 border border-[rgb(50,50,50)]/20">
-          <TabsTrigger
-            value="overall"
-            className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
-          >
-            Général
-          </TabsTrigger>
-          <TabsTrigger
-            value="monthly"
-            className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
-          >
-            Mensuel
-          </TabsTrigger>
-          <TabsTrigger
-            value="courses"
-            className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
-          >
-            Par formation
-          </TabsTrigger>
-        </TabsList>
+      {loading ? (
+        <PageLoader />
+      ) : error ? (
+        <div className="text-center text-destructive p-4">{error}</div>
+      ) : (
+        <Tabs defaultValue="overall" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-3 bg-[rgb(50,50,50)]/10 dark:bg-[rgb(50,50,50)]/20 border border-[rgb(50,50,50)]/20">
+            <TabsTrigger
+              value="overall"
+              className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
+            >
+              Général
+            </TabsTrigger>
+            <TabsTrigger
+              value="monthly"
+              className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
+            >
+              Mensuel
+            </TabsTrigger>
+            <TabsTrigger
+              value="courses"
+              className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
+            >
+              Par formation
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="overall" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Classement Général</CardTitle>
-              <CardDescription>Top utilisateurs par nombre de formations et certifications</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {overallLeaderboard.map((entry) => (
-                  <div
-                    key={entry.rank}
-                    className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent transition-colors cursor-pointer" // Added cursor-pointer
-                    onClick={() => { // Added onClick to open modal
-                      setSelectedUser(getUserDetails(entry))
-                      setShowUserDetailsModal(true)
-                    }}
-                  >
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className="flex h-10 w-10 items-center justify-center">
-                        {getRankIcon(entry.rank)}
-                      </div>
-                      <Avatar>
-                        <AvatarImage src={entry.avatar} />
-                        <AvatarFallback>{entry.userName.slice(0, 2)}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="font-medium">{entry.userName}</div>
-                        <div className="text-sm text-muted-foreground flex items-center gap-4">
-                          <span>{entry.coursesCompleted} formations</span>
-                          <span>•</span>
-                          <span>{entry.certifications} certifications</span>
+          <TabsContent value="overall" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Classement Général</CardTitle>
+                <CardDescription>Top utilisateurs par nombre de formations et certifications</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {overallLeaderboard.length === 0 ? (
+                    <div className="text-center text-muted-foreground p-4">Aucun classement général trouvé.</div>
+                  ) : (
+                    overallLeaderboard.map((entry) => (
+                      <div
+                        key={entry.rank}
+                        className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent transition-colors cursor-pointer"
+                        onClick={() => {
+                          getUserDetails(entry)
+                        }}
+                      >
+                        <div className="flex items-center gap-4 flex-1">
+                          <div className="flex h-10 w-10 items-center justify-center">
+                            {getRankIcon(entry.rank)}
+                          </div>
+                          <Avatar>
+                            <AvatarImage src={entry.avatar} />
+                            <AvatarFallback>{entry.userName.slice(0, 2)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="font-medium">{entry.userName}</div>
+                            <div className="text-sm text-muted-foreground flex items-center gap-4">
+                              <span>{entry.coursesCompleted} formations</span>
+                              <span>•</span>
+                              <span>{entry.certifications} certifications</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        <TabsContent value="monthly" className="space-y-4">
-          <MonthlyLeaderboard entries={monthlyData} />
-        </TabsContent>
+          <TabsContent value="monthly" className="space-y-4">
+            <MonthlyLeaderboard entries={monthlyLeaderboard} />
+          </TabsContent>
 
-        <TabsContent value="courses" className="space-y-4">
-          <CourseLeaderboard courses={courses} getLeaderboardForCourse={getLeaderboardForCourse} />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="courses" className="space-y-4">
+            <CourseLeaderboard courses={coursesList} getLeaderboardForCourse={getLeaderboardForCourse} />
+          </TabsContent>
+        </Tabs>
+      )}
 
       {/* Modal Détails Utilisateur */}
       <Dialog open={showUserDetailsModal} onOpenChange={setShowUserDetailsModal}>
@@ -203,7 +209,7 @@ export default function LeaderboardPage() {
               Aperçu des formations terminées et des certifications obtenues.
             </DialogDescription>
           </DialogHeader>
-          {selectedUser && (
+          {selectedUser ? (
             <div className="space-y-6 py-4">
               <div>
                 <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
@@ -239,6 +245,8 @@ export default function LeaderboardPage() {
                 )}
               </div>
             </div>
+          ) : (
+            <PageLoader /> // Show loader while fetching user details
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowUserDetailsModal(false)}>Fermer</Button>
@@ -248,5 +256,3 @@ export default function LeaderboardPage() {
     </div>
   )
 }
-
-

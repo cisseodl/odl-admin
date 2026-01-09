@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react" // Added useEffect
 import { PageHeader } from "@/components/ui/page-header"
 import { SearchBar } from "@/components/ui/search-bar"
 import { DataTable } from "@/components/ui/data-table"
@@ -16,15 +16,9 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { Eye, Edit, Trash2, Award, BookOpen, Users, Calendar } from "lucide-react"
 import type { CertificationFormData } from "@/lib/validations/certification"
 
-type Certification = {
-  id: number
-  name: string
-  course: string
-  issued: number
-  validUntil: string
-  status: "Actif" | "Expiré" | "En attente"
-  requirements: string
-}
+import { certificationService, Certification } from "@/services/certification.service"; // Import service and type
+import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
+
 
 export function CertificationsList() {
   const addModal = useModal<Certification>()
@@ -32,74 +26,89 @@ export function CertificationsList() {
   const deleteModal = useModal<Certification>()
   const viewModal = useModal<Certification>()
 
-  const [certifications, setCertifications] = useState<Certification[]>([
-    {
-      id: 1,
-      name: "Certification React Avancé",
-      course: "Formation React Avancé",
-      issued: 145,
-      validUntil: "31 Déc 2025",
-      status: "Actif",
-      requirements: "80% de réussite minimum",
-    },
-    {
-      id: 2,
-      name: "Certification Full Stack Developer",
-      course: "Formation Full Stack",
-      issued: 89,
-      validUntil: "15 Jan 2026",
-      status: "Actif",
-      requirements: "Projet final validé",
-    },
-    {
-      id: 3,
-      name: "Certification UI/UX Design",
-      course: "Formation Design UI/UX",
-      issued: 203,
-      validUntil: "20 Nov 2024",
-      status: "Expiré",
-      requirements: "Portfolio de 5 projets",
-    },
-    {
-      id: 4,
-      name: "Certification Data Science",
-      course: "Formation Data Science",
-      issued: 67,
-      validUntil: "10 Mar 2026",
-      status: "Actif",
-      requirements: "Examen final + projet",
-    },
-  ])
+  const [certifications, setCertifications] = useState<Certification[]>([]); // Initialiser vide
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCertifications = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await certificationService.getAllCertifications();
+        setCertifications(data);
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch certifications.");
+        console.error("Error fetching certifications:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCertifications();
+  }, []); // Exécuter une fois au montage
 
   const { searchQuery, setSearchQuery, filteredData } = useSearch<Certification>({
     data: certifications,
     searchKeys: ["name", "course"],
   })
 
-  const handleAddCertification = (data: CertificationFormData) => {
-    const newCertification: Certification = {
-      id: certifications.length + 1,
-      ...data,
-      issued: 0,
+  const handleAddCertification = async (data: CertificationFormData) => {
+    setError(null);
+    try {
+      const newCertificationData: Omit<Certification, 'id' | 'issued'> = {
+        name: data.name,
+        course: data.course,
+        validUntil: data.validUntil,
+        status: data.status,
+        requirements: data.requirements,
+      };
+      const createdCertification = await certificationService.createCertification(newCertificationData);
+      setCertifications((prev) => [...prev, createdCertification]);
+      addModal.close();
+    } catch (err: any) {
+      setError(err.message || "Failed to add certification.");
+      console.error("Error adding certification:", err);
     }
-    setCertifications([...certifications, newCertification])
   }
 
-  const handleUpdateCertification = (data: CertificationFormData) => {
+  const handleUpdateCertification = async (data: CertificationFormData) => {
+    setError(null);
     if (editModal.selectedItem) {
-      setCertifications(
-        certifications.map((cert) =>
-          cert.id === editModal.selectedItem!.id
-            ? { ...cert, ...data }
-            : cert
-        )
-      )
+      try {
+        const updatedCertificationData: Partial<Certification> = {
+          name: data.name,
+          course: data.course,
+          validUntil: data.validUntil,
+          status: data.status,
+          requirements: data.requirements,
+        };
+        const updatedCertification = await certificationService.updateCertification(editModal.selectedItem.id, updatedCertificationData);
+        setCertifications((prev) =>
+          prev.map((cert) =>
+            cert.id === editModal.selectedItem!.id
+              ? updatedCertification
+              : cert
+          )
+        );
+        editModal.close();
+      } catch (err: any) {
+        setError(err.message || "Failed to update certification.");
+        console.error("Error updating certification:", err);
+      }
     }
   }
 
-  const handleDeleteCertification = () => {
+  const handleDeleteCertification = async () => {
+    setError(null);
     if (deleteModal.selectedItem) {
-      setCertifications(certifications.filter((cert) => cert.id !== deleteModal.selectedItem!.id))
+      try {
+        await certificationService.deleteCertification(deleteModal.selectedItem.id);
+        setCertifications((prev) => prev.filter((cert) => cert.id !== deleteModal.selectedItem!.id));
+        deleteModal.close();
+      } catch (err: any) {
+        setError(err.message || "Failed to delete certification.");
+        console.error("Error deleting certification:", err);
+      }
     }
   }
 
@@ -195,14 +204,26 @@ export function CertificationsList() {
 
       <Card className="mt-6">
         <CardContent>
-          <div className="mb-4">
-            <SearchBar
-              placeholder="Rechercher une certification..."
-              value={searchQuery}
-              onChange={setSearchQuery}
-            />
-          </div>
-          <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
+          {loading ? (
+            <PageLoader />
+          ) : error ? (
+            <div className="text-center text-destructive p-4">{error}</div>
+          ) : (
+            <>
+              <div className="mb-4">
+                <SearchBar
+                  placeholder="Rechercher une certification..."
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                />
+              </div>
+              {certifications.length === 0 ? (
+                <div className="text-center text-muted-foreground p-4">Aucune certification trouvée.</div>
+              ) : (
+                <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
+              )}
+            </>
+          )}
         </CardContent>
       </Card>
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { PageHeader } from "@/components/ui/page-header"
 import { SearchBar } from "@/components/ui/search-bar"
 import { DataTable } from "@/components/ui/data-table"
@@ -10,6 +10,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useSearch } from "@/hooks/use-search"
 import type { ColumnDef } from "@tanstack/react-table"
 import { User, Mail, BookOpen, TrendingUp, Calendar } from "lucide-react"
+
+import { useAuth } from "@/contexts/auth-context"; // Import useAuth
+import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
+import { apprenantService, courseService } from "@/services"; // Import services
+import { Apprenant } from "@/models/apprenant.model"; // Import Apprenant model
+import { Course } from "@/models/course.model"; // Import Course model
+
 
 type Student = {
   id: number
@@ -24,44 +31,63 @@ type Student = {
   avatar?: string
 }
 
+// Helper function to map Apprenant and Course data to StudentDisplay
+const mapApprenantToStudent = (apprenant: Apprenant, courses: Course[]): Student => {
+  // This is a simplified mapping. In a real app, you'd have specific API endpoints
+  // for learner progress on courses by a specific instructor.
+  const course = courses[Math.floor(Math.random() * courses.length)]; // Simulate assigning a random course from instructor's courses
+  
+  return {
+    id: apprenant.id || 0,
+    name: `${apprenant.prenom || ''} ${apprenant.nom || ''}`.trim(),
+    email: apprenant.email || "",
+    course: course?.title || "N/A", // Use course title if available
+    progress: Math.floor(Math.random() * 100), // Placeholder
+    score: Math.floor(Math.random() * (100 - 60 + 1) + 60), // Placeholder
+    completedModules: Math.floor(Math.random() * 5), // Placeholder
+    totalModules: 5, // Placeholder
+    lastActivity: new Date(apprenant.updatedAt || apprenant.createdAt || Date.now()).toLocaleDateString("fr-FR", { year: 'numeric', month: 'short', day: 'numeric' }),
+    avatar: undefined, // Apprenant model does not have avatar directly
+  };
+};
+
+
 export function StudentsTracker() {
-  const [students, setStudents] = useState<Student[]>([
-    {
-      id: 1,
-      name: "Marie Dupont",
-      email: "marie.dupont@email.com",
-      course: "Formation React Avancé",
-      progress: 75,
-      score: 85,
-      completedModules: 3,
-      totalModules: 4,
-      lastActivity: "Il y a 2 heures",
-      avatar: "/diverse-woman-portrait.png",
-    },
-    {
-      id: 2,
-      name: "Thomas Martin",
-      email: "thomas.martin@email.com",
-      course: "Formation Node.js Complet",
-      progress: 90,
-      score: 92,
-      completedModules: 5,
-      totalModules: 6,
-      lastActivity: "Il y a 5 heures",
-      avatar: "/man.jpg",
-    },
-    {
-      id: 3,
-      name: "Sophie Bernard",
-      email: "sophie.bernard@email.com",
-      course: "Formation React Avancé",
-      progress: 50,
-      score: 78,
-      completedModules: 2,
-      totalModules: 4,
-      lastActivity: "Il y a 1 jour",
-    },
-  ])
+  const { user, isLoading: authLoading } = useAuth();
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (authLoading || !user) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchStudentsData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Fetch all apprenants (temporarily, as no instructor-specific endpoint)
+        const allApprenants = await apprenantService.getAllApprenants();
+        // Fetch courses for the current instructor
+        const instructorCourses = await courseService.getCoursesByInstructorId(Number(user.id));
+
+        // Filter apprenants who are somehow linked to instructorCourses (simplified for now)
+        // In a real scenario, this would involve backend logic or a more complex filtering/matching
+        const relevantStudents = allApprenants.map(apprenant => mapApprenantToStudent(apprenant, instructorCourses));
+        
+        setStudents(relevantStudents);
+
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch students data.");
+        console.error("Error fetching students data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStudentsData();
+  }, [user, authLoading]);
 
   const { searchQuery, setSearchQuery, filteredData } = useSearch<Student>({
     data: students,
@@ -152,14 +178,26 @@ export function StudentsTracker() {
 
       <Card className="mt-6">
         <CardContent>
-          <div className="mb-4">
-            <SearchBar
-              placeholder="Rechercher un apprenant..."
-              value={searchQuery}
-              onChange={setSearchQuery}
-            />
-          </div>
-          <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
+          {loading ? (
+            <PageLoader />
+          ) : error ? (
+            <div className="text-center text-destructive p-4">{error}</div>
+          ) : (
+            <>
+              <div className="mb-4">
+                <SearchBar
+                  placeholder="Rechercher un apprenant..."
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                />
+              </div>
+              {students.length === 0 ? (
+                <div className="text-center text-muted-foreground p-4">Aucun apprenant trouvé.</div>
+              ) : (
+                <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
+              )}
+            </>
+          )}
         </CardContent>
       </Card>
     </>

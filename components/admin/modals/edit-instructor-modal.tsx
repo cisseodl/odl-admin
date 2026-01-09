@@ -71,8 +71,8 @@ export function EditInstructorModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Modifier l'instructeur</DialogTitle>
-          <DialogDescription>Modifiez les informations de l'instructeur</DialogDescription>
+          <DialogTitle>Modifier le formateur</DialogTitle>
+          <DialogDescription>Modifiez les informations du formateur</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
