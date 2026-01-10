@@ -1,1 +1,94 @@
-voici le lien du domaine  "http://odc-learning-backend-env.eba-ruizssvt.us-east-1.elasticbeanstalk.com/ " a la place de localhost
+login:1 Access to fetch at 'http://localhost:8080/awsodclearning/auth/signin' from origin 'https://main.d7kfdxiyupcrp.amplifyapp.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.Understand this error
+fabd63f383924e46.js:1  POST http://localhost:8080/awsodclearning/auth/signin net::ERR_FAILED
+n @ fabd63f383924e46.js:1
+signIn @ fabd63f383924e46.js:1
+signIn @ fabd63f383924e46.js:1
+(anonymous) @ fabd63f383924e46.js:1
+z @ e47eee54ddf46d31.js:3
+push.eg @ fd33f82d8ac6f8cc.js:1
+await in push.eg
+sX @ e1e73461228f2d3c.js:1
+(anonymous) @ e1e73461228f2d3c.js:1
+tI @ e1e73461228f2d3c.js:1
+s3 @ e1e73461228f2d3c.js:1
+fC @ e1e73461228f2d3c.js:1
+fN @ e1e73461228f2d3c.js:1Understand this error
+fabd63f383924e46.js:1 Network error connecting to http://localhost:8080/awsodclearning/auth/signin: Failed to fetch
+n @ fabd63f383924e46.js:1
+await in n
+signIn @ fabd63f383924e46.js:1
+signIn @ fabd63f383924e46.js:1
+(anonymous) @ fabd63f383924e46.js:1
+z @ e47eee54ddf46d31.js:3
+push.eg @ fd33f82d8ac6f8cc.js:1
+await in push.eg
+sX @ e1e73461228f2d3c.js:1
+(anonymous) @ e1e73461228f2d3c.js:1
+tI @ e1e73461228f2d3c.js:1
+s3 @ e1e73461228f2d3c.js:1
+fC @ e1e73461228f2d3c.js:1
+fN @ e1e73461228f2d3c.js:1Understand this error
+fabd63f383924e46.js:1 Vérifiez que le backend est démarré sur http://localhost:8080
+n @ fabd63f383924e46.js:1
+await in n
+signIn @ fabd63f383924e46.js:1
+signIn @ fabd63f383924e46.js:1
+(anonymous) @ fabd63f383924e46.js:1
+z @ e47eee54ddf46d31.js:3
+push.eg @ fd33f82d8ac6f8cc.js:1
+await in push.eg
+sX @ e1e73461228f2d3c.js:1
+(anonymous) @ e1e73461228f2d3c.js:1
+tI @ e1e73461228f2d3c.js:1
+s3 @ e1e73461228f2d3c.js:1
+fC @ e1e73461228f2d3c.js:1
+fN @ e1e73461228f2d3c.js:1Understand this error
+fabd63f383924e46.js:1 Authentication error: Error: Erreur réseau: Failed to fetch. Vérifiez que le backend est démarré sur http://localhost:8080
+    at n (fabd63f383924e46.js:1:813)
+    at async Object.signIn (fabd63f383924e46.js:1:2188)
+    at async fabd63f383924e46.js:1:3558
+    at async z (e47eee54ddf46d31.js:3:7363)
+    at async push.eg (fd33f82d8ac6f8cc.js:1:25154)
+signIn @ fabd63f383924e46.js:1
+await in signIn
+(anonymous) @ fabd63f383924e46.js:1
+z @ e47eee54ddf46d31.js:3
+push.eg @ fd33f82d8ac6f8cc.js:1
+await in push.eg
+sX @ e1e73461228f2d3c.js:1
+(anonymous) @ e1e73461228f2d3c.js:1
+tI @ e1e73461228f2d3c.js:1
+s3 @ e1e73461228f2d3c.js:1
+fC @ e1e73461228f2d3c.js:1
+fN @ e1e73461228f2d3c.js:1Understand this error
+fabd63f383924e46.js:1 Login failed in AuthContext: Error: Erreur réseau: Failed to fetch. Vérifiez que le backend est démarré sur http://localhost:8080
+    at Object.signIn (fabd63f383924e46.js:1:2767)
+    at async fabd63f383924e46.js:1:3558
+    at async z (e47eee54ddf46d31.js:3:7363)
+    at async push.eg (fd33f82d8ac6f8cc.js:1:25154)
+(anonymous) @ fabd63f383924e46.js:1
+await in (anonymous)
+z @ e47eee54ddf46d31.js:3
+push.eg @ fd33f82d8ac6f8cc.js:1
+await in push.eg
+sX @ e1e73461228f2d3c.js:1
+(anonymous) @ e1e73461228f2d3c.js:1
+tI @ e1e73461228f2d3c.js:1
+s3 @ e1e73461228f2d3c.js:1
+fC @ e1e73461228f2d3c.js:1
+fN @ e1e73461228f2d3c.js:1Understand this error
+e47eee54ddf46d31.js:3 Login page error: Error: Erreur réseau: Failed to fetch. Vérifiez que le backend est démarré sur http://localhost:8080
+    at Object.signIn (fabd63f383924e46.js:1:2767)
+    at async fabd63f383924e46.js:1:3558
+    at async z (e47eee54ddf46d31.js:3:7363)
+    at async push.eg (fd33f82d8ac6f8cc.js:1:25154)
+z @ e47eee54ddf46d31.js:3
+await in z
+push.eg @ fd33f82d8ac6f8cc.js:1
+await in push.eg
+sX @ e1e73461228f2d3c.js:1
+(anonymous) @ e1e73461228f2d3c.js:1
+tI @ e1e73461228f2d3c.js:1
+s3 @ e1e73461228f2d3c.js:1
+fC @ e1e73461228f2d3c.js:1
+fN @ e1e73461228f2d3c.js:1Understand this error
