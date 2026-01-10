@@ -216,8 +216,7 @@ export function InstructeursList() {
       try {
         const instructorId = editUserFormModal.selectedItem.id;
         const updatedUserData: Partial<ApiInstructor & UserDb> = {
-          firstName: data.prenom,
-          lastName: data.nom,
+          fullName: `${data.prenom || ''} ${data.nom || ''}`.trim(),
           email: data.email,
           phone: data.numero,
           activate: data.status === "Actif",

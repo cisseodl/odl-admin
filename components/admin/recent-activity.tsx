@@ -47,6 +47,28 @@ const mapAuditLogToActivityDisplay = (log: AuditLog): ActivityDisplay | null => 
   let iconColor: string = "text-muted-foreground";
   let resourceDisplay: string = log.resourceName || log.resource || "N/A";
 
+  // Extraire le nom de la ressource depuis resourceName ou details
+  if (log.resourceName && log.resourceName !== log.resource) {
+    resourceDisplay = log.resourceName;
+  } else if (log.details) {
+    if (log.resource === "course" && log.details.courseTitle) {
+      resourceDisplay = log.details.courseTitle as string;
+    } else if (log.resource === "user" && log.details.userName) {
+      resourceDisplay = log.details.userName as string;
+    } else if (log.details.title) {
+      resourceDisplay = log.details.title as string;
+    } else if (log.details.name) {
+      resourceDisplay = log.details.name as string;
+    }
+  }
+
+  // Parser le resource si c'est au format "Type: Name"
+  if (log.resource && log.resource.includes(":")) {
+    const parts = log.resource.split(":");
+    if (parts.length > 1 && resourceDisplay === log.resource) {
+      resourceDisplay = parts[1].trim();
+    }
+  }
 
   switch (log.action) {
     case "create":
@@ -54,20 +76,20 @@ const mapAuditLogToActivityDisplay = (log: AuditLog): ActivityDisplay | null => 
       type = "creation";
       icon = UserPlus;
       iconColor = "text-[hsl(var(--info))]";
-      if (log.resource === "course") actionText = "a créé la formation";
-      if (log.resource === "user") actionText = "a créé le compte";
+      if (log.resource === "course" || log.resource?.startsWith("course")) actionText = "a créé la formation";
+      if (log.resource === "user" || log.resource?.startsWith("user")) actionText = "a créé le compte";
       break;
     case "update":
       actionText = "a mis à jour";
       type = "update";
-      icon = CheckCircle2; // Ou un autre, à définir
+      icon = CheckCircle2;
       iconColor = "text-[hsl(var(--warning))]";
-      if (log.resource === "course") actionText = "a mis à jour la formation";
+      if (log.resource === "course" || log.resource?.startsWith("course")) actionText = "a mis à jour la formation";
       break;
     case "delete":
       actionText = "a supprimé";
       type = "deletion";
-      icon = XCircle; // Icône de suppression
+      icon = XCircle;
       iconColor = "text-destructive";
       break;
     case "approve":
@@ -75,14 +97,14 @@ const mapAuditLogToActivityDisplay = (log: AuditLog): ActivityDisplay | null => 
       type = "approval";
       icon = CheckCircle2;
       iconColor = "text-[hsl(var(--success))]";
-      if (log.resource === "course") actionText = "a validé la formation";
+      if (log.resource === "course" || log.resource?.startsWith("course")) actionText = "a validé la formation";
       break;
     case "reject":
       actionText = "a rejeté";
       type = "rejection";
       icon = XCircle;
       iconColor = "text-destructive";
-      if (log.resource === "course") actionText = "a rejeté la formation";
+      if (log.resource === "course" || log.resource?.startsWith("course")) actionText = "a rejeté la formation";
       break;
     case "login":
       actionText = "s'est connecté";
@@ -91,25 +113,19 @@ const mapAuditLogToActivityDisplay = (log: AuditLog): ActivityDisplay | null => 
       iconColor = "text-[hsl(var(--info))]";
       resourceDisplay = ""; // Pas de ressource spécifique pour le login
       break;
-    // ... Ajoutez d'autres cas si nécessaire
     default:
       actionText = `a effectué l'action ${log.action} sur`;
       type = "other";
       break;
   }
   
-  if (log.resource === "course" && log.details && log.details.courseTitle) {
-      resourceDisplay = log.details.courseTitle as string;
-  } else if (log.resource === "user" && log.details && log.details.userName) {
-      resourceDisplay = log.details.userName as string;
-  }
   // Pour la concision, on peut ignorer certaines actions/ressources si trop verbeux ou non pertinent pour l'affichage général
   if (log.action === "view") return null; // Ignorer les vues
 
   return {
     id: log.id || 0,
     user: log.userName || "Utilisateur inconnu",
-    avatar: "/placeholder-user.jpg", // Utiliser un avatar par défaut ou récupérer depuis les détails de l'utilisateur
+    avatar: "/placeholder-user.jpg",
     action: actionText,
     resourceDisplay: resourceDisplay,
     time: formatTimeAgo(log.createdAt),

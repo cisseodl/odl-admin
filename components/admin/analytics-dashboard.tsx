@@ -20,11 +20,12 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button" // Import Button component
 import { useEffect, useState, useMemo } from "react" // Import hooks
-import { analyticsService, type AnalyticsMetrics } from "@/services/analytics.service" // Import service
+import { analyticsService, type AnalyticsMetrics, type LearningTimeMetrics } from "@/services/analytics.service" // Import service
 import { PageLoader } from "@/components/ui/page-loader" // Import PageLoader
 
 export function AnalyticsDashboard() {
   const [analyticsMetricsData, setAnalyticsMetricsData] = useState<AnalyticsMetrics | null>(null)
+  const [learningTimeMetrics, setLearningTimeMetrics] = useState<LearningTimeMetrics | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -33,8 +34,12 @@ export function AnalyticsDashboard() {
       setLoading(true)
       setError(null)
       try {
-        const data = await analyticsService.getAnalyticsMetrics()
-        setAnalyticsMetricsData(data)
+        const [analyticsData, learningTimeData] = await Promise.all([
+          analyticsService.getAnalyticsMetrics(),
+          analyticsService.getLearningTimeMetrics()
+        ])
+        setAnalyticsMetricsData(analyticsData)
+        setLearningTimeMetrics(learningTimeData)
       } catch (err: any) {
         setError(err.message || "Impossible de charger les métriques analytics.")
         console.error("Error fetching analytics metrics:", err)
@@ -85,18 +90,28 @@ export function AnalyticsDashboard() {
       ) : error ? (
         <div className="text-center text-destructive p-4">{error}</div>
       ) : (
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
-          {analyticsMetrics.map((metric) => (
-            <StatCard
-              key={metric.title}
-              title={metric.title}
-              value={metric.value}
-              change={metric.change}
-              icon={metric.icon}
-              color={metric.color}
-            />
-          ))}
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold leading-tight">Indicateurs Clés de Performance</CardTitle>
+            <CardDescription className="text-sm leading-relaxed">
+              Métriques principales de la plateforme
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
+              {analyticsMetrics.map((metric) => (
+                <StatCard
+                  key={metric.title}
+                  title={metric.title}
+                  value={metric.value}
+                  change={metric.change}
+                  icon={metric.icon}
+                  color={metric.color}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Graphiques principaux */}
@@ -145,22 +160,26 @@ export function AnalyticsDashboard() {
                 <PageLoader />
               ) : error ? (
                 <div className="text-center text-destructive p-4">{error}</div>
-              ) : analyticsMetricsData ? (
+              ) : learningTimeMetrics ? (
                 <div className="grid gap-4 md:grid-cols-3">
                   <div className="p-6 rounded-lg border shadow-sm bg-card">
-                    <p className="text-sm text-muted-foreground mb-2 leading-relaxed">Temps moyen par session</p>
-                    <p className="text-3xl font-bold leading-tight">{Math.round(analyticsMetricsData.averageSessionTimeMinutes)} min</p>
-                    <p className="text-xs text-muted-foreground mt-2">Approximation basée sur l'activité</p>
+                    <p className="text-sm text-muted-foreground mb-2 leading-relaxed">Temps moyen par cours</p>
+                    <p className="text-3xl font-bold leading-tight">{Math.round(learningTimeMetrics.averageTimePerCourseMinutes)} min</p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {learningTimeMetrics.coursesWithActivity} cours avec activité
+                    </p>
                   </div>
                   <div className="p-6 rounded-lg border shadow-sm bg-card">
                     <p className="text-sm text-muted-foreground mb-2 leading-relaxed">Sessions actives</p>
-                    <p className="text-3xl font-bold leading-tight">{analyticsMetricsData.activeSessions.toLocaleString("fr-FR")}</p>
-                    <p className="text-xs text-muted-foreground mt-2">7 derniers jours</p>
+                    <p className="text-3xl font-bold leading-tight">{learningTimeMetrics.activeSessions.toLocaleString("fr-FR")}</p>
+                    <p className="text-xs text-muted-foreground mt-2">24 dernières heures</p>
                   </div>
                   <div className="p-6 rounded-lg border shadow-sm bg-card">
-                    <p className="text-sm text-muted-foreground mb-2 leading-relaxed">Taux d'interaction</p>
-                    <p className="text-3xl font-bold leading-tight">{analyticsMetricsData.interactionRate.toFixed(1)}%</p>
-                    <p className="text-xs text-muted-foreground mt-2">Utilisateurs avec progression</p>
+                    <p className="text-sm text-muted-foreground mb-2 leading-relaxed">Temps moyen par apprenant</p>
+                    <p className="text-3xl font-bold leading-tight">{Math.round(learningTimeMetrics.averageTimePerLearnerMinutes)} min</p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {learningTimeMetrics.learnersWithActivity} apprenants actifs
+                    </p>
                   </div>
                 </div>
               ) : null}
@@ -183,10 +202,10 @@ export function AnalyticsDashboard() {
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <ReportCard
                   reportType={{
-                    id: "engagement",
-                    title: "Rapport d'Engagement",
-                    description: "Complétion, temps passé, scores et interactions",
-                    icon: BarChart3,
+                    id: "learning-time",
+                    title: "Temps d'apprentissage",
+                    description: "Temps passé, sessions actives et progression des apprenants",
+                    icon: Clock,
                     color: "text-[hsl(var(--chart-1))]",
                   }}
                 />

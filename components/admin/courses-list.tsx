@@ -97,25 +97,14 @@ export function CoursesList() {
 
   const handleAddCourse = async (courseId?: number) => {
     try {
-      // Step 1: Create the basic course information
-      const coursePayload: Partial<CourseModel> = {
-        title: data.title,
-        subtitle: data.subtitle,
-        description: data.description,
-        level: data.level,
-        language: data.language,
-        status: "DRAFT", // Courses start as draft
-        activate: false,
-      };
-
-      // Le wizard gère déjà toute la création, on rafraîchit juste la liste
+      // Le wizard gère déjà toute la création du cours, on rafraîchit juste la liste
       if (courseId) {
         addModal.close();
         toast({
           title: "Succès",
           description: "La formation complète a été créée avec succès.",
         });
-        fetchCourses(); // Refresh the list
+        await fetchCourses(); // Refresh the list
       }
     } catch (err: any) {
       toast({
@@ -378,6 +367,7 @@ export function CoursesList() {
           defaultValues={editModal.selectedItem}
           onSubmit={handleUpdateCourse}
           submitLabel="Enregistrer les modifications"
+          categories={categories}
         />
       )}
 

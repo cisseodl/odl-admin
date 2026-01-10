@@ -80,6 +80,11 @@ export const adminRoutes: Route[] = [
     href: "/admin/reviews",
   },
   {
+    label: "Contenu",
+    icon: Upload,
+    href: "/admin/content",
+  },
+  {
     label: "Labs", // Renamed from Contenus
     icon: HardDrive, // Changed icon
     href: "/admin/labs", // Changed href

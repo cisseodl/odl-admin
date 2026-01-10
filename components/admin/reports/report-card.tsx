@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Download, FileText, Calendar } from "lucide-react"
 import { PDFGenerator } from "@/lib/reports/pdf-generator"
 import { ExcelGenerator } from "@/lib/reports/excel-generator"
+import { analyticsService, type AnalyticsMetrics, type LearningTimeMetrics } from "@/services/analytics.service"
+import { courseService } from "@/services/course.service"
 import type { LucideIcon } from "lucide-react"
 
 type Period = "week" | "month" | "quarter" | "year" | "custom"
@@ -30,8 +32,31 @@ export function ReportCard({ reportType }: ReportCardProps) {
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsMetrics | null>(null)
+  const [learningTimeData, setLearningTimeData] = useState<LearningTimeMetrics | null>(null)
+  const [coursesData, setCoursesData] = useState<any[]>([])
 
   const Icon = reportType.icon
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (reportType.id === "learning-time") {
+          const data = await analyticsService.getLearningTimeMetrics()
+          setLearningTimeData(data)
+        } else if (reportType.id === "users") {
+          const data = await analyticsService.getAnalyticsMetrics()
+          setAnalyticsData(data)
+        } else if (reportType.id === "courses") {
+          const data = await courseService.getAllCourses()
+          setCoursesData(Array.isArray(data) ? data : (data?.data || []))
+        }
+      } catch (error) {
+        console.error(`Error fetching data for ${reportType.id}:`, error)
+      }
+    }
+    fetchData()
+  }, [reportType.id])
 
   const getPeriodLabel = (period: Period): string => {
     switch (period) {
@@ -51,7 +76,7 @@ export function ReportCard({ reportType }: ReportCardProps) {
   }
 
   const generateReportData = () => {
-    // Simuler des données de rapport selon le type
+    // Générer des données de rapport dynamiques selon le type
     const baseData = {
       period: getPeriodLabel(period),
       generatedAt: new Date().toLocaleString("fr-FR"),
@@ -60,52 +85,78 @@ export function ReportCard({ reportType }: ReportCardProps) {
     }
 
     switch (reportType.id) {
-      case "engagement":
+      case "learning-time":
         return {
           ...baseData,
           metrics: {
-            completionRate: "68.4%",
-            averageTime: "4.2h",
-            averageScore: "85/100",
-            interactions: "12,543",
+            averageTimePerCourse: learningTimeData 
+              ? `${Math.round(learningTimeData.averageTimePerCourseMinutes)} min`
+              : "0 min",
+            activeSessions: learningTimeData 
+              ? learningTimeData.activeSessions.toLocaleString("fr-FR")
+              : "0",
+            averageTimePerLearner: learningTimeData 
+              ? `${Math.round(learningTimeData.averageTimePerLearnerMinutes)} min`
+              : "0 min",
+            coursesWithActivity: learningTimeData 
+              ? learningTimeData.coursesWithActivity.toString()
+              : "0",
+            learnersWithActivity: learningTimeData 
+              ? learningTimeData.learnersWithActivity.toString()
+              : "0",
           },
           details: [
-            { label: "Taux de complétion", value: "68.4%" },
-            { label: "Temps moyen", value: "4.2h" },
-            { label: "Score moyen", value: "85/100" },
-            { label: "Interactions totales", value: "12,543" },
+            { label: "Temps moyen par cours", value: learningTimeData ? `${Math.round(learningTimeData.averageTimePerCourseMinutes)} min` : "0 min" },
+            { label: "Sessions actives (24h)", value: learningTimeData ? learningTimeData.activeSessions.toLocaleString("fr-FR") : "0" },
+            { label: "Temps moyen par apprenant", value: learningTimeData ? `${Math.round(learningTimeData.averageTimePerLearnerMinutes)} min` : "0 min" },
+            { label: "Cours avec activité", value: learningTimeData ? learningTimeData.coursesWithActivity.toString() : "0" },
+            { label: "Apprenants avec activité", value: learningTimeData ? learningTimeData.learnersWithActivity.toString() : "0" },
           ],
         }
       case "users":
         return {
           ...baseData,
           metrics: {
-            newUsers: "1,234",
-            retentionRate: "82.5%",
-            activeUsers: "12,543",
-            growthRate: "+12.5%",
+            totalUsers: analyticsData ? analyticsData.totalUsers.toLocaleString("fr-FR") : "0",
+            activeUsers: analyticsData ? analyticsData.activeUsers.toLocaleString("fr-FR") : "0",
+            engagementRate: analyticsData ? `${analyticsData.engagementRate.toFixed(1)}%` : "0%",
+            averageRating: analyticsData ? `${analyticsData.averageRating.toFixed(1)}/5` : "0/5",
           },
           details: [
-            { label: "Nouveaux utilisateurs", value: "1,234" },
-            { label: "Taux de rétention", value: "82.5%" },
-            { label: "Utilisateurs actifs", value: "12,543" },
-            { label: "Taux de croissance", value: "+12.5%" },
+            { label: "Total utilisateurs", value: analyticsData ? analyticsData.totalUsers.toLocaleString("fr-FR") : "0" },
+            { label: "Utilisateurs actifs", value: analyticsData ? analyticsData.activeUsers.toLocaleString("fr-FR") : "0" },
+            { label: "Taux d'engagement", value: analyticsData ? `${analyticsData.engagementRate.toFixed(1)}%` : "0%" },
+            { label: "Note moyenne", value: analyticsData ? `${analyticsData.averageRating.toFixed(1)}/5` : "0/5" },
+            { label: "Total avis", value: analyticsData ? analyticsData.totalReviews.toLocaleString("fr-FR") : "0" },
           ],
         }
       case "courses":
+        const totalCourses = coursesData.length
+        const publishedCourses = coursesData.filter((c: any) => c.status === "PUBLIE" || c.status === "PUBLISHED").length
+        const totalEnrollments = coursesData.reduce((sum: number, c: any) => sum + (c.enrolledCount || 0), 0)
+        const avgRating = coursesData.length > 0
+          ? (coursesData.reduce((sum: number, c: any) => sum + (c.rating || 0), 0) / coursesData.length).toFixed(1)
+          : "0"
+        const topCourse = coursesData.length > 0
+          ? coursesData.sort((a: any, b: any) => (b.enrolledCount || 0) - (a.enrolledCount || 0))[0]
+          : null
+        
         return {
           ...baseData,
           metrics: {
-            totalCourses: "256",
-            popularCourse: "JavaScript",
-            averageRating: "4.7/5",
-            enrollments: "8,450",
+            totalCourses: totalCourses.toString(),
+            publishedCourses: publishedCourses.toString(),
+            totalEnrollments: totalEnrollments.toLocaleString("fr-FR"),
+            averageRating: `${avgRating}/5`,
+            popularCourse: topCourse?.title || "N/A",
           },
           details: [
-            { label: "Total formations", value: "256" },
-            { label: "Formation populaire", value: "JavaScript" },
-            { label: "Note moyenne", value: "4.7/5" },
-            { label: "Inscriptions", value: "8,450" },
+            { label: "Total formations", value: totalCourses.toString() },
+            { label: "Formations publiées", value: publishedCourses.toString() },
+            { label: "Total inscriptions", value: totalEnrollments.toLocaleString("fr-FR") },
+            { label: "Note moyenne", value: `${avgRating}/5` },
+            { label: "Formation la plus populaire", value: topCourse?.title || "N/A" },
+            { label: "Inscriptions (formation populaire)", value: topCourse ? (topCourse.enrolledCount || 0).toLocaleString("fr-FR") : "0" },
           ],
         }
       default:
@@ -147,12 +198,17 @@ export function ReportCard({ reportType }: ReportCardProps) {
       PDFGenerator.generate({
         title: reportData.title,
         content: `
-          <h2>${reportData.title}</h2>
+          <h2>Description</h2>
           <p>${reportData.description}</p>
-          <p><strong>Période:</strong> ${reportData.period}</p>
-          <p><strong>Généré le:</strong> ${reportData.generatedAt}</p>
-          <h3>Détails</h3>
+          <h2>Résumé des Métriques</h2>
+          <p>Ce rapport présente les métriques clés pour la période: <strong>${reportData.period}</strong></p>
         `,
+        metadata: {
+          "Période": reportData.period,
+          ...Object.fromEntries(
+            reportData.details.slice(0, 4).map(d => [d.label, d.value])
+          )
+        },
         tables: [
           {
             headers: ["Métrique", "Valeur"],
@@ -169,20 +225,19 @@ export function ReportCard({ reportType }: ReportCardProps) {
   const handleExportExcel = async () => {
     try {
       const data = generateReportData()
-      const rows = [
-        {
-          Type: reportType.title,
-          Période: getPeriodLabel(period),
-          "Date de génération": new Date().toLocaleString("fr-FR"),
-          ...(data.metrics || {}),
-        },
-        ...(data.details || []).map((d) => ({
-          Métrique: d.label,
-          Valeur: d.value,
-        })),
-      ]
+      const rows = (data.details || []).map((d) => ({
+        Métrique: d.label,
+        Valeur: d.value,
+      }))
 
-      ExcelGenerator.generate(rows, `rapport-${reportType.id}-${period}-${Date.now()}`)
+      const metadata = {
+        "Type de rapport": reportType.title,
+        "Période": getPeriodLabel(period),
+        "Date de génération": new Date().toLocaleString("fr-FR"),
+        ...(data.metrics || {}),
+      }
+
+      ExcelGenerator.generate(rows, `rapport-${reportType.id}-${period}-${Date.now()}`, metadata)
     } catch (error) {
       console.error("Erreur lors de l'export Excel:", error)
       alert("Une erreur est survenue lors de l'export Excel")

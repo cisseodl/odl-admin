@@ -46,9 +46,22 @@ export class InstructorService {
   }
 
   async updateInstructor(id: number, instructorData: Partial<ApiInstructor & UserDb>): Promise<any> {
+    // Le backend attend un InstructorUpdateRequest avec biography, specialization et les champs User
+    const requestBody = {
+      biography: instructorData.biography,
+      specialization: instructorData.specialization,
+      fullName: instructorData.fullName || (instructorData.firstName && instructorData.lastName 
+        ? `${instructorData.firstName} ${instructorData.lastName}`.trim()
+        : undefined),
+      email: instructorData.email,
+      phone: instructorData.phone,
+      avatar: instructorData.avatar,
+      activate: instructorData.activate,
+    };
+
     const response = await fetchApi<any>(`/instructors/${id}`, {
       method: "PUT",
-      body: instructorData,
+      body: requestBody,
     });
     return response.data || response;
   }

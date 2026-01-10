@@ -40,7 +40,10 @@ export async function fetchApi<T>(
     response = await fetch(`${API_BASE_URL}${endpoint}`, config);
   } catch (networkError: any) {
     // Catch actual network errors (e.g., DNS resolution, connection refused)
-    throw new Error(`Network Error: ${networkError.message || "Failed to connect to the API server."}`);
+    const errorMessage = networkError.message || "Failed to connect to the API server.";
+    console.error(`Network error connecting to ${API_BASE_URL}${endpoint}:`, errorMessage);
+    console.error("Vérifiez que le backend est démarré sur http://localhost:8080");
+    throw new Error(`Erreur réseau: ${errorMessage}. Vérifiez que le backend est démarré sur http://localhost:8080`);
   }
 
   const contentType = response.headers.get('content-type');

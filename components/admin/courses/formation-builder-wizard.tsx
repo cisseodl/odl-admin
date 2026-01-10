@@ -268,14 +268,41 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
       const lessonsWithFiles = await Promise.all(
         lessons.map(async (lesson) => {
           let contentUrl = lesson.contentUrl || "";
+          let finalType = lesson.type; // Type final de la leçon
           
           if (lesson.file) {
             try {
-              const folderName = lesson.type === "VIDEO" ? "videos" 
-                : lesson.type === "DOCUMENT" ? "documents"
-                : lesson.type === "LAB" ? "labs"
-                : "lessons";
+              // Détecter le type de fichier réel pour déterminer le dossier ET le type de leçon
+              const fileType = lesson.file.type || "";
+              const fileName = lesson.file.name.toLowerCase();
+              let folderName = "lessons"; // Dossier par défaut
               
+              // Détecter automatiquement le type de leçon basé sur le fichier
+              if (fileType.startsWith("video/") || fileName.endsWith(".mp4") || fileName.endsWith(".avi") || fileName.endsWith(".mov") || fileName.endsWith(".mkv")) {
+                folderName = "videos";
+                finalType = "VIDEO"; // Forcer le type à VIDEO si c'est une vidéo
+              } else if (
+                fileType === "application/pdf" || 
+                fileType === "application/msword" ||
+                fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+                fileType === "application/vnd.ms-powerpoint" ||
+                fileType === "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
+                fileType === "text/plain" ||
+                fileName.endsWith(".pdf") ||
+                fileName.endsWith(".doc") ||
+                fileName.endsWith(".docx") ||
+                fileName.endsWith(".txt") ||
+                fileName.endsWith(".ppt") ||
+                fileName.endsWith(".pptx")
+              ) {
+                folderName = "documents";
+                finalType = "DOCUMENT"; // Forcer le type à DOCUMENT si c'est un document
+              } else if (lesson.type === "LAB") {
+                folderName = "labs";
+                finalType = "LAB";
+              }
+              
+              console.log(`Uploading file for lesson "${lesson.title}": type=${finalType}, folder=${folderName}, fileType=${fileType}`);
               contentUrl = await fileUploadService.uploadFile(lesson.file, folderName);
             } catch (error) {
               console.error(`Error uploading file for lesson ${lesson.title}:`, error);
@@ -285,6 +312,7 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
           
           return {
             ...lesson,
+            type: finalType, // Utiliser le type détecté automatiquement
             contentUrl,
           };
         })
@@ -309,15 +337,12 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
             const lesson: any = {
               title: l.title,
               lessonOrder: l.lessonOrder || lidx + 1,
-              type: l.type,
+              type: l.type, // Le type est maintenant correctement détecté automatiquement
+              duration: l.duration || 0, // Toujours envoyer la durée, même si 0
             };
             
             if (l.contentUrl && l.contentUrl.trim() !== "") {
               lesson.contentUrl = l.contentUrl;
-            }
-            
-            if (l.duration && l.duration > 0) {
-              lesson.duration = l.duration;
             }
             
             return lesson;
@@ -338,7 +363,12 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
         modules: modulesWithLessons,
       };
 
-      await moduleService.saveModules(modulesPayload);
+      // Log pour déboguer
+      console.log("Payload des modules avec leçons:", JSON.stringify(modulesPayload, null, 2));
+      console.log("Nombre total de leçons:", modulesWithLessons.reduce((acc, m) => acc + (m.lessons?.length || 0), 0));
+
+      const response = await moduleService.saveModules(modulesPayload);
+      console.log("Réponse du backend après sauvegarde des modules:", response);
 
       setWizardData(prev => ({ ...prev, lessons }))
       setCompletedSteps(prev => new Set([...prev, "lessons"]))

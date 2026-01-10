@@ -154,54 +154,71 @@ export function StepLessons({ onSubmit, modules, defaultLessons = [] }: StepLess
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor={`lesson-type-${lesson.id}`}>Type *</Label>
-                        <Select
-                          value={lesson.type}
-                          onValueChange={(value: any) => {
-                            updateLesson(lesson.id || "", "type", value)
-                            // Réinitialiser le fichier si le type change
-                            updateLesson(lesson.id || "", "file", undefined)
-                            updateLesson(lesson.id || "", "contentUrl", undefined)
-                          }}
-                          required
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="VIDEO">
-                              <div className="flex items-center gap-2">
-                                <Video className="h-4 w-4" />
-                                Vidéo
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="DOCUMENT">
-                              <div className="flex items-center gap-2">
-                                <File className="h-4 w-4" />
-                                Document
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="QUIZ">
-                              <div className="flex items-center gap-2">
-                                <HelpCircle className="h-4 w-4" />
-                                Quiz
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="LAB">
-                              <div className="flex items-center gap-2">
-                                <FlaskConical className="h-4 w-4" />
-                                Lab
-                              </div>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className="space-y-2">
+                          <Label htmlFor={`lesson-type-${lesson.id}`}>Type *</Label>
+                          <Select
+                            value={lesson.type}
+                            onValueChange={(value: any) => {
+                              updateLesson(lesson.id || "", "type", value)
+                              // Réinitialiser le fichier si le type change
+                              updateLesson(lesson.id || "", "file", undefined)
+                              updateLesson(lesson.id || "", "contentUrl", undefined)
+                            }}
+                            required
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="VIDEO">
+                                <div className="flex items-center gap-2">
+                                  <Video className="h-4 w-4" />
+                                  Vidéo
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="DOCUMENT">
+                                <div className="flex items-center gap-2">
+                                  <File className="h-4 w-4" />
+                                  Document
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="QUIZ">
+                                <div className="flex items-center gap-2">
+                                  <HelpCircle className="h-4 w-4" />
+                                  Quiz
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="LAB">
+                                <div className="flex items-center gap-2">
+                                  <FlaskConical className="h-4 w-4" />
+                                  Lab
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor={`lesson-duration-${lesson.id}`}>Durée (minutes) *</Label>
+                          <Input
+                            id={`lesson-duration-${lesson.id}`}
+                            type="number"
+                            min="0"
+                            value={lesson.duration || 0}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value) || 0
+                              updateLesson(lesson.id || "", "duration", value)
+                            }}
+                            placeholder="Ex: 15"
+                            required
+                          />
+                        </div>
                       </div>
 
                       <div className="space-y-2">
                         <Label htmlFor={`lesson-file-${lesson.id}`}>
-                          {lesson.type === "VIDEO" && "Fichier vidéo *"}
-                          {lesson.type === "DOCUMENT" && "Fichier document (PDF, etc.) *"}
+                          {lesson.type === "VIDEO" && "Fichier vidéo ou document *"}
+                          {lesson.type === "DOCUMENT" && "Fichier document (PDF, DOC, DOCX) ou vidéo *"}
                           {lesson.type === "LAB" && "Fichier lab *"}
                           {lesson.type === "QUIZ" && "URL du quiz (optionnel)"}
                         </Label>
@@ -221,15 +238,41 @@ export function StepLessons({ onSubmit, modules, defaultLessons = [] }: StepLess
                               id={`lesson-file-${lesson.id}`}
                               type="file"
                               accept={
-                                lesson.type === "VIDEO"
-                                  ? "video/*"
-                                  : lesson.type === "DOCUMENT"
-                                  ? ".pdf,.doc,.docx"
+                                lesson.type === "VIDEO" || lesson.type === "DOCUMENT"
+                                  ? "video/*,.pdf,.doc,.docx,.txt,.ppt,.pptx"
                                   : "*"
                               }
                               onChange={(e) => {
                                 const file = e.target.files?.[0]
                                 if (file) {
+                                  // Détecter automatiquement le type de leçon basé sur le type MIME du fichier
+                                  const fileType = file.type || ""
+                                  let detectedType: "VIDEO" | "DOCUMENT" | "LAB" = lesson.type as any
+                                  
+                                  if (fileType.startsWith("video/")) {
+                                    detectedType = "VIDEO"
+                                  } else if (
+                                    fileType === "application/pdf" || 
+                                    fileType === "application/msword" ||
+                                    fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+                                    fileType === "application/vnd.ms-powerpoint" ||
+                                    fileType === "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
+                                    fileType === "text/plain" ||
+                                    file.name.toLowerCase().endsWith('.pdf') ||
+                                    file.name.toLowerCase().endsWith('.doc') ||
+                                    file.name.toLowerCase().endsWith('.docx') ||
+                                    file.name.toLowerCase().endsWith('.txt') ||
+                                    file.name.toLowerCase().endsWith('.ppt') ||
+                                    file.name.toLowerCase().endsWith('.pptx')
+                                  ) {
+                                    detectedType = "DOCUMENT"
+                                  }
+                                  
+                                  // Mettre à jour le type de leçon si détecté automatiquement
+                                  if (detectedType !== lesson.type && (lesson.type === "VIDEO" || lesson.type === "DOCUMENT")) {
+                                    updateLesson(lesson.id || "", "type", detectedType)
+                                  }
+                                  
                                   updateLesson(lesson.id || "", "file", file)
                                 }
                               }}
@@ -242,12 +285,15 @@ export function StepLessons({ onSubmit, modules, defaultLessons = [] }: StepLess
                                 <span className="text-xs">
                                   ({(lesson.file.size / 1024 / 1024).toFixed(2)} MB)
                                 </span>
+                                {lesson.file.type && (
+                                  <span className="text-xs text-blue-500">
+                                    ({lesson.file.type})
+                                  </span>
+                                )}
                               </div>
                             )}
                           </div>
                         )}
-                      </div>
-
                       </div>
 
                     </CardContent>

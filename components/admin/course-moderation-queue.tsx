@@ -24,8 +24,8 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-import { auditService, courseService } from "@/services"; // Import services
-import { Course } from "@/models/course.model"; // Import Course model
+import { auditService, courseService, categorieService } from "@/services"; // Import services
+import { Course, Categorie } from "@/models"; // Import Course and Categorie models
 import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
 import { CourseFormModal } from "@/components/shared/course-form-modal"; // Import CourseFormModal
 import { CourseFormData } from "@/lib/validations/course";
@@ -110,6 +110,7 @@ const mapCourseItemToCourseFormData = (item: CourseItem): CourseFormData => {
 
 export function CourseModerationQueue() {
   const [courses, setCourses] = useState<CourseItem[]>([])
+  const [categories, setCategories] = useState<Categorie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -125,6 +126,14 @@ export function CourseModerationQueue() {
       setLoading(true);
       setError(null);
       try {
+        // Récupérer les catégories
+        const categoriesResponse = await categorieService.getAllCategories();
+        if (categoriesResponse && Array.isArray(categoriesResponse.data)) {
+          setCategories(categoriesResponse.data);
+        } else {
+          setCategories([]);
+        }
+
         const pendingCourses = await auditService.getPendingCoursesForModeration();
         setCourses(pendingCourses.map(mapCourseModelToCourseItem));
       } catch (err: any) {
@@ -357,6 +366,7 @@ export function CourseModerationQueue() {
           defaultValues={mapCourseItemToCourseFormData(selectedCourse)}
           onSubmit={handleSaveEdit}
           submitLabel="Enregistrer les modifications"
+          categories={categories || []}
         />
       )}
 

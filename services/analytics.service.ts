@@ -194,6 +194,11 @@ class AnalyticsService {
     return response.data || [];
   }
 
+  async getLearningTimeMetrics(): Promise<LearningTimeMetrics> {
+    const response = await fetchApi<{ data: LearningTimeMetrics }>('/analytics/learning-time-metrics', { method: 'GET' });
+    return response.data; // Extraire la propriété 'data'
+  }
+
   // You can add more analytics methods here as needed
 }
 
@@ -213,6 +218,14 @@ export interface InstructorActivityDataPoint {
   courseId?: number;
   courseTitle?: string;
   timestamp: string;
+}
+
+export interface LearningTimeMetrics {
+  averageTimePerCourseMinutes: number;
+  activeSessions: number;
+  averageTimePerLearnerMinutes: number;
+  coursesWithActivity: number;
+  learnersWithActivity: number;
 }
 
 export const analyticsService = new AnalyticsService();

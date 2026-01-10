@@ -23,8 +23,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { courseService } from "@/services";
-import { Course as CourseModel } from "@/models";
+import { courseService, categorieService } from "@/services";
+import { Course as CourseModel, Categorie } from "@/models";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useModal } from "@/hooks/use-modal";
 
@@ -33,6 +33,7 @@ type CourseForModeration = CourseModel;
 export function ModerationList() {
   const { toast } = useToast();
   const [courses, setCourses] = useState<CourseForModeration[]>([]);
+  const [categories, setCategories] = useState<Categorie[]>([]);
   const [loading, setLoading] = useState(true);
 
   const editModal = useModal<CourseForModeration>();
@@ -43,6 +44,14 @@ export function ModerationList() {
   const fetchModerationCourses = useCallback(async () => {
     setLoading(true);
     try {
+      // Récupérer les catégories
+      const categoriesResponse = await categorieService.getAllCategories();
+      if (categoriesResponse && Array.isArray(categoriesResponse.data)) {
+        setCategories(categoriesResponse.data);
+      } else {
+        setCategories([]);
+      }
+
       const response = await courseService.getAllCourses({ status: 'IN_REVIEW' });
       // Le backend retourne CResponse avec structure { ok, data, message }
       // ou directement un tableau si getAllCourses retourne data
@@ -212,6 +221,7 @@ export function ModerationList() {
           defaultValues={editModal.selectedItem}
           onSubmit={handleUpdateCourse}
           submitLabel="Enregistrer les modifications"
+          categories={categories || []}
         />
       )}
 

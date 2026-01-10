@@ -21,8 +21,48 @@ export class AuditService {
   }
 
   async getRecentActivity(limit: number): Promise<AuditLog[]> {
-    const response = await fetchApi<any>(`/api/admin/reports/audit/logs?page=0&size=${limit}`, { method: "GET" });
-    return response.data.content || []; // Extraire le contenu de la pagination
+    try {
+      const response = await fetchApi<any>(`/api/admin/reports/audit/recent?limit=${limit}`, { method: "GET" });
+      const logs = response.data || [];
+      // Mapper les ActivityLog du backend vers AuditLog du frontend
+      return logs.map((log: any) => {
+        let details: Record<string, unknown> | undefined = undefined;
+        if (log.details) {
+          try {
+            details = typeof log.details === 'string' ? JSON.parse(log.details) : log.details;
+          } catch (e) {
+            // Si le parsing échoue, garder les détails comme string
+            details = { raw: log.details };
+          }
+        }
+        
+        // Extraire resourceName depuis details ou resource
+        let resourceName: string | undefined = undefined;
+        if (details) {
+          resourceName = (details.courseTitle as string) || 
+                     (details.userName as string) || 
+                     (details.title as string) || 
+                     log.resource;
+        } else {
+          resourceName = log.resource;
+        }
+        
+        return {
+          id: log.id || 0,
+          userId: log.user?.id || 0,
+          userName: log.userName || "Utilisateur inconnu",
+          action: log.action as AuditAction,
+          resource: log.resource as AuditResource,
+          resourceId: details?.id as number || details?.courseId as number || undefined,
+          resourceName: resourceName,
+          details: details,
+          createdAt: log.createdAt || log.created_at || new Date().toISOString(),
+        };
+      });
+    } catch (error) {
+      console.error("Error fetching recent activity:", error);
+      return [];
+    }
   }
 
   async getInstructorRecentActivity(instructorId: number, limit: number): Promise<AuditLog[]> { // Nouvelle méthode

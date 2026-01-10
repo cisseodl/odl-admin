@@ -314,7 +314,16 @@ export function AdministrateursList() {
           return (
             <div className="flex items-center gap-3">
               <Avatar>
-                <AvatarImage src={administrateur.avatar || "/placeholder.svg"} alt={administrateur.name} />
+                <AvatarImage 
+                  src={
+                    administrateur.avatar 
+                      ? (administrateur.avatar.startsWith("http") 
+                          ? administrateur.avatar 
+                          : `http://localhost:8080/awsodclearning${administrateur.avatar.startsWith("/") ? "" : "/"}${administrateur.avatar}`)
+                      : "/placeholder.svg"
+                  } 
+                  alt={administrateur.name} 
+                />
                 <AvatarFallback>{administrateur.name.slice(0, 2)}</AvatarFallback>
               </Avatar>
               <div>

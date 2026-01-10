@@ -164,11 +164,15 @@ export function CourseFormModal({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={String(category.id)}>
-                          {category.title}
-                        </SelectItem>
-                      ))}
+                      {categories && Array.isArray(categories) && categories.length > 0 ? (
+                        categories.map((category) => (
+                          <SelectItem key={category.id} value={String(category.id)}>
+                            {category.title}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="" disabled>Aucune catégorie disponible</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
