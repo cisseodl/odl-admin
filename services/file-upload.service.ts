@@ -1,6 +1,6 @@
 import { STORAGE_KEYS } from "@/constants/auth";
 
-const API_BASE_URL = "http://localhost:8080/awsodclearning";
+import { FULL_API_URL } from "./api.config";
 
 export class FileUploadService {
   /**
@@ -17,7 +17,7 @@ export class FileUploadService {
     const token = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEYS.TOKEN) : null;
 
     // Le backend retourne directement l'URL en String dans ResponseEntity.ok(url)
-    const response = await fetch(`${API_BASE_URL}/api/files/upload`, {
+    const response = await fetch(`${FULL_API_URL}/api/files/upload`, {
       method: "POST",
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),

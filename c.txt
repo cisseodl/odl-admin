@@ -1,5 +1,1 @@
-intercept-console-error.ts:42 Error fetching recent activity: Error: API Error 404: Something went wrong
-    at fetchApi (api.service.ts:45:11)
-    at async AuditService.getRecentActivity (audit.service.ts:24:22)
-    at async RecentActivity.useEffect.fetchRecentActivity (recent-activity.tsx:133:29)
-error	@	intercept-console-error.ts:42
+https://main.d7kfdxiyupcrp.amplifyapp.com

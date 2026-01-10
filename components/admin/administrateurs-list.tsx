@@ -21,6 +21,7 @@ import type { UserFormData } from "@/lib/validations/user"
 import { UserDb } from "@/models";
 import { userService } from "@/services";
 import { adminService } from "@/services/admin.service";
+import { FULL_API_URL } from "@/services/api.config";
 import { PageLoader } from "@/components/ui/page-loader";
 import { EmptyState } from "@/components/admin/empty-state";
 import { useToast } from "@/hooks/use-toast";
@@ -319,7 +320,7 @@ export function AdministrateursList() {
                     administrateur.avatar 
                       ? (administrateur.avatar.startsWith("http") 
                           ? administrateur.avatar 
-                          : `http://localhost:8080/awsodclearning${administrateur.avatar.startsWith("/") ? "" : "/"}${administrateur.avatar}`)
+                          : `${FULL_API_URL}${administrateur.avatar.startsWith("/") ? "" : "/"}${administrateur.avatar}`)
                       : "/placeholder.svg"
                   } 
                   alt={administrateur.name} 

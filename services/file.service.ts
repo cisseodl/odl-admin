@@ -1,4 +1,5 @@
 import { fetchApi } from "./api.service";
+import { API_URL } from "./api.config";
 
 export class FileService {
   async uploadFile(file: File, folderName = "test"): Promise<any> {
@@ -40,7 +41,7 @@ export class FileService {
   async downloadFromFolder(folderName: string, fileName: string): Promise<any> {
     // This endpoint streams the file directly as a download
     const response = await fetch(
-      `${"http://localhost:8080"}/downloads/${encodeURIComponent(
+      `${API_URL}/downloads/${encodeURIComponent(
         folderName
       )}/${encodeURIComponent(fileName)}`
     );

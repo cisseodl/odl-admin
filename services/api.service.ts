@@ -1,7 +1,6 @@
 // services/api.service.ts
 import { STORAGE_KEYS } from "@/constants/auth";
-
-const API_BASE_URL = "http://odc-learning-backend-env.eba-ruizssvt.us-east-1.elasticbeanstalk.com"; // Base URL for the API
+import { FULL_API_URL } from "./api.config"; // Utiliser la configuration centralisée
 
 interface RequestOptions extends RequestInit {
   token?: string;
@@ -37,13 +36,12 @@ export async function fetchApi<T>(
 
   let response: Response;
   try {
-    response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    response = await fetch(`${FULL_API_URL}${endpoint}`, config); // Utiliser FULL_API_URL
   } catch (networkError: any) {
     // Catch actual network errors (e.g., DNS resolution, connection refused)
     const errorMessage = networkError.message || "Failed to connect to the API server.";
-    console.error(`Network error connecting to ${API_BASE_URL}${endpoint}:`, errorMessage);
-    console.error("Vérifiez que le backend est démarré sur http://localhost:8080");
-    throw new Error(`Erreur réseau: ${errorMessage}. Vérifiez que le backend est démarré sur http://localhost:8080`);
+    console.error(`Network error connecting to ${FULL_API_URL}${endpoint}:`, errorMessage);
+    throw new Error(`Erreur réseau: ${errorMessage}. Vérifiez que le serveur backend est accessible.`);
   }
 
   const contentType = response.headers.get('content-type');
