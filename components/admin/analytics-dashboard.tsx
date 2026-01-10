@@ -22,8 +22,10 @@ import { Button } from "@/components/ui/button" // Import Button component
 import { useEffect, useState, useMemo } from "react" // Import hooks
 import { analyticsService, type AnalyticsMetrics, type LearningTimeMetrics } from "@/services/analytics.service" // Import service
 import { PageLoader } from "@/components/ui/page-loader" // Import PageLoader
+import { useLanguage } from "@/contexts/language-context" // Import useLanguage
 
 export function AnalyticsDashboard() {
+  const { t } = useLanguage()
   const [analyticsMetricsData, setAnalyticsMetricsData] = useState<AnalyticsMetrics | null>(null)
   const [learningTimeMetrics, setLearningTimeMetrics] = useState<LearningTimeMetrics | null>(null)
   const [loading, setLoading] = useState(true)
@@ -59,21 +61,21 @@ export function AnalyticsDashboard() {
     if (!analyticsMetricsData) return []
     return [
       {
-        title: "Note moyenne",
+        title: t("analytics.averageRating"),
         value: `${analyticsMetricsData.averageRating.toFixed(1)}/5`,
-        change: `Basé sur ${analyticsMetricsData.totalReviews.toLocaleString("fr-FR")} avis`,
+        change: `${analyticsMetricsData.totalReviews.toLocaleString("fr-FR")} ${t("common.reviews") || "avis"}`,
         icon: Star,
         color: "text-[hsl(var(--warning))]",
       },
       {
-        title: "Taux d'engagement",
+        title: t("analytics.engagementRate"),
         value: `${analyticsMetricsData.engagementRate.toFixed(1)}%`,
-        change: `${analyticsMetricsData.activeUsers.toLocaleString("fr-FR")} utilisateurs actifs sur ${analyticsMetricsData.totalUsers.toLocaleString("fr-FR")}`,
+        change: `${analyticsMetricsData.activeUsers.toLocaleString("fr-FR")} ${t("analytics.activeUsers")} / ${analyticsMetricsData.totalUsers.toLocaleString("fr-FR")} ${t("analytics.totalUsers")}`,
         icon: TrendingUp,
         color: "text-[hsl(var(--warning))]",
       },
     ]
-  }, [analyticsMetricsData])
+  }, [analyticsMetricsData, t])
 
   return (
     <div className="space-y-6">
@@ -92,9 +94,9 @@ export function AnalyticsDashboard() {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl font-semibold leading-tight">Indicateurs Clés de Performance</CardTitle>
+            <CardTitle className="text-xl font-semibold leading-tight">{t("analytics.kpi")}</CardTitle>
             <CardDescription className="text-sm leading-relaxed">
-              Métriques principales de la plateforme
+              {t("analytics.title")}
             </CardDescription>
           </CardHeader>
           <CardContent>

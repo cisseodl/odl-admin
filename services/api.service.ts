@@ -1,7 +1,7 @@
 // services/api.service.ts
 import { STORAGE_KEYS } from "@/constants/auth";
 
-const API_BASE_URL = "http://localhost:8080/awsodclearning"; // Base URL for the API
+const API_BASE_URL = "http://odc-learning-backend-env.eba-ruizssvt.us-east-1.elasticbeanstalk.com/"; // Base URL for the API
 
 interface RequestOptions extends RequestInit {
   token?: string;

@@ -14,6 +14,8 @@ import { Bell, Search, User, LogOut, Settings } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/contexts/auth-context"
+import { LanguageSwitcher } from "@/components/shared/language-switcher"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export function InstructorHeader() {
   const { user, logout } = useAuth()
@@ -33,6 +35,8 @@ export function InstructorHeader() {
       </div>
 
       <div className="flex items-center gap-2">
+        <LanguageSwitcher />
+        <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative">

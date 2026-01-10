@@ -23,6 +23,7 @@ import { GlobalSearch } from "@/components/admin/global-search"
 import { KeyboardShortcutsHelp } from "@/components/admin/keyboard-shortcuts-help"
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { LanguageSwitcher } from "@/components/shared/language-switcher"
 
 export function Header() {
   const { user, logout } = useAuth()
@@ -96,6 +97,7 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-2">
+        <LanguageSwitcher />
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
