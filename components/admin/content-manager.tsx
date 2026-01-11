@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
+import { useLanguage } from "@/contexts/language-context"
 import { PageHeader } from "@/components/ui/page-header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -68,12 +69,7 @@ const lessonTypeIcons = {
   LAB: FlaskConical,
 }
 
-const lessonTypeLabels = {
-  VIDEO: "Vidéo",
-  DOCUMENT: "Document",
-  QUIZ: "Quiz",
-  LAB: "Lab",
-}
+// lessonTypeLabels sera défini dans le composant pour utiliser t()
 
 const lessonTypeColors = {
   VIDEO: "bg-blue-500/10 text-blue-500",
@@ -83,6 +79,7 @@ const lessonTypeColors = {
 }
 
 export function ContentManager() {
+  const { t } = useLanguage()
   const { toast } = useToast()
   const [courses, setCourses] = useState<CourseWithContent[]>([])
   const [loading, setLoading] = useState(true)
@@ -104,10 +101,10 @@ export function ContentManager() {
       setCourses(coursesData)
     } catch (err: any) {
       console.error("Error fetching courses:", err)
-      setError(err.message || "Impossible de charger les formations.")
+      setError(err.message || t('content.errors.load_failed'))
       toast({
-        title: "Erreur",
-        description: "Impossible de charger les formations.",
+        title: t('common.error'),
+        description: t('content.errors.load_failed'),
         variant: "destructive",
       })
     } finally {
@@ -157,8 +154,8 @@ export function ContentManager() {
     } catch (err: any) {
       console.error(`Error loading content for course ${courseId}:`, err)
       toast({
-        title: "Erreur",
-        description: `Impossible de charger le contenu de la formation.`,
+        title: t('common.error'),
+        description: t('content.errors.load_content_failed'),
         variant: "destructive",
       })
     } finally {
@@ -207,20 +204,29 @@ export function ContentManager() {
     )
   }
 
+  const lessonTypeLabels = {
+    VIDEO: t('content.lesson_types.video'),
+    DOCUMENT: t('content.lesson_types.document'),
+    QUIZ: t('content.lesson_types.quiz'),
+    LAB: t('content.lesson_types.lab'),
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Gestion du Contenu"
-        description="Consultez et gérez les modules, leçons et quiz de toutes les formations"
+        title={t('content.title')}
+        description={t('content.description')}
       />
 
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Formations</CardTitle>
+              <CardTitle>{t('content.courses.title')}</CardTitle>
               <CardDescription>
-                {courses.length} formation{courses.length !== 1 ? "s" : ""} disponible{courses.length !== 1 ? "s" : ""}
+                {courses.length === 1 
+                  ? t('content.courses.available', { count: courses.length })
+                  : t('content.courses.available_plural', { count: courses.length })}
               </CardDescription>
             </div>
             <Select
@@ -228,10 +234,10 @@ export function ContentManager() {
               onValueChange={(value) => setSelectedCourseId(value === "all" ? null : Number(value))}
             >
               <SelectTrigger className="w-[250px]">
-                <SelectValue placeholder="Filtrer par formation" />
+                <SelectValue placeholder={t('content.courses.filter_placeholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Toutes les formations</SelectItem>
+                <SelectItem value="all">{t('content.courses.filter_all')}</SelectItem>
                 {courses.map((course) => (
                   <SelectItem key={course.id} value={course.id.toString()}>
                     {course.title}
@@ -244,7 +250,7 @@ export function ContentManager() {
         <CardContent>
           {courses.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              Aucune formation disponible.
+              {t('content.courses.empty')}
             </div>
           ) : (
             <div className="space-y-4">
@@ -283,12 +289,14 @@ export function ContentManager() {
                           )}
                           {course.modules && (
                             <Badge variant="secondary">
-                              {course.modules.length} module{course.modules.length !== 1 ? "s" : ""}
+                              {course.modules.length === 1
+                                ? t('content.modules.count', { count: course.modules.length })
+                                : t('content.modules.count_plural', { count: course.modules.length })}
                             </Badge>
                           )}
                           {course.quizzes && course.quizzes.length > 0 && (
                             <Badge variant="secondary">
-                              {course.quizzes.length} quiz
+                              {t('content.quizzes.count', { count: course.quizzes.length })}
                             </Badge>
                           )}
                         </div>
@@ -303,9 +311,9 @@ export function ContentManager() {
                             <div>
                               <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
                                 <FileText className="h-4 w-4" />
-                                Modules ({course.modules.length})
+                                {t('content.modules.title', { count: course.modules.length })}
                                 <span className="text-xs text-muted-foreground font-normal ml-2">
-                                  ({course.modules.reduce((acc, m) => acc + (m.lessons?.length || 0), 0)} leçons au total)
+                                  ({t('content.lessons.total', { count: course.modules.reduce((acc, m) => acc + (m.lessons?.length || 0), 0) })})
                                 </span>
                               </h3>
                               <Accordion type="multiple" className="space-y-2">
@@ -322,7 +330,9 @@ export function ContentManager() {
                                           <span className="font-medium">{module.title}</span>
                                           {module.lessons && module.lessons.length > 0 && (
                                             <Badge variant="outline" className="ml-2">
-                                              {module.lessons.length} leçon{module.lessons.length !== 1 ? "s" : ""}
+                                              {module.lessons.length === 1
+                                                ? t('content.lessons.count', { count: module.lessons.length })
+                                                : t('content.lessons.count_plural', { count: module.lessons.length })}
                                             </Badge>
                                           )}
                                         </div>
@@ -347,7 +357,7 @@ export function ContentManager() {
                                                     <div className="flex-1 min-w-0">
                                                       <div className="flex items-center gap-2">
                                                         <span className="font-medium text-sm">
-                                                          {lesson.title || "Leçon sans titre"}
+                                                          {lesson.title || t('content.lessons.no_title')}
                                                         </span>
                                                         <Badge 
                                                           variant="secondary" 
@@ -358,7 +368,7 @@ export function ContentManager() {
                                                       </div>
                                                       {lesson.duration && (
                                                         <p className="text-xs text-muted-foreground mt-1">
-                                                          Durée: {lesson.duration} min
+                                                          {t('content.lessons.duration', { minutes: lesson.duration })}
                                                         </p>
                                                       )}
                                                     </div>
@@ -369,7 +379,7 @@ export function ContentManager() {
                                                         onClick={() => window.open(lesson.contentUrl || "", "_blank")}
                                                       >
                                                         <PlayCircle className="h-4 w-4 mr-1" />
-                                                        Ouvrir
+                                                        {t('common.open')}
                                                       </Button>
                                                     )}
                                                   </div>
@@ -378,7 +388,7 @@ export function ContentManager() {
                                           </div>
                                         ) : (
                                           <p className="text-sm text-muted-foreground py-2">
-                                            Aucune leçon dans ce module.
+                                            {t('content.lessons.empty_module')}
                                           </p>
                                         )}
                                       </AccordionContent>
@@ -393,7 +403,7 @@ export function ContentManager() {
                             <div>
                               <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
                                 <FileQuestion className="h-4 w-4" />
-                                Quiz ({course.quizzes.length})
+                                {t('content.quizzes.title', { count: course.quizzes.length })}
                               </h3>
                               <div className="space-y-2">
                                 {course.quizzes.map((quiz) => (
@@ -402,7 +412,7 @@ export function ContentManager() {
                                       <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
                                           <FileQuestion className="h-4 w-4 text-purple-500" />
-                                          <span className="font-medium">{quiz.title || quiz.titre || "Quiz sans titre"}</span>
+                                          <span className="font-medium">{quiz.title || quiz.titre || t('content.quizzes.no_title')}</span>
                                         </div>
                                         {quiz.description && (
                                           <p className="text-sm text-muted-foreground mb-2">
@@ -411,10 +421,10 @@ export function ContentManager() {
                                         )}
                                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
                                           {(quiz.durationMinutes || quiz.dureeMinutes) && (
-                                            <span>Durée: {quiz.durationMinutes || quiz.dureeMinutes} min</span>
+                                            <span>{t('content.quizzes.duration', { minutes: quiz.durationMinutes || quiz.dureeMinutes })}</span>
                                           )}
                                           {quiz.scoreMinimum && (
-                                            <span>Score minimum: {quiz.scoreMinimum}%</span>
+                                            <span>{t('content.quizzes.min_score', { score: quiz.scoreMinimum })}</span>
                                           )}
                                         </div>
                                       </div>
@@ -428,7 +438,7 @@ export function ContentManager() {
                           {(!course.modules || course.modules.length === 0) && 
                            (!course.quizzes || course.quizzes.length === 0) && (
                             <div className="text-center py-8 text-muted-foreground">
-                              Aucun contenu disponible pour cette formation.
+                              {t('content.empty')}
                             </div>
                           )}
                         </div>

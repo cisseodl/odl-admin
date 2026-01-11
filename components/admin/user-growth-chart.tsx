@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useLanguage } from "@/contexts/language-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts"
@@ -8,6 +9,7 @@ import { analyticsService, UserGrowthDataPoint } from "@/services/analytics.serv
 import { PageLoader } from "@/components/ui/page-loader" // Import PageLoader
 
 export function UserGrowthChart() {
+  const { t } = useLanguage()
   const [data, setData] = useState<UserGrowthDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,8 +38,8 @@ export function UserGrowthChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>KPI</CardTitle>
-          <CardDescription>Évolution des inscriptions</CardDescription>
+          <CardTitle>{t('analytics.charts.user_growth.title')}</CardTitle>
+          <CardDescription>{t('analytics.charts.user_growth.description')}</CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center items-center h-[300px]">
           <PageLoader />
@@ -50,8 +52,8 @@ export function UserGrowthChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>KPI</CardTitle>
-          <CardDescription>Évolution des inscriptions</CardDescription>
+          <CardTitle>{t('analytics.charts.user_growth.title')}</CardTitle>
+          <CardDescription>{t('analytics.charts.user_growth.description')}</CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center items-center h-[300px] text-destructive">
           {error}
@@ -65,16 +67,16 @@ export function UserGrowthChart() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>KPI</CardTitle>
-            <CardDescription>Évolution des inscriptions sur 6 mois</CardDescription>
+            <CardTitle>{t('analytics.charts.user_growth.title')}</CardTitle>
+            <CardDescription>{t('analytics.charts.user_growth.description_6months')}</CardDescription>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-xs text-muted-foreground">Croissance totale</p>
+              <p className="text-xs text-muted-foreground">{t('analytics.charts.user_growth.total_growth')}</p>
               <p className="text-lg font-bold text-primary">+{totalGrowth.toFixed(1)}%</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-muted-foreground">Moyenne mensuelle</p>
+              <p className="text-xs text-muted-foreground">{t('analytics.charts.user_growth.monthly_average')}</p>
               <p className="text-lg font-bold">{Math.round(averageMonthly).toLocaleString("fr-FR")}</p>
             </div>
           </div>
@@ -84,11 +86,11 @@ export function UserGrowthChart() {
         <ChartContainer
           config={{
             newUsers: {
-              label: "Nouveaux utilisateurs",
+              label: t('analytics.charts.user_growth.new_users_label'),
               color: "hsl(var(--chart-1))",
             },
             totalUsers: {
-              label: "Total utilisateurs",
+              label: t('analytics.charts.user_growth.total_users_label'),
               color: "hsl(var(--chart-2))",
             },
           }}
@@ -115,14 +117,14 @@ export function UserGrowthChart() {
                 dataKey="newUsers"
                 stroke="var(--color-newUsers)"
                 fill="url(#colorNewUsers)"
-                name="Nouveaux"
+                name={t('analytics.charts.user_growth.new')}
               />
               <Area
                 type="monotone"
                 dataKey="totalUsers"
                 stroke="var(--color-totalUsers)"
                 fill="url(#colorTotalUsers)"
-                name="Total"
+                name={t('analytics.charts.user_growth.total')}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -130,11 +132,11 @@ export function UserGrowthChart() {
         <div className="mt-4 flex items-center justify-center gap-6 text-sm">
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 rounded-full bg-[hsl(var(--chart-1))]" />
-            <span className="text-muted-foreground">Nouveaux utilisateurs</span>
+            <span className="text-muted-foreground">{t('analytics.charts.user_growth.new_users')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 rounded-full bg-[hsl(var(--chart-2))]" />
-            <span className="text-muted-foreground">Total cumulé</span>
+            <span className="text-muted-foreground">{t('analytics.charts.user_growth.total_cumulative')}</span>
           </div>
         </div>
       </CardContent>

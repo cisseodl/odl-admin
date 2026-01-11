@@ -26,7 +26,21 @@
     "inactive": "Inactif",
     "yes": "Oui",
     "no": "Non",
-    "reviews": "avis"
+    "reviews": "avis",
+    "notAvailable": "N/A",
+    "none": "Aucun(e)",
+    "breadcrumb": "Fil d'Ariane",
+    "open": "Ouvrir"
+  },
+  "table": {
+    "no_results": "Aucun résultat trouvé",
+    "no_results_description": "Essayez de modifier vos critères de recherche",
+    "total_results": "{{count}} résultat(s) au total",
+    "page_info": "Page {{current}} sur {{total}}",
+    "first_page": "Première page",
+    "previous_page": "Page précédente",
+    "next_page": "Page suivante",
+    "last_page": "Dernière page"
   },
   "auth": {
     "login": "Connexion",
@@ -34,20 +48,236 @@
     "email": "Email",
     "password": "Mot de passe",
     "forgotPassword": "Mot de passe oublié",
-    "rememberMe": "Se souvenir de moi"
+    "rememberMe": "Se souvenir de moi",
+    "loginPage": {
+      "title": "Connexion",
+      "description": "Connectez-vous pour accéder à votre espace",
+      "emailLabel": "Adresse email",
+      "emailPlaceholder": "votre@email.com",
+      "passwordLabel": "Mot de passe",
+      "passwordPlaceholder": "••••••••",
+      "showPassword": "Afficher le mot de passe",
+      "hidePassword": "Masquer le mot de passe",
+      "submit": "Se connecter",
+      "submitting": "Connexion en cours...",
+      "error": "Email ou mot de passe incorrect."
+    }
+  },
+  "apprenant": {
+    "dashboard": {
+      "title": "Tableau de bord Apprenant",
+      "description": "Bienvenue dans votre espace d'apprentissage !",
+      "stats": {
+        "enrolledCourses": "Formations Inscrites",
+        "enrolledCoursesDesc": "Total des cours auxquels vous êtes inscrit(e)",
+        "completedCourses": "Formations Terminées",
+        "completedCoursesDesc": "Nombre de cours terminés avec succès",
+        "certificates": "Certificats Obtenus",
+        "certificatesDesc": "Vos certificats d'achèvement",
+        "quizzesPassed": "Quiz Réussis",
+        "quizzesPassedDesc": "Nombre de quiz passés avec succès"
+      }
+    }
   },
   "dashboard": {
     "title": "Tableau de bord",
     "overview": "Vue d'ensemble",
     "statistics": "Statistiques",
     "recentActivity": "Activité récente",
-    "quickActions": "Actions rapides"
+    "quickActions": "Actions rapides",
+    "description": "Vue d'ensemble de votre plateforme de formation",
+    "loadError": "Impossible de charger les données du tableau de bord.",
+    "mainStats": {
+      "newUsers": "Nouveaux utilisateurs (30j)",
+      "newCourses": "Nouveaux cours (30j)",
+      "totalEnrollments": "Inscriptions totales",
+      "lessonsCompleted": "Leçons terminées"
+    },
+    "globalStats": {
+      "title": "Statistiques Globales",
+      "totalUsers": "Total Utilisateurs",
+      "totalCourses": "Total Cours",
+      "publishedCourses": "Cours publiés",
+      "pendingModeration": "En attente"
+    },
+    "comparison": {
+      "title": "Comparaison Mois Actuel vs Précédent",
+      "description": "Analyse comparative des performances",
+      "previous_period": "période précédente",
+      "no_data": "Aucune donnée de comparaison disponible pour la période.",
+      "no_change": "Aucun changement",
+      "comparison_with": "Comparaison avec la {{period}}",
+      "metrics": {
+        "registrations": "Inscriptions",
+        "completion_rate": "Taux de complétion",
+        "courses_created": "Formations créées",
+        "active_users": "Utilisateurs actifs"
+      }
+    },
+    "quick_actions": {
+      "title": "Actions Rapides",
+      "description": "Accès rapide aux actions fréquentes",
+      "add_user": "Ajouter un utilisateur",
+      "create_course": "Créer une formation",
+      "manage_cohorts": "Gérer les Cohortes",
+      "manage_labs": "Gérer les Labs"
+    },
+    "charts": {
+      "users_by_role": {
+        "title": "Répartition des utilisateurs par rôle"
+      },
+      "top_courses": {
+        "title": "Top 5 des cours par inscriptions",
+        "enrollments_key": "Inscriptions"
+      }
+    }
   },
   "users": {
     "title": "Utilisateurs",
-    "admins": "Administrateurs",
-    "instructors": "Formateurs",
-    "learners": "Apprenants",
+    "admins": {
+      "title": "Gestion des Administrateurs",
+      "description": "Gérez tous les administrateurs de la plateforme",
+      "list": {
+        "title": "Administrateurs",
+        "add_button": "Ajouter Administrateur",
+        "add_options_title": "Options d'ajout",
+        "add_option_create": "Créer un nouvel utilisateur",
+        "add_option_promote": "Promouvoir un utilisateur existant",
+        "search_placeholder": "Rechercher par nom ou email...",
+        "empty_title": "Aucun administrateur trouvé",
+        "empty_description": "Aucun administrateur ne correspond à votre recherche",
+        "header_admin": "Administrateur",
+        "header_status": "Statut",
+        "header_joined_date": "Date d'inscription",
+        "header_courses_managed": "Cours gérés",
+        "header_actions": "Actions",
+        "action_view_details": "Voir détails",
+        "action_edit": "Modifier",
+        "action_delete": "Supprimer"
+      },
+      "modals": {
+        "promote_title": "Promouvoir un utilisateur en administrateur",
+        "promote_description": "Sélectionnez un utilisateur existant à promouvoir.",
+        "create_title": "Créer un nouvel utilisateur",
+        "create_description": "Créez un compte utilisateur de base qui pourra ensuite être promu.",
+        "create_submit": "Créer l'utilisateur",
+        "edit_title": "Modifier l'administrateur",
+        "edit_description": "Modifiez les informations de l'administrateur",
+        "edit_submit": "Enregistrer les modifications",
+        "delete_title": "Supprimer l'administrateur",
+        "delete_description": "Êtes-vous sûr de vouloir supprimer l'administrateur {{name}} ? Cette action supprimera également l'utilisateur de base et toutes ses données associées. Cette action est irréversible."
+      },
+      "toasts": {
+        "error_fetch_list": "Impossible de charger la liste des administrateurs.",
+        "error_unexpected_response": "La réponse de l'API pour les administrateurs est inattendue.",
+        "error_promote": "Impossible de promouvoir l'utilisateur en administrateur.",
+        "error_update": "Impossible de mettre à jour l'administrateur.",
+        "error_delete": "Impossible de supprimer l'administrateur.",
+        "success_promote": "L'utilisateur a été promu administrateur avec succès.",
+        "success_update": "L'administrateur a été mis à jour.",
+        "success_delete": "L'administrateur et l'utilisateur associé ont été supprimés avec succès.",
+        "success_user_created": "L'utilisateur {{name}} a été créé. Vous pouvez maintenant le promouvoir en administrateur."
+      },
+      "no_name": "Utilisateur sans nom"
+    },
+    "instructors": {
+      "title": "Gestion des Formateurs",
+      "description": "Gérez tous les formateurs de la plateforme",
+      "list": {
+        "title": "Formateurs",
+        "add_button": "Ajouter Formateur",
+        "add_options_title": "Options d'ajout",
+        "add_option_create": "Créer un nouvel utilisateur",
+        "add_option_promote": "Promouvoir un utilisateur existant",
+        "search_placeholder": "Rechercher par nom, email ou spécialisation...",
+        "empty_title": "Aucun formateur trouvé",
+        "empty_description": "Aucun formateur ne correspond à votre recherche",
+        "header_instructor": "Formateur",
+        "header_specialization": "Spécialisation",
+        "header_status": "Statut",
+        "header_joined_date": "Date d'inscription",
+        "header_courses_managed": "Formations gérées",
+        "header_actions": "Actions",
+        "action_view_details": "Voir détails",
+        "action_edit_user": "Modifier les détails utilisateur",
+        "action_edit_profile": "Modifier le profil formateur",
+        "action_delete": "Supprimer"
+      },
+      "modals": {
+        "promote_select_title": "Promouvoir un utilisateur en formateur",
+        "promote_select_description": "Sélectionnez un utilisateur existant à promouvoir.",
+        "promote_form_title": "Créer le profil formateur",
+        "promote_form_description": "Ajoutez les détails spécifiques du profil de formateur.",
+        "promote_form_submit": "Promouvoir et créer le profil",
+        "edit_user_title": "Modifier les détails utilisateur du formateur",
+        "edit_user_description": "Modifiez les informations de base de l'utilisateur.",
+        "edit_user_submit": "Enregistrer les modifications",
+        "delete_title": "Supprimer le formateur",
+        "delete_description": "Êtes-vous sûr de vouloir supprimer le formateur {{name}} ? Cette action supprimera également l'utilisateur de base et toutes ses données associées. Cette action est irréversible."
+      },
+      "toasts": {
+        "error_fetch_list": "Impossible de charger les formateurs.",
+        "error_unexpected_response": "La réponse de l'API pour les formateurs est inattendue.",
+        "error_promote": "Impossible de promouvoir l'utilisateur en formateur.",
+        "error_update": "Impossible de mettre à jour le formateur.",
+        "error_delete": "Impossible de supprimer le formateur.",
+        "success_promote": "L'utilisateur a été promu et le profil formateur créé.",
+        "success_update": "Le formateur a été mis à jour.",
+        "success_delete": "Le formateur et l'utilisateur associé ont été supprimés avec succès.",
+        "success_user_created": "L'utilisateur {{name}} a été créé. Vous pouvez maintenant le promouvoir en formateur."
+      },
+      "no_name": "Formateur sans nom"
+    },
+    "learners": {
+      "title": "Gestion des Apprenants",
+      "description": "Gérez tous les apprenants de la plateforme",
+      "list": {
+        "title": "Apprenants",
+        "add_button": "Ajouter Apprenant",
+        "add_options_title": "Options d'ajout",
+        "add_option_create": "Créer un nouvel utilisateur",
+        "add_option_promote": "Promouvoir un utilisateur existant",
+        "search_placeholder": "Rechercher par nom ou email...",
+        "empty_title": "Aucun apprenant trouvé",
+        "empty_description": "Aucun apprenant ne correspond à votre recherche",
+        "header_learner": "Apprenant",
+        "header_phone": "Téléphone",
+        "header_field": "Filière",
+        "header_level": "Niveau d'étude",
+        "header_profession": "Profession",
+        "header_cohort": "Cohorte",
+        "header_status": "Statut",
+        "header_joined_date": "Date d'inscription",
+        "header_actions": "Actions",
+        "action_view_details": "Voir détails",
+        "action_edit": "Modifier",
+        "action_delete": "Supprimer"
+      },
+      "modals": {
+        "promote_title": "Promouvoir un utilisateur en apprenant",
+        "promote_description": "Sélectionnez un utilisateur existant à promouvoir.",
+        "create_user_title": "Créer un nouvel utilisateur",
+        "create_user_description": "Créez un compte utilisateur de base qui pourra ensuite être promu en apprenant.",
+        "create_user_submit": "Créer l'utilisateur",
+        "create_profile_title": "Créer le profil apprenant",
+        "create_profile_description": "Ajoutez les détails spécifiques du profil d'apprenant.",
+        "create_profile_submit": "Créer le profil",
+        "edit_title": "Modifier l'apprenant",
+        "edit_description": "Modifiez les informations de l'apprenant",
+        "edit_submit": "Enregistrer les modifications",
+        "delete_title": "Supprimer l'apprenant",
+        "delete_description": "Êtes-vous sûr de vouloir supprimer l'apprenant {{name}} ? Cette action supprimera également l'utilisateur de base et toutes ses données associées. Cette action est irréversible."
+      },
+      "toasts": {
+        "error_fetch": "Impossible de récupérer les apprenants.",
+        "error_update": "Impossible de mettre à jour l'apprenant.",
+        "error_delete": "Impossible de supprimer l'apprenant.",
+        "error_promote": "Impossible de promouvoir l'utilisateur en apprenant.",
+        "success_promote": "L'utilisateur a été promu et le profil apprenant créé.",
+        "success_user_created": "L'utilisateur {{name}} a été créé. Vous pouvez maintenant créer son profil apprenant.",
+        "success_delete": "L'apprenant et l'utilisateur associé ont été supprimés avec succès."
+      }
+    },
     "addUser": "Ajouter un utilisateur",
     "editUser": "Modifier l'utilisateur",
     "deleteUser": "Supprimer l'utilisateur",
@@ -63,6 +293,11 @@
     "addCourse": "Ajouter une formation",
     "editCourse": "Modifier la formation",
     "deleteCourse": "Supprimer la formation",
+    "edit_description": "Modifiez les informations de la formation",
+    "delete_description": "Êtes-vous sûr de vouloir supprimer {{name}} ? Cette action est irréversible.",
+    "search_placeholder": "Rechercher une formation...",
+    "filter_by_category": "Filtrer par catégorie",
+    "filter_all_categories": "Toutes les catégories",
     "courseTitle": "Titre du cours",
     "description": "Description",
     "category": "Catégorie",
@@ -74,16 +309,122 @@
     "rating": "Note",
     "modules": "Modules",
     "lessons": "Leçons",
-    "quizzes": "Quiz"
+    "quizzes": "Quiz",
+    "tabs": {
+      "all": "Toutes",
+      "published": "Publiées",
+      "draft": "Brouillons",
+      "in_review": "En révision"
+    },
+    "actions": {
+      "create": "Créer une formation"
+    },
+    "chapters": "Chapitres",
+    "videos": "Vidéos",
+    "list": {
+      "header_course": "Formation",
+      "header_instructor": "Formateur",
+      "header_category": "Catégorie",
+      "header_students": "Étudiants",
+      "header_duration": "Durée",
+      "header_rating": "Note",
+      "header_status": "Statut",
+      "header_actions": "Actions",
+      "action_view": "Voir détails",
+      "action_edit": "Modifier",
+      "action_activate": "Activer",
+      "action_deactivate": "Stopper",
+      "action_delete": "Supprimer",
+      "status_published": "Publié",
+      "status_draft": "Brouillon",
+      "status_review": "En révision",
+      "duration_zero": "0h 0min"
+    },
+    "toasts": {
+      "error_load": "Impossible de charger les données.",
+      "error_delete": "Impossible de supprimer la formation.",
+      "success_delete": "La formation a été supprimée avec succès."
+    }
   },
   "analytics": {
     "title": "Statistiques",
     "kpi": "Indicateurs Clés de Performance",
     "topCourses": "Top Formations",
     "userGrowth": "Croissance des utilisateurs",
-    "coursePerformance": "Performance des cours",
+    "page": {
+      "title": "Statistiques et Analyses",
+      "description": "Analysez les performances et l'engagement de votre plateforme"
+    },
+    "print_button": "Imprimer les Statistiques",
+    "averageRating": "Note Moyenne",
+    "engagementRate": "Taux d'Engagement",
+    "activeUsers": "Utilisateurs Actifs",
+    "totalUsers": "Total Utilisateurs",
+    "compared_to_last_month": "par rapport au mois dernier",
+    "charts": {
+      "user_growth": {
+        "title": "KPI",
+        "description": "Évolution des inscriptions",
+        "description_6months": "Évolution des inscriptions sur 6 mois",
+        "total_growth": "Croissance totale",
+        "monthly_average": "Moyenne mensuelle",
+        "new_users_label": "Nouveaux utilisateurs",
+        "total_users_label": "Total utilisateurs",
+        "new": "Nouveaux",
+        "total": "Total",
+        "new_users": "Nouveaux utilisateurs",
+        "total_cumulative": "Total cumulé"
+      }
+    },
+    "coursePerformance": {
+      "loadError": "Impossible de récupérer les données de performance des cours.",
+      "notAvailable": "N/A",
+      "title": "Top Formations",
+      "description": "Nombre d'étudiants inscrits par formation",
+      "totalLabel": "Total: {{total}}",
+      "noData": "Aucune donnée de performance de cours disponible pour la période.",
+      "chartLabel": "Étudiants",
+      "tooltip": {
+        "students": "Étudiants:",
+        "completionRate": "Taux de complétion:",
+        "averageRating": "Note moyenne:"
+      },
+      "mostPopular": "Formation la plus populaire: {{course}}"
+    },
     "learningTime": "Temps d'apprentissage",
-    "reports": "Rapports",
+    "tabs": {
+      "learners": "Apprenants",
+      "learning_time": "Temps d'apprentissage",
+      "reports": "Rapports"
+    },
+    "learning_time": {
+      "title": "Temps d'apprentissage",
+      "description": "Temps passé, sessions, interactions et activité",
+      "average_time_per_course": "Temps moyen par cours",
+      "courses_with_activity": "{{count}} cours avec activité",
+      "courses_with_activity_plural": "{{count}} cours avec activité",
+      "active_sessions": "Sessions actives",
+      "last_24_hours": "24 dernières heures",
+      "average_time_per_learner": "Temps moyen par apprenant",
+      "active_learners": "{{count}} apprenant actif",
+      "active_learners_plural": "{{count}} apprenants actifs"
+    },
+    "reports": {
+      "title": "Rapports",
+      "description": "Générez et exportez des rapports détaillés sur votre plateforme",
+      "learning_time": {
+        "title": "Temps d'apprentissage",
+        "description": "Temps passé, sessions actives et progression des apprenants"
+      },
+      "users": {
+        "title": "Rapport Utilisateurs",
+        "description": "Inscriptions, rétention, segmentation et croissance"
+      },
+      "courses": {
+        "title": "Rapport Formations",
+        "description": "Performance, popularité et statistiques par formation"
+      }
+    },
     "averageRating": "Note moyenne",
     "engagementRate": "Taux d'engagement",
     "activeUsers": "Utilisateurs actifs",
@@ -98,7 +439,28 @@
     "averageTimePerLearnerLabel": "Temps moyen par apprenant",
     "coursesWithActivity": "cours avec activité",
     "last24Hours": "24 dernières heures",
-    "learnersWithActivity": "apprenants avec activité"
+    "learnersWithActivity": "apprenants avec activité",
+    "learnerProgress": {
+      "loadError": "Impossible de charger la progression de l'apprenant.",
+      "loadingTitle": "Chargement de la Progression",
+      "errorTitle": "Erreur de Chargement",
+      "modalTitle": "Progression des cours pour {{name}}",
+      "modalDescription": "Aperçu détaillé de la progression de {{name}} ({{email}}) dans chaque cours inscrit.",
+      "period": "Période: {{period}}",
+      "chaptersCompleted": "{{completed}} / {{total}} chapitres terminés",
+      "noCourses": "Aucun cours inscrit pour cet apprenant.",
+      "list": {
+        "unexpectedFormat": "Format de données inattendu pour les apprenants.",
+        "loadError": "Impossible de charger la liste des apprenants.",
+        "headerLearner": "Apprenant",
+        "headerEmail": "Email",
+        "headerActions": "Actions",
+        "viewProgressButton": "Voir Progression",
+        "title": "Progression des Apprenants",
+        "description": "Consultez la liste des apprenants et leur progression détaillée.",
+        "noNameUser": "Utilisateur sans nom"
+      }
+    }
   },
   "reports": {
     "title": "Rapports",
@@ -119,11 +481,80 @@
   },
   "notifications": {
     "title": "Notifications",
+    "description": "Gérez toutes vos notifications et alertes système",
     "markAsRead": "Marquer comme lu",
     "markAllAsRead": "Tout marquer comme lu",
     "archive": "Archiver",
     "delete": "Supprimer",
-    "noNotifications": "Aucune notification"
+    "noNotifications": "Aucune notification",
+    "allUpToDate": "Vous êtes à jour !",
+    "viewAll": "Voir toutes les notifications",
+    "new": "nouveau",
+    "new_plural": "nouveaux",
+    "unread": "non lue",
+    "unread_plural": "non lues",
+    "menu_label": "Menu de notifications"
+  },
+  "header": {
+    "search_placeholder": "Rechercher des utilisateurs, formations...",
+    "search_label": "Rechercher des utilisateurs, formations",
+    "shortcuts_help": "Afficher l'aide des raccourcis",
+    "profile": "Mon profil",
+    "settings": "Paramètres",
+    "logout": "Déconnexion",
+    "admin": "Administrateur"
+  },
+  "evaluations": {
+    "title": "Gestion des Évaluations",
+    "description": "Gérez toutes les évaluations de la plateforme"
+  },
+  "announcements": {
+    "title": "Annonces",
+    "description": "Gérez les annonces et communications de la plateforme"
+  },
+  "content": {
+    "title": "Gestion du Contenu",
+    "description": "Consultez et gérez les modules, leçons et quiz de toutes les formations",
+    "courses": {
+      "title": "Formations",
+      "available": "{{count}} formation disponible",
+      "available_plural": "{{count}} formations disponibles",
+      "filter_placeholder": "Filtrer par formation",
+      "filter_all": "Toutes les formations",
+      "empty": "Aucune formation disponible."
+    },
+    "modules": {
+      "title": "Modules ({{count}})",
+      "count": "{{count}} module",
+      "count_plural": "{{count}} modules"
+    },
+    "lessons": {
+      "total": "{{count}} leçon au total",
+      "total_plural": "{{count}} leçons au total",
+      "count": "{{count}} leçon",
+      "count_plural": "{{count}} leçons",
+      "no_title": "Leçon sans titre",
+      "duration": "Durée: {{minutes}} min",
+      "empty_module": "Aucune leçon dans ce module."
+    },
+    "quizzes": {
+      "title": "Quiz ({{count}})",
+      "count": "{{count}} quiz",
+      "no_title": "Quiz sans titre",
+      "duration": "Durée: {{minutes}} min",
+      "min_score": "Score minimum: {{score}}%"
+    },
+    "lesson_types": {
+      "video": "Vidéo",
+      "document": "Document",
+      "quiz": "Quiz",
+      "lab": "Lab"
+    },
+    "errors": {
+      "load_failed": "Impossible de charger les formations.",
+      "load_content_failed": "Impossible de charger le contenu de la formation."
+    },
+    "empty": "Aucun contenu disponible pour cette formation."
   },
   "settings": {
     "title": "Paramètres",
@@ -133,5 +564,531 @@
     "language": "Langue",
     "theme": "Thème",
     "notifications": "Notifications"
+  },
+  "sidebar": {
+    "closeMenu": "Fermer le menu",
+    "openMenu": "Ouvrir le menu",
+    "mainNav": "Navigation principale",
+    "backToDashboard": "Retour au tableau de bord",
+    "logoAlt": "Logo E-Learning"
+  },
+  "routes": {
+    "dashboard": "Tableau de bord",
+    "analytics": "Statistiques",
+    "users": "Utilisateurs",
+    "users_learners": "Apprenants",
+    "users_instructors": "Formateurs",
+    "users_admins": "Administrateurs",
+    "courses": "Formations",
+    "courses_all": "Toutes les formations",
+    "courses_categories": "Catégories",
+    "certifications": "Certifications",
+    "reviews": "Commentaires",
+    "content": "Contenu",
+    "labs": "Labs",
+    "cohorts": "Cohortes",
+    "moderation": "Validation",
+    "notifications": "Notifications",
+    "evaluations": "Évaluations",
+    "leaderboard": "Classements",
+    "settings": "Paramètres"
+  },
+  "categories": {
+    "title": "Gestion des Catégories",
+    "description": "Organisez les formations par catégories",
+    "list": {
+      "title": "Catégories",
+      "add_button": "Ajouter une catégorie",
+      "search_placeholder": "Rechercher une catégorie...",
+      "header_category": "Catégorie",
+      "header_courses": "Formations",
+      "header_actions": "Actions",
+      "action_view": "Voir détails",
+      "action_edit": "Modifier",
+      "action_delete": "Supprimer"
+    },
+    "modals": {
+      "add_title": "Ajouter une catégorie",
+      "add_description": "Créez une nouvelle catégorie pour organiser les formations",
+      "add_submit": "Créer la catégorie",
+      "edit_title": "Modifier la catégorie",
+      "edit_description": "Modifiez les informations de la catégorie",
+      "edit_submit": "Enregistrer les modifications",
+      "delete_title": "Supprimer la catégorie",
+      "delete_description": "Êtes-vous sûr de vouloir supprimer {{name}} ? Cette action est irréversible.",
+      "delete_confirm": "Supprimer"
+    },
+    "toasts": {
+      "error_fetch": "Impossible de charger les catégories.",
+      "error_add": "Impossible d'ajouter la catégorie.",
+      "error_update": "Impossible de mettre à jour la catégorie.",
+      "error_delete": "Impossible de supprimer la catégorie.",
+      "success_add": "La catégorie a été créée avec succès.",
+      "success_update": "La catégorie a été mise à jour.",
+      "success_delete": "La catégorie a été supprimée."
+    }
+  },
+  "certifications": {
+    "title": "Gestion des Certifications",
+    "description": "Gérez toutes les certifications de la plateforme"
+  },
+  "cohortes": {
+    "title": "Gestion des Cohortes",
+    "description": "Gérez toutes les cohortes de la plateforme"
+  },
+  "reviews": {
+    "title": "Gestion des Commentaires",
+    "description": "Gérez tous les avis et commentaires des étudiants"
+  },
+  "instructor": {
+    "dashboard": {
+      "title": "Tableau de bord Formateur",
+      "description": "Vue d'overview de vos formations et apprenants",
+      "stats": {
+        "courses_created": "Formations Créées",
+        "courses_published": "publiées",
+        "total_students": "Total Apprenants",
+        "new_enrollments": "ce mois",
+        "average_rating": "Note Moyenne",
+        "new_comments": "nouveaux avis (30j)",
+        "completion_rate": "Taux de Complétion",
+        "active_learners": "apprenants actifs",
+        "error_access_denied": "Accès refusé. Vous n'êtes pas autorisé à voir ces statistiques.",
+        "error_no_profile": "Vous n'avez pas encore de profil instructeur. Veuillez créer un profil instructeur pour accéder au tableau de bord.",
+        "error_load": "Échec de la récupération du résumé du tableau de bord."
+      }
+    },
+    "courses": {
+      "title": "Gestion de Mes Formations",
+      "description": "Créez et gérez vos formations, modules, chapitres et vidéos"
+    },
+    "quizzes": {
+      "title": "Quiz & Exercices",
+      "description": "Créez et gérez vos quiz et exercices pour vos formations"
+    },
+    "students": {
+      "title": "Mes Apprenants",
+      "description": "Suivez la progression et les scores de vos apprenants"
+    },
+    "analytics": {
+      "title": "Statistiques de Performance",
+      "description": "Analysez les performances de vos formations et apprenants"
+    },
+    "certificates": {
+      "title": "Gestion des Certificats",
+      "description": "Gérez les certificats délivrés à vos apprenants"
+    },
+    "settings": {
+      "title": "Paramètres",
+      "description": "Configurez vos paramètres de formateur"
+    },
+    "content": {
+      "title": "Gestion des Contenus",
+      "description": "Upload et organisez vos contenus pédagogiques"
+    },
+    "moderation": {
+      "title": "Validation des Formations",
+      "description": "Validez, rejetez ou modifiez vos formations en attente de validation"
+    }
+  },
+  "moderation": {
+    "title": "Validation",
+    "admin": {
+      "title": "Modération des Formations",
+      "description": "Approuvez ou rejetez les formations en attente de validation.",
+      "list": {
+        "header_course": "Formation",
+        "header_instructor": "Instructeur",
+        "header_category": "Catégorie",
+        "header_status": "Statut Actuel",
+        "header_actions": "Actions",
+        "action_approve": "Approuver",
+        "action_edit": "Modifier",
+        "action_reject": "Rejeter",
+        "status_review": "En révision"
+      },
+      "modals": {
+        "edit_title": "Modifier la formation",
+        "edit_description": "Modifiez les informations de la formation avant validation",
+        "edit_submit": "Enregistrer les modifications",
+        "approve_title": "Approuver la formation",
+        "approve_description": "Êtes-vous sûr de vouloir approuver cette formation ? Elle deviendra visible pour les utilisateurs.",
+        "approve_confirm": "Approuver",
+        "reject_title": "Rejeter la formation",
+        "reject_description": "Veuillez indiquer la raison du rejet. L'instructeur en sera notifié.",
+        "reject_reason_label": "Raison du rejet *",
+        "reject_reason_placeholder": "Ex: Contenu incomplet, qualité insuffisante, non conforme aux standards...",
+        "reject_cancel": "Annuler",
+        "reject_confirm": "Rejeter",
+        "reject_error": "Veuillez indiquer une raison pour le rejet."
+      },
+      "toasts": {
+        "error_load": "Impossible de charger les cours à modérer.",
+        "error_data": "La réponse de l'API pour les cours en attente est inattendue.",
+        "error_update": "Impossible de mettre à jour la formation.",
+        "error_moderation": "Une erreur est survenue lors de la modération.",
+        "success_update": "La formation a été mise à jour.",
+        "success_approve": "La formation a été approuvée avec succès.",
+        "success_reject": "La formation a été rejetée avec succès."
+      }
+    }
+  },
+  "badges": {
+    "title": "Badges",
+    "description": "Gérez les badges et récompenses de gamification",
+    "create_button": "Créer un badge",
+    "search_placeholder": "Rechercher un badge...",
+    "empty": "Aucun badge trouvé.",
+    "header_badge": "Badge",
+    "header_type": "Type",
+    "header_criteria": "Critères",
+    "header_score": "Score",
+    "header_participation": "Participation",
+    "header_time": "Temps",
+    "header_attributions": "Attributions",
+    "header_actions": "Actions",
+    "action_view": "Voir détails",
+    "action_edit": "Modifier",
+    "action_delete": "Supprimer",
+    "status_active": "Actif",
+    "status_inactive": "Inactif",
+    "delete_confirm": "Supprimer",
+    "details": {
+      "title": "Détails du badge",
+      "description": "Informations complètes sur le badge"
+    },
+    "delete": {
+      "title": "Supprimer le badge",
+      "description": "Êtes-vous sûr de vouloir supprimer le badge \"{{name}}\" ? Cette action est irréversible."
+    },
+    "typeLabels": {
+      "completion": "Complétion",
+      "score": "Score",
+      "participation": "Participation",
+      "time": "Temps",
+      "streak": "Série"
+    },
+    "criteria": {
+      "completion": "{{count}} formation(s)",
+      "score": "Score ≥ {{score}}%",
+      "participation": "{{days}} jour(s) consécutif(s)",
+      "time": "{{hours}}h de temps passé"
+    }
+  },
+  "leaderboard": {
+    "title": "Classements",
+    "description": "Consultez les classements et performances des utilisateurs",
+    "tabs": {
+      "overall": "Général",
+      "monthly": "Mensuel",
+      "courses": "Par formation"
+    },
+    "overall": {
+      "title": "Classement Général",
+      "description": "Top utilisateurs par nombre de formations et certifications",
+      "empty": "Aucun classement général trouvé.",
+      "courses": "formations",
+      "certifications": "certifications"
+    },
+    "userDetails": {
+      "title": "Détails de {{name}}",
+      "description": "Aperçu des formations terminées et des certifications obtenues.",
+      "completedCourses": "Formations Terminées",
+      "certifications": "Certifications Obtenues",
+      "noCourses": "Aucune formation terminée.",
+      "noCertifications": "Aucune certification obtenue.",
+      "issuedDate": "Délivré le:",
+      "close": "Fermer"
+    }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "site": {
+      "title": "Paramètres du Site",
+      "description": "Gérez la configuration générale et les rubriques de contenu de la plateforme.",
+      "tab_general": "Configuration Générale",
+      "tab_rubriques": "Gestion des Rubriques",
+      "form": {
+        "title": "Configuration Générale du Site",
+        "description": "Mettez à jour les paramètres généraux et les images de votre plateforme.",
+        "homepageText": "Texte de la Page d'Accueil",
+        "homepageTextPlaceholder": "Bienvenue sur notre plateforme !",
+        "homepageImage": "Image de la Page d'Accueil",
+        "loginImage": "Image de la Page de Connexion",
+        "aboutText": "Texte \"À propos de nous\"",
+        "aboutTextPlaceholder": "Notre histoire...",
+        "aboutImage": "Image \"À propos de nous\"",
+        "currentImage": "Image actuelle :",
+        "save": "Enregistrer la Configuration",
+        "saving": "Sauvegarde..."
+      }
+    }
+  },
+  "certifications": {
+    "title": "Gestion des Certifications",
+    "description": "Gérez toutes les certifications de la plateforme",
+    "list": {
+      "title": "Certifications",
+      "add_button": "Ajouter une certification",
+      "search_placeholder": "Rechercher une certification...",
+      "empty": "Aucune certification trouvée.",
+      "header_certification": "Certification",
+      "header_course": "Formation associée",
+      "header_students": "Étudiants",
+      "header_issued": "Délivrés",
+      "header_validity": "Validité",
+      "header_status": "Statut",
+      "header_actions": "Actions",
+      "action_view": "Voir détails",
+      "action_edit": "Modifier",
+      "action_delete": "Supprimer"
+    },
+    "modals": {
+      "add_title": "Créer une certification",
+      "add_description": "Créez une nouvelle certification pour la plateforme",
+      "add_submit": "Créer la certification",
+      "edit_title": "Modifier la certification",
+      "edit_description": "Modifiez les informations de la certification",
+      "edit_submit": "Enregistrer les modifications",
+      "delete_title": "Supprimer la certification",
+      "delete_description": "Êtes-vous sûr de vouloir supprimer {{name}} ? Cette action est irréversible.",
+      "delete_confirm": "Supprimer"
+    },
+    "toasts": {
+      "error_fetch": "Impossible de charger les certifications.",
+      "error_add": "Impossible d'ajouter la certification.",
+      "error_update": "Impossible de mettre à jour la certification.",
+      "error_delete": "Impossible de supprimer la certification.",
+      "success_add": "La certification a été créée avec succès.",
+      "success_update": "La certification a été mise à jour.",
+      "success_delete": "La certification a été supprimée."
+    }
+  },
+  "cohortes": {
+    "title": "Gestion des Cohortes",
+    "description": "Gérez toutes les cohortes de la plateforme",
+    "list": {
+      "title": "Cohortes",
+      "add_button": "Ajouter une cohorte",
+      "search_placeholder": "Rechercher une cohorte...",
+      "empty_title": "Aucune cohorte trouvée",
+      "empty_description": "Aucune cohorte ne correspond à votre recherche",
+      "header_cohorte": "Nom de la cohorte",
+      "header_start_date": "Date de début",
+      "header_end_date": "Date de fin",
+      "header_status": "Statut",
+      "header_actions": "Actions",
+      "action_view": "Voir détails",
+      "action_edit": "Modifier",
+      "action_delete": "Supprimer",
+      "status_active": "Active",
+      "status_finished": "Terminée",
+      "status_upcoming": "À venir"
+    },
+    "modals": {
+      "add_title": "Ajouter une cohorte",
+      "add_description": "Créez une nouvelle cohorte de formation",
+      "add_submit": "Créer la cohorte",
+      "edit_title": "Modifier la cohorte",
+      "edit_description": "Modifiez les informations de la cohorte",
+      "edit_submit": "Enregistrer les modifications",
+      "delete_title": "Supprimer la cohorte",
+      "delete_description": "Êtes-vous sûr de vouloir supprimer {{name}} ? Cette action est irréversible.",
+      "delete_confirm": "Supprimer"
+    },
+    "toasts": {
+      "error_fetch": "Impossible de charger les cohortes.",
+      "error_add": "Impossible d'ajouter la cohorte.",
+      "error_update": "Impossible de mettre à jour la cohorte.",
+      "error_delete": "Impossible de supprimer la cohorte.",
+      "success_add": "La cohorte a été créée avec succès.",
+      "success_update": "La cohorte a été mise à jour.",
+      "success_delete": "La cohorte a été supprimée."
+    }
+  },
+  "reviews": {
+    "title": "Gestion des Commentaires",
+    "description": "Gérez tous les avis et commentaires des étudiants",
+    "unknown_user": "Utilisateur inconnu",
+    "unknown_course": "Cours inconnu",
+    "list": {
+      "title": "Commentaires et Avis",
+      "description": "Gérez tous les avis des étudiants sur les formations",
+      "header_user": "Utilisateur",
+      "header_course": "Formation",
+      "header_rating": "Note",
+      "header_comment": "Commentaire",
+      "header_date": "Date",
+      "header_status": "Statut",
+      "header_actions": "Actions",
+      "status_approved": "Approuvé",
+      "status_pending": "En attente",
+      "status_rejected": "Rejeté",
+      "action_view": "Voir détails",
+      "action_edit": "Modifier",
+      "action_approve": "Approuver",
+      "action_reject": "Rejeter",
+      "action_delete": "Supprimer",
+      "search_placeholder": "Rechercher un avis...",
+      "empty": "Aucun avis trouvé",
+      "empty_description": "Aucun avis ne correspond à votre recherche",
+      "loading": "Chargement des commentaires..."
+    },
+    "modals": {
+      "edit_title": "Modifier l'avis",
+      "edit_description": "Ajustez les détails de l'avis de \"{{user}}\" sur \"{{course}}\".",
+      "approve_title": "Valider l'avis",
+      "approve_description": "Êtes-vous sûr de vouloir valider l'avis de \"{{user}}\" sur \"{{course}}\" ?",
+      "approve_confirm": "Valider",
+      "reject_title": "Rejeter l'avis",
+      "reject_description": "Veuillez indiquer la raison pour laquelle vous rejetez l'avis de \"{{user}}\" sur \"{{course}}\".",
+      "reject_reason_placeholder": "Raison du rejet...",
+      "reject_confirm": "Rejeter",
+      "delete_title": "Supprimer l'avis",
+      "delete_description": "Êtes-vous sûr de vouloir supprimer l'avis de \"{{user}}\" sur \"{{course}}\" ? Cette action est irréversible.",
+      "delete_confirm": "Supprimer",
+      "rating_placeholder": "Sélectionner une note",
+      "stars": "Étoile(s)"
+    },
+    "toasts": {
+      "error_fetch": "Impossible de charger les commentaires.",
+      "error_approve": "Impossible d'approuver le commentaire.",
+      "error_reject": "Impossible de rejeter le commentaire.",
+      "error_delete": "Impossible de supprimer le commentaire.",
+      "success_approve": "Le commentaire a été approuvé.",
+      "success_reject": "Le commentaire a été rejeté.",
+      "success_delete": "Le commentaire a été supprimé."
+    }
+  },
+  "rubriques": {
+    "title": "Rubriques de Contenu",
+    "actions": {
+      "add": "Ajouter une rubrique"
+    },
+    "table": {
+      "header_rubrique": "Rubrique",
+      "header_objectifs": "Objectifs",
+      "header_public_cible": "Public Cible",
+      "header_duree": "Durée"
+    },
+    "modals": {
+      "add_title": "Ajouter une nouvelle rubrique",
+      "add_description": "Créez une nouvelle rubrique de contenu pour organiser les formations.",
+      "add_submit": "Ajouter la rubrique",
+      "edit_title": "Modifier la rubrique",
+      "edit_description": "Modifiez les informations de la rubrique sélectionnée.",
+      "edit_submit": "Enregistrer les modifications",
+      "delete_title": "Supprimer la Rubrique",
+      "delete_description": "Êtes-vous sûr de vouloir supprimer la rubrique \"{{name}}\" ? Cette action est irréversible.",
+      "delete_confirm": "Supprimer"
+    },
+    "toasts": {
+      "error_data": "Erreur de données",
+      "error_unexpected_response": "La réponse de l'API pour les rubriques est inattendue.",
+      "error_fetch": "Impossible de charger les rubriques.",
+      "error_add": "Impossible d'ajouter la rubrique.",
+      "error_update": "Impossible de mettre à jour la rubrique.",
+      "error_delete": "Impossible de supprimer la rubrique.",
+      "success_add": "La rubrique a été ajoutée avec succès.",
+      "success_update": "La rubrique a été mise à jour.",
+      "success_delete": "La rubrique a été supprimée."
+    }
+  },
+  "course_form": {
+    "title_label": "Titre de la formation *",
+    "title_placeholder": "Introduction à AWS",
+    "subtitle_label": "Sous-titre (optionnel)",
+    "subtitle_placeholder": "Maîtrisez les bases du cloud computing",
+    "description_label": "Description *",
+    "description_placeholder": "Décrivez votre formation...",
+    "category_label": "Catégorie *",
+    "category_placeholder": "Sélectionner une catégorie",
+    "instructor_label": "Formateur *",
+    "instructor_placeholder": "Sélectionner un formateur",
+    "instructor_no_available": "Aucun formateur disponible",
+    "instructor_no_available_message": "Aucun formateur disponible. Veuillez créer un formateur d'abord.",
+    "instructor_default": "Formateur #{{id}}",
+    "image_label": "Image de la formation (optionnel)",
+    "continue_to_modules": "Continuer vers les Modules"
+  },
+  "wizard": {
+    "title": "Créer une formation",
+    "progress": {
+      "label": "Progression",
+      "step_info": "Étape {{current}} sur {{total}}"
+    },
+    "steps": {
+      "course": {
+        "label": "Formation",
+        "description": "Informations de base de la formation"
+      },
+      "modules": {
+        "label": "Modules",
+        "description": "Créer les modules de la formation"
+      },
+      "lessons": {
+        "label": "Leçons",
+        "description": "Ajouter les leçons aux modules"
+      },
+      "quiz": {
+        "label": "Quiz",
+        "description": "Créer les quiz de la formation"
+      }
+    },
+    "buttons": {
+      "previous": "Précédent"
+    },
+    "success": {
+      "course_created": "La formation a été créée avec succès !"
+    },
+    "errors": {
+      "load_data_failed": "Impossible de charger les catégories ou les formateurs.",
+      "create_quiz_failed": "Impossible de créer le quiz."
+    }
+  },
+  "activity": {
+    "title": "Activité Récente",
+    "description": "Les dernières actions sur la plateforme",
+    "empty": "Aucune activité récente.",
+    "unknown_user": "Utilisateur inconnu",
+    "errors": {
+      "fetch_failed": "Impossible de charger l'activité récente."
+    },
+    "actions": {
+      "created": "a créé",
+      "created_course": "a créé la formation",
+      "created_account": "a créé le compte",
+      "updated": "a mis à jour",
+      "updated_course": "a mis à jour la formation",
+      "deleted": "a supprimé",
+      "approved": "a approuvé",
+      "approved_course": "a validé la formation",
+      "rejected": "a rejeté",
+      "rejected_course": "a rejeté la formation",
+      "logged_in": "s'est connecté",
+      "other": "a effectué l'action {{action}} sur"
+    },
+    "badges": {
+      "new": "Nouveau",
+      "completed": "Complété",
+      "review": "Avis",
+      "certificate": "Certificat",
+      "approved": "Approuvé",
+      "rejected": "Rejeté",
+      "creation": "Création",
+      "update": "Mise à jour",
+      "login": "Connexion",
+      "deletion": "Suppression"
+    },
+    "time": {
+      "seconds_ago": "Il y a {{count}} seconde",
+      "seconds_ago_plural": "Il y a {{count}} secondes",
+      "minutes_ago": "Il y a {{count}} minute",
+      "minutes_ago_plural": "Il y a {{count}} minutes",
+      "hours_ago": "Il y a {{count}} heure",
+      "hours_ago_plural": "Il y a {{count}} heures",
+      "days_ago": "Il y a {{count}} jour",
+      "days_ago_plural": "Il y a {{count}} jours"
+    }
   }
 }

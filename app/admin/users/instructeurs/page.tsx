@@ -1,11 +1,16 @@
+"use client"
+
 import { InstructeursList } from "@/components/admin/instructeurs-list"
+import { useLanguage } from "@/contexts/language-context"
 
 export default function InstructeursPage() {
+  const { t } = useLanguage();
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Gestion des Formateurs</h1>
-        <p className="text-muted-foreground">Gérez tous les formateurs de la plateforme</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t('users.instructors.title')}</h1>
+        <p className="text-muted-foreground">{t('users.instructors.description')}</p>
       </div>
       <InstructeursList />
     </div>

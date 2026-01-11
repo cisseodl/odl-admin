@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useLanguage } from "@/contexts/language-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,6 +19,7 @@ import { loginSchema, type LoginFormData } from "@/lib/validations/auth"
 import { cn } from "@/lib/utils"
 
 export default function LoginPage() {
+  const { t } = useLanguage()
   const router = useRouter()
   const { login, isLoading: authLoading } = useAuth() // Use isLoading from auth context
   const [isLoading, setIsLoading] = useState(false) // Local loading for form submission
@@ -50,7 +52,7 @@ export default function LoginPage() {
       // or can be added here if needed, but context handles it.
       // For now, the AuthProvider's login will set the user, and useRedirectIfAuthenticated will redirect.
     } catch (err: any) {
-      setError(err.message || "Email ou mot de passe incorrect.");
+      setError(err.message || t('auth.loginPage.error'));
       console.error("Login page error:", err);
     } finally {
       setIsLoading(false); // End local loading
@@ -97,7 +99,7 @@ export default function LoginPage() {
               {/* Champ Email */}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
-                  Adresse email
+                  {t('auth.loginPage.emailLabel')}
                 </Label>
                 <div className="relative group">
                   <div
@@ -115,7 +117,7 @@ export default function LoginPage() {
                       <Input
                         id="email"
                         type="email"
-                        placeholder="votre@email.com"
+                        placeholder={t('auth.loginPage.emailPlaceholder')}
                         className={cn(
                           "pl-10 h-11 transition-all duration-200",
                           errors.email
@@ -190,7 +192,7 @@ export default function LoginPage() {
                     className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={finalLoading}
-                    aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                    aria-label={showPassword ? t('auth.loginPage.hidePassword') : t('auth.loginPage.showPassword')}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -224,12 +226,12 @@ export default function LoginPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Connexion en cours...
+                    {t('auth.loginPage.submitting')}
                   </>
                 ) : (
                   <>
                     <LogIn className="mr-2 h-5 w-5" />
-                    Se connecter
+                    {t('auth.loginPage.submit')}
                   </>
                 )}
               </Button>

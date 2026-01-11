@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useLanguage } from "@/contexts/language-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,6 +22,7 @@ type StepCourseProps = {
 }
 
 export function StepCourse({ onSubmit, categories, instructors, loading, defaultValues }: StepCourseProps) {
+  const { t } = useLanguage()
   const [title, setTitle] = useState(defaultValues?.title || "")
   const [subtitle, setSubtitle] = useState(defaultValues?.subtitle || "")
   const [description, setDescription] = useState(defaultValues?.description || "")
@@ -64,41 +66,41 @@ export function StepCourse({ onSubmit, categories, instructors, loading, default
   }
 
   if (loading) {
-    return <div className="text-center py-8">Chargement...</div>
+    return <div className="text-center py-8">{t('common.loading')}</div>
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="title">Titre de la formation *</Label>
+          <Label htmlFor="title">{t('course_form.title_label')}</Label>
           <Input
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Introduction à AWS"
+            placeholder={t('course_form.title_placeholder')}
             required
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="subtitle">Sous-titre (optionnel)</Label>
+          <Label htmlFor="subtitle">{t('course_form.subtitle_label')}</Label>
           <Input
             id="subtitle"
             value={subtitle}
             onChange={(e) => setSubtitle(e.target.value)}
-            placeholder="Maîtrisez les bases du cloud computing"
+            placeholder={t('course_form.subtitle_placeholder')}
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Description *</Label>
+        <Label htmlFor="description">{t('course_form.description_label')}</Label>
         <Textarea
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Décrivez votre formation..."
+          placeholder={t('course_form.description_placeholder')}
           rows={4}
           required
         />
@@ -106,14 +108,14 @@ export function StepCourse({ onSubmit, categories, instructors, loading, default
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="category">Catégorie *</Label>
+          <Label htmlFor="category">{t('course_form.category_label')}</Label>
           <Select
             value={categoryId ? String(categoryId) : ""}
             onValueChange={(value) => setCategoryId(Number(value))}
             required
           >
             <SelectTrigger>
-              <SelectValue placeholder="Sélectionner une catégorie" />
+              <SelectValue placeholder={t('course_form.category_placeholder')} />
             </SelectTrigger>
             <SelectContent>
               {categories.map((cat) => (
@@ -126,7 +128,7 @@ export function StepCourse({ onSubmit, categories, instructors, loading, default
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="instructor">Formateur *</Label>
+          <Label htmlFor="instructor">{t('course_form.instructor_label')}</Label>
           <Select
             value={instructorId ? String(instructorId) : ""}
             onValueChange={(value) => {
@@ -136,16 +138,16 @@ export function StepCourse({ onSubmit, categories, instructors, loading, default
             required
           >
             <SelectTrigger>
-              <SelectValue placeholder={instructors.length === 0 ? "Aucun formateur disponible" : "Sélectionner un formateur"} />
+              <SelectValue placeholder={instructors.length === 0 ? t('course_form.instructor_no_available') : t('course_form.instructor_placeholder')} />
             </SelectTrigger>
             <SelectContent>
               {instructors.length === 0 ? (
-                <SelectItem value="" disabled>Aucun formateur disponible</SelectItem>
+                <SelectItem value="" disabled>{t('course_form.instructor_no_available')}</SelectItem>
               ) : (
                 instructors.map((inst) => {
                   // Utiliser userId car c'est l'ID de l'utilisateur qui est requis par le backend
                   const instructorUserId = inst.userId || inst.id
-                  const displayName = inst.fullName || inst.email || `Formateur #${instructorUserId}`
+                  const displayName = inst.fullName || inst.email || t('course_form.instructor_default', { id: instructorUserId })
                   console.log("Instructor option:", { id: inst.id, userId: inst.userId, fullName: inst.fullName, email: inst.email })
                   return (
                     <SelectItem key={inst.id} value={String(instructorUserId)}>
@@ -158,14 +160,14 @@ export function StepCourse({ onSubmit, categories, instructors, loading, default
           </Select>
           {instructors.length === 0 && !loading && (
             <p className="text-xs text-muted-foreground mt-1">
-              Aucun formateur disponible. Veuillez créer un formateur d'abord.
+              {t('course_form.instructor_no_available_message')}
             </p>
           )}
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="image">Image de la formation (optionnel)</Label>
+        <Label htmlFor="image">{t('course_form.image_label')}</Label>
         <div className="flex items-center gap-4">
           <Input
             id="image"
@@ -182,7 +184,7 @@ export function StepCourse({ onSubmit, categories, instructors, loading, default
 
       <div className="flex justify-end">
         <Button type="submit" disabled={!title.trim() || !description.trim() || !categoryId || !instructorId}>
-          Continuer vers les Modules
+          {t('course_form.continue_to_modules')}
           <ChevronRight className="h-4 w-4 ml-2" />
         </Button>
       </div>

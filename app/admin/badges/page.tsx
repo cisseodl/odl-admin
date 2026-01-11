@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react" // Added useEffect
+import { useLanguage } from "@/contexts/language-context"
 import { PageHeader } from "@/components/ui/page-header"
 import { SearchBar } from "@/components/ui/search-bar"
 import { DataTable } from "@/components/ui/data-table"
@@ -24,6 +25,7 @@ import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
 
 
 export default function BadgesPage() {
+  const { t } = useLanguage()
   const addModal = useModal<Badge>()
   const viewModal = useModal<Badge>()
   const editModal = useModal<Badge>()
@@ -146,7 +148,7 @@ export default function BadgesPage() {
   const columns: ColumnDef<Badge>[] = [
     {
       accessorKey: "name",
-      header: "Badge",
+      header: t('badges.header_badge'),
       cell: ({ row }) => {
         const badge = row.original
         return (
@@ -159,7 +161,7 @@ export default function BadgesPage() {
                 {badge.name}
                 {!badge.enabled && (
                   <BadgeComponent variant="secondary" className="text-xs">
-                    Inactif
+                    {t('badges.status_inactive')}
                   </BadgeComponent>
                 )}
               </div>
@@ -171,39 +173,39 @@ export default function BadgesPage() {
     },
     {
       accessorKey: "type",
-      header: "Type",
+      header: t('badges.header_type'),
       cell: ({ row }) => {
-        const typeLabels = {
-          completion: "Complétion",
-          score: "Score",
-          participation: "Participation",
-          time: "Temps",
-          streak: "Série",
+        const typeLabels: Record<string, string> = {
+          completion: t('badges.typeLabels.completion'),
+          score: t('badges.typeLabels.score'),
+          participation: t('badges.typeLabels.participation'),
+          time: t('badges.typeLabels.time'),
+          streak: t('badges.typeLabels.streak'),
         }
         return (
           <div className="flex items-center gap-2">
             {getTypeIcon(row.original.type)}
-            <span>{typeLabels[row.original.type]}</span>
+            <span>{typeLabels[row.original.type] || row.original.type}</span>
           </div>
         )
       },
     },
     {
       accessorKey: "criteria",
-      header: "Critères",
+      header: t('badges.header_criteria'),
       cell: ({ row }) => {
         const badge = row.original
         const criteria = badge.criteria
         let criteriaText = ""
 
         if (criteria.type === "completion") {
-          criteriaText = `${criteria.minCourses || criteria.threshold || 1} formation(s)`
+          criteriaText = t('badges.criteria.completion').replace('{{count}}', String(criteria.minCourses || criteria.threshold || 1))
         } else if (criteria.type === "score") {
-          criteriaText = `Score ≥ ${criteria.minScore || criteria.threshold || 0}%`
+          criteriaText = t('badges.criteria.score').replace('{{score}}', String(criteria.minScore || criteria.threshold || 0))
         } else if (criteria.type === "participation" || criteria.type === "streak") {
-          criteriaText = `${criteria.consecutiveDays || criteria.threshold || 1} jour(s) consécutif(s)`
+          criteriaText = t('badges.criteria.participation').replace('{{days}}', String(criteria.consecutiveDays || criteria.threshold || 1))
         } else if (criteria.type === "time") {
-          criteriaText = `${criteria.timeSpent || criteria.threshold || 0}h de temps passé`
+          criteriaText = t('badges.criteria.time').replace('{{hours}}', String(criteria.timeSpent || criteria.threshold || 0))
         }
 
         return <span className="text-sm">{criteriaText}</span>
@@ -211,7 +213,7 @@ export default function BadgesPage() {
     },
     {
       accessorKey: "awardedCount",
-      header: "Attributions",
+      header: t('badges.header_attributions'),
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Users className="h-4 w-4 text-muted-foreground" />
@@ -221,24 +223,24 @@ export default function BadgesPage() {
     },
     {
       id: "actions",
-      header: "Actions",
+      header: t('badges.header_actions'),
       cell: ({ row }) => {
         const badge = row.original
         return (
           <ActionMenu
             actions={[
               {
-                label: "Voir détails",
+                label: t('badges.action_view'),
                 icon: <Eye className="h-4 w-4" />,
                 onClick: () => viewModal.open(badge),
               },
               {
-                label: "Modifier",
+                label: t('badges.action_edit'),
                 icon: <Edit className="h-4 w-4" />,
                 onClick: () => editModal.open(badge),
               },
               {
-                label: "Supprimer",
+                label: t('badges.action_delete'),
                 icon: <Trash2 className="h-4 w-4" />,
                 onClick: () => deleteModal.open(badge),
                 variant: "destructive",
@@ -254,10 +256,10 @@ export default function BadgesPage() {
     <>
       <div className="space-y-6">
         <PageHeader
-          title="Badges"
-          description="Gérez les badges et récompenses de gamification"
+          title={t('badges.title')}
+          description={t('badges.description')}
           action={{
-            label: "Créer un badge",
+            label: t('badges.create_button'),
             onClick: () => addModal.open(),
           }}
         />
@@ -273,10 +275,10 @@ export default function BadgesPage() {
                 <Card>
                     <CardContent className="pt-6">
                         <div className="mb-4">
-                            <SearchBar placeholder="Rechercher un badge..." value={searchQuery} onChange={setSearchQuery} />
+                            <SearchBar placeholder={t('badges.search_placeholder')} value={searchQuery} onChange={setSearchQuery} />
                         </div>
                         {badges.length === 0 ? (
-                            <div className="text-center text-muted-foreground p-4">Aucun badge trouvé.</div>
+                            <div className="text-center text-muted-foreground p-4">{t('badges.empty')}</div>
                         ) : (
                             <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
                         )}
@@ -348,9 +350,9 @@ export default function BadgesPage() {
         open={deleteModal.isOpen}
         onOpenChange={(open) => !open && deleteModal.close()}
         onConfirm={handleDeleteBadge}
-        title="Supprimer le badge"
-        description={`Êtes-vous sûr de vouloir supprimer le badge "${deleteModal.selectedItem?.name}" ? Cette action est irréversible.`}
-        confirmText="Supprimer"
+        title={t('badges.delete.title')}
+        description={t('badges.delete.description').replace('{{name}}', deleteModal.selectedItem?.name || '')}
+        confirmText={t('badges.delete_confirm')}
         variant="destructive"
       />
     </>

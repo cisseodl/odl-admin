@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react" // Added useEffect
+import { useLanguage } from "@/contexts/language-context"
 import { PageHeader } from "@/components/ui/page-header"
 import { SearchBar } from "@/components/ui/search-bar"
 import { DataTable } from "@/components/ui/data-table"
@@ -21,6 +22,7 @@ import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
 
 
 export function CertificationsList() {
+  const { t } = useLanguage()
   const addModal = useModal<Certification>()
   const editModal = useModal<Certification>()
   const deleteModal = useModal<Certification>()
@@ -126,7 +128,7 @@ export function CertificationsList() {
       },
       {
         accessorKey: "course",
-        header: "Formation associée",
+        header: t('certifications.list.header_course'),
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -146,7 +148,7 @@ export function CertificationsList() {
       },
       {
         accessorKey: "validUntil",
-        header: "Validité",
+        header: t('certifications.list.header_validity'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
             <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -156,29 +158,29 @@ export function CertificationsList() {
       },
       {
         accessorKey: "status",
-        header: "Statut",
+        header: t('certifications.list.header_status'),
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       {
         id: "actions",
-        header: "Actions",
+        header: t('certifications.list.header_actions'),
         cell: ({ row }) => {
           const certification = row.original
           return (
             <ActionMenu
               actions={[
                 {
-                  label: "Voir détails",
+                  label: t('certifications.list.action_view'),
                   icon: <Eye className="h-4 w-4" />,
                   onClick: () => viewModal.open(certification),
                 },
                 {
-                  label: "Modifier",
+                  label: t('certifications.list.action_edit'),
                   icon: <Edit className="h-4 w-4" />,
                   onClick: () => editModal.open(certification),
                 },
                 {
-                  label: "Supprimer",
+                  label: t('certifications.list.action_delete'),
                   icon: <Trash2 className="h-4 w-4" />,
                   onClick: () => deleteModal.open(certification),
                   variant: "destructive",
@@ -189,7 +191,7 @@ export function CertificationsList() {
         },
       },
     ],
-    [viewModal, editModal, deleteModal]
+    [viewModal, editModal, deleteModal, t]
   )
 
   return (
@@ -230,21 +232,21 @@ export function CertificationsList() {
       <CertificationFormModal
         open={addModal.isOpen}
         onOpenChange={(open) => !open && addModal.close()}
-        title="Créer une certification"
-        description="Créez une nouvelle certification pour la plateforme"
+        title={t('certifications.modals.add_title')}
+        description={t('certifications.modals.add_description')}
         onSubmit={handleAddCertification}
-        submitLabel="Créer la certification"
+        submitLabel={t('certifications.modals.add_submit')}
       />
 
       {editModal.selectedItem && (
         <CertificationFormModal
           open={editModal.isOpen}
           onOpenChange={(open) => !open && editModal.close()}
-          title="Modifier la certification"
-          description="Modifiez les informations de la certification"
+          title={t('certifications.modals.edit_title')}
+          description={t('certifications.modals.edit_description')}
           defaultValues={editModal.selectedItem}
           onSubmit={handleUpdateCertification}
-          submitLabel="Enregistrer les modifications"
+          submitLabel={t('certifications.modals.edit_submit')}
         />
       )}
 
@@ -260,9 +262,9 @@ export function CertificationsList() {
         open={deleteModal.isOpen}
         onOpenChange={(open) => !open && deleteModal.close()}
         onConfirm={handleDeleteCertification}
-        title="Supprimer la certification"
-        description={`Êtes-vous sûr de vouloir supprimer ${deleteModal.selectedItem?.name} ? Cette action est irréversible.`}
-        confirmText="Supprimer"
+        title={t('certifications.modals.delete_title')}
+        description={t('certifications.modals.delete_description').replace('{{name}}', deleteModal.selectedItem?.name || '')}
+        confirmText={t('certifications.modals.delete_confirm')}
         variant="destructive"
       />
     </>

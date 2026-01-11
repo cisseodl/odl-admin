@@ -1,45 +1,47 @@
 "use client"
 
+import { useLanguage } from "@/contexts/language-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Plus, Shield, Users, BookOpen, Award, Beaker } from "lucide-react" // Added Beaker
 import { useRouter } from "next/navigation"
 
 export function QuickActions() {
+  const { t } = useLanguage()
   const router = useRouter()
 
   const actions = [
     {
-      label: "Ajouter un utilisateur",
+      label: t('dashboard.quick_actions.add_user'),
       icon: Users,
       href: "/admin/users",
       color: "text-[hsl(var(--info))]",
     },
     {
-      label: "Créer une formation",
+      label: t('dashboard.quick_actions.create_course'),
       icon: BookOpen,
       href: "/admin/courses",
       color: "text-[hsl(var(--info))]",
     },
     {
-      label: "Gérer les Cohortes", // Changed from "Modérer les contenus"
-      icon: Users, // Using Users icon for Cohortes
-      href: "/admin/cohortes", // Updated href
-      color: "text-[hsl(var(--info))]", // Updated color for consistency
+      label: t('dashboard.quick_actions.manage_cohorts'),
+      icon: Users,
+      href: "/admin/cohortes",
+      color: "text-[hsl(var(--info))]",
     },
     {
-      label: "Gérer les Labs", // Changed from "Créer un badge"
-      icon: Beaker, // Using Beaker icon for Labs
-      href: "/admin/labs", // Updated href
-      color: "text-[hsl(var(--info))]", // Updated color for consistency
+      label: t('dashboard.quick_actions.manage_labs'),
+      icon: Beaker,
+      href: "/admin/labs",
+      color: "text-[hsl(var(--info))]",
     },
   ]
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl font-semibold leading-tight">Actions Rapides</CardTitle>
-        <CardDescription className="text-sm leading-relaxed">Accès rapide aux actions fréquentes</CardDescription>
+        <CardTitle className="text-xl font-semibold leading-tight">{t('dashboard.quick_actions.title')}</CardTitle>
+        <CardDescription className="text-sm leading-relaxed">{t('dashboard.quick_actions.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

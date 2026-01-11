@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useLanguage } from "@/contexts/language-context"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -26,6 +27,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { LanguageSwitcher } from "@/components/shared/language-switcher"
 
 export function Header() {
+  const { t } = useLanguage()
   const { user, logout } = useAuth()
   const router = useRouter()
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -39,7 +41,7 @@ export function Header() {
       {
         key: "?",
         action: () => setShortcutsHelpOpen(true),
-        description: "Afficher l'aide des raccourcis",
+        description: t('header.shortcuts_help'),
       },
     ],
   })
@@ -82,9 +84,9 @@ export function Header() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Rechercher des utilisateurs, formations..."
+            placeholder={t('header.search_placeholder')}
             className="w-full pl-10 bg-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer"
-            aria-label="Rechercher des utilisateurs, formations"
+            aria-label={t('header.search_label')}
             onClick={() => setSearchOpen(true)}
             readOnly
           />
@@ -116,7 +118,7 @@ export function Header() {
               )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-96 p-0" role="menu" aria-label="Menu de notifications">
+          <DropdownMenuContent align="end" className="w-96 p-0" role="menu" aria-label={t('notifications.menu_label')}>
             {/* En-tête avec badge */}
             <div className="px-4 py-3 border-b bg-gradient-to-r from-[rgb(255,102,0)]/5 to-transparent dark:from-[rgb(255,102,0)]/10">
               <div className="flex items-center justify-between">
@@ -153,10 +155,10 @@ export function Header() {
                     <Bell className="h-8 w-8 text-[rgb(255,102,0)] opacity-50" />
                   </div>
                   <p className="text-sm font-medium text-[rgb(0,0,0)] dark:text-[rgb(255,255,255)] mb-1">
-                    Aucune notification
+                    {t('notifications.noNotifications')}
                   </p>
                   <p className="text-xs text-[rgb(50,50,50)] dark:text-[rgb(150,150,150)] text-center">
-                    Vous êtes à jour !
+                    {t('notifications.allUpToDate')}
                   </p>
                 </div>
               )}
@@ -184,30 +186,30 @@ export function Header() {
             <Button 
               variant="ghost" 
               className="gap-2 pl-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" 
-              aria-label={`Menu utilisateur - ${user?.name || "Administrateur"}`}
+              aria-label={`${t('header.profile')} - ${user?.name || t('header.admin')}`}
             >
               <Avatar className="h-8 w-8">
-                <AvatarImage src="/admin-interface.png" alt={user?.name || "Administrateur"} />
+                <AvatarImage src="/admin-interface.png" alt={user?.name || t('header.admin')} />
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs" aria-hidden="true">AD</AvatarFallback>
               </Avatar>
-              <span className="hidden md:inline-block text-sm font-medium">{user?.name || "Administrateur"}</span>
+              <span className="hidden md:inline-block text-sm font-medium">{user?.name || t('header.admin')}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
               <div>
-                <p className="font-medium">{user?.name || "Administrateur"}</p>
+                <p className="font-medium">{user?.name || t('header.admin')}</p>
                 <p className="text-xs text-muted-foreground font-normal">{user?.email || "admin@elearning.com"}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <User className="mr-2 h-4 w-4" />
-              Mon profil
+              {t('header.profile')}
             </DropdownMenuItem>
             <DropdownMenuItem>
               <Settings className="mr-2 h-4 w-4" />
-              Paramètres
+              {t('header.settings')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem 
@@ -218,7 +220,7 @@ export function Header() {
               }}
             >
               <LogOut className="mr-2 h-4 w-4" />
-              Déconnexion
+              {t('header.logout')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

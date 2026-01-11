@@ -3,13 +3,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Cell, LabelList } from "recharts"
-import { Users, TrendingUp, Star } from "lucide-react" // Ajout de Star
-import { useEffect, useState, useMemo } from "react"; // Ajout de useEffect, useState, useMemo
-import { analyticsService, CoursePerformanceDataPoint } from "@/services/analytics.service"; // Import service et type
-import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
+import { Users, TrendingUp, Star } from "lucide-react"
+import { useEffect, useState, useMemo } from "react";
+import { analyticsService, CoursePerformanceDataPoint } from "@/services/analytics.service";
+import { PageLoader } from "@/components/ui/page-loader";
+import { useLanguage } from "@/contexts/language-context";
 
-
-type TimeFilter = "7d" | "30d" | "90d" | "custom" | "all"; // Type pour le filtre temporel
+type TimeFilter = "7d" | "30d" | "90d" | "custom" | "all";
 
 interface CoursePerformanceProps {
   timeFilter: TimeFilter;
@@ -18,6 +18,7 @@ interface CoursePerformanceProps {
 }
 
 export function CoursePerformance({ timeFilter, startDate, endDate }: CoursePerformanceProps) {
+  const { t } = useLanguage();
   const [data, setData] = useState<CoursePerformanceDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,22 +28,20 @@ export function CoursePerformance({ timeFilter, startDate, endDate }: CoursePerf
       setLoading(true);
       setError(null);
       try {
-        // Utiliser une valeur par défaut si timeFilter est undefined
         const filter = timeFilter || "30d";
         const fetchedData = await analyticsService.getCoursePerformanceData(filter, startDate, endDate);
-        setData(fetchedData.sort((a, b) => b.enrollments - a.enrollments)); // Trier par nombre d'inscriptions (enrollments)
+        setData(fetchedData.sort((a, b) => b.enrollments - a.enrollments));
       } catch (err: any) {
-        setError(err.message || "Failed to fetch course performance data.");
+        setError(err.message || t('analytics.coursePerformance.loadError'));
         console.error("Error fetching course performance data:", err);
       } finally {
         setLoading(false);
       }
     };
     fetchCoursePerformance();
-  }, [timeFilter, startDate, endDate]); // Re-fetch quand les filtres changent
+  }, [timeFilter, startDate, endDate, t]);
 
 
-  // Calculs dynamiques basés sur les données chargées
   const totalStudents = useMemo(() => {
     return data.reduce((sum, d) => sum + d.enrollments, 0);
   }, [data]);
@@ -52,11 +51,10 @@ export function CoursePerformance({ timeFilter, startDate, endDate }: CoursePerf
   }, [data]);
 
   const mostPopularCourse = useMemo(() => {
-    return data.length > 0 ? data.reduce((prev, current) => (prev.enrollments > current.enrollments ? prev : current)).courseTitle : "N/A";
-  }, [data]);
+    return data.length > 0 ? data.reduce((prev, current) => (prev.enrollments > current.enrollments ? prev : current)).courseTitle : t('analytics.coursePerformance.notAvailable');
+  }, [data, t]);
 
 
-  // Format personnalisé pour les valeurs
   const formatValue = (value: number) => {
     return value.toLocaleString("fr-FR")
   }
@@ -74,25 +72,25 @@ export function CoursePerformance({ timeFilter, startDate, endDate }: CoursePerf
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-xl font-semibold leading-tight">Top Formations</CardTitle>
+            <CardTitle className="text-xl font-semibold leading-tight">{t('analytics.coursePerformance.title')}</CardTitle>
             <CardDescription className="text-sm leading-relaxed">
-              Nombre d'étudiants inscrits par formation
+              {t('analytics.coursePerformance.description')}
             </CardDescription>
           </div>
           <div className="flex items-center gap-2 text-sm">
             <Users className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">Total: {totalStudents.toLocaleString("fr-FR")}</span>
+            <span className="text-muted-foreground">{t('analytics.coursePerformance.totalLabel', { total: totalStudents.toLocaleString("fr-FR") })}</span>
           </div>
         </div>
       </CardHeader>
       <CardContent>
         {data.length === 0 ? (
-          <div className="text-center text-muted-foreground p-4">Aucune donnée de performance de cours disponible pour la période.</div>
+          <div className="text-center text-muted-foreground p-4">{t('analytics.coursePerformance.noData')}</div>
         ) : (
           <ChartContainer
             config={{
-              enrollments: { // Changé de 'students' à 'enrollments'
-                label: "Étudiants",
+              enrollments: {
+                label: t('analytics.coursePerformance.chartLabel'),
                 color: "hsl(var(--chart-2))",
               },
             }}
@@ -105,7 +103,6 @@ export function CoursePerformance({ timeFilter, startDate, endDate }: CoursePerf
                 margin={{ top: 20, right: 30, left: 100, bottom: 20 }}
               >
                 <defs>
-                  {/* Utilisation d'un gradient unique ou adapté si les couleurs sont dynamiques */}
                   <linearGradient id="colorEnrollments" x1="0" y1="0" x2="1" y2="0">
                     <stop offset="0%" stopColor="var(--color-enrollments)" stopOpacity={0.8} />
                     <stop offset="100%" stopColor="var(--color-enrollments)" stopOpacity={0.4} />
@@ -126,7 +123,7 @@ export function CoursePerformance({ timeFilter, startDate, endDate }: CoursePerf
                   tickFormatter={formatValue}
                 />
                 <YAxis
-                  dataKey="courseTitle" // Changé de 'course' à 'courseTitle'
+                  dataKey="courseTitle"
                   type="category"
                   width={90}
                   tick={{ fill: "hsl(var(--foreground))", fontSize: 13, fontWeight: 500 }}
@@ -142,15 +139,15 @@ export function CoursePerformance({ timeFilter, startDate, endDate }: CoursePerf
                           <div className="font-semibold mb-2">{data.courseTitle}</div>
                           <div className="flex items-center gap-2 text-sm">
                             <div className="h-3 w-3 rounded-full bg-[hsl(var(--chart-2))]" />
-                            <span className="text-muted-foreground">Étudiants:</span>
-                            <span className="font-bold">{formatValue(data.enrollments)}</span> {/* Changé de 'students' à 'enrollments' */}
+                            <span className="text-muted-foreground">{t('analytics.coursePerformance.tooltip.students')}</span>
+                            <span className="font-bold">{formatValue(data.enrollments)}</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm mt-1">
-                            <span className="text-muted-foreground">Taux de complétion:</span>
+                            <span className="text-muted-foreground">{t('analytics.coursePerformance.tooltip.completionRate')}</span>
                             <span className="font-bold">{data.completionRate.toFixed(1)}%</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm mt-1">
-                            <span className="text-muted-foreground">Note moyenne:</span>
+                            <span className="text-muted-foreground">{t('analytics.coursePerformance.tooltip.averageRating')}</span>
                             <span className="font-bold">{data.averageRating.toFixed(1)} <Star className="inline-block h-3 w-3 fill-yellow-400 text-yellow-400" /></span>
                           </div>
                         </div>
@@ -161,14 +158,14 @@ export function CoursePerformance({ timeFilter, startDate, endDate }: CoursePerf
                   cursor={{ fill: "hsl(var(--accent))", opacity: 0.1 }}
                 />
                 <Bar
-                  dataKey="enrollments" // Changé de 'students' à 'enrollments'
-                  fill="url(#colorEnrollments)" // Utilisation du gradient unique
+                  dataKey="enrollments"
+                  fill="url(#colorEnrollments)"
                   radius={[0, 8, 8, 0]}
                   animationDuration={1000}
                   animationBegin={0}
                 >
                   <LabelList
-                    dataKey="enrollments" // Changé de 'students' à 'enrollments'
+                    dataKey="enrollments"
                     position="right"
                     formatter={formatValue}
                     style={{ fill: "hsl(var(--foreground))", fontSize: 12, fontWeight: 500 }}
@@ -183,14 +180,9 @@ export function CoursePerformance({ timeFilter, startDate, endDate }: CoursePerf
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <div className="h-3 w-3 rounded-full bg-[hsl(var(--chart-1))]" />
-                <span className="text-muted-foreground">Formation la plus populaire: {mostPopularCourse}</span>
+                <span className="text-muted-foreground">{t('analytics.coursePerformance.mostPopular', { course: mostPopularCourse })}</span>
               </div>
             </div>
-            {/* Vous pourriez calculer une croissance moyenne réelle ici si les données d'historique sont disponibles */}
-            {/* <div className="flex items-center gap-2 text-muted-foreground">
-              <TrendingUp className="h-4 w-4" />
-              <span>Croissance moyenne: +10%</span>
-            </div> */}
           </div>
         </div>
       </CardContent>

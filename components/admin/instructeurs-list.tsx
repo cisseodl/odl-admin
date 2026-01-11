@@ -17,10 +17,8 @@ import { ViewUserModal } from "./modals/view-user-modal"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Eye, Edit, Trash2, User, Mail, Calendar, BookOpen, GraduationCap, ChevronDown, Plus } from "lucide-react"
 import type { UserFormData } from "@/lib/validations/user"
-
-import { userService } from "@/services";
-import { instructorService } from "@/services/instructor.service"; // Import instructorService instance
-import type { ApiInstructor } from "@/services/instructor.service"; // Import ApiInstructor as a type
+import { instructorService } from "@/services/instructor.service";
+import type { ApiInstructor } from "@/services/instructor.service";
 import { UserDb } from "@/models";
 import { PageLoader } from "@/components/ui/page-loader";
 import { EmptyState } from "@/components/admin/empty-state";
@@ -30,7 +28,7 @@ import { InstructorPromotionFormModal, InstructorProfileFormData } from "./modal
 import { UserCreationModal } from "./modals/user-creation-modal";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-
+import { useLanguage } from "@/contexts/language-context";
 
 type InstructorDisplay = {
   id: number;
@@ -45,9 +43,8 @@ type InstructorDisplay = {
   specialization?: string;
 }
 
-// Helper function to map UserDb to InstructorDisplay (for cases where we only have UserDb info)
-const mapUserDbToInstructorDisplay = (userDb: UserDb): InstructorDisplay => {
-  const status: InstructorDisplay['status'] = userDb.activate ? "Actif" : "Inactif";
+const mapUserDbToInstructorDisplay = (userDb: UserDb, t: (key: string) => string): InstructorDisplay => {
+  const status: InstructorDisplay['status'] = userDb.activate ? t('common.active') as "Actif" : t('common.inactive') as "Inactif";
   const joinedDate = userDb.createdAt ? new Date(userDb.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) : "";
 
   return {
@@ -62,20 +59,17 @@ const mapUserDbToInstructorDisplay = (userDb: UserDb): InstructorDisplay => {
   };
 };
 
-// Helper function to map ApiInstructor (InstructorWithUserDto) to InstructorDisplay
-const mapApiInstructorToInstructorDisplay = (apiInstructor: ApiInstructor): InstructorDisplay => {
-  // Le DTO InstructorWithUserDto a les données User directement dans l'objet
+const mapApiInstructorToInstructorDisplay = (apiInstructor: ApiInstructor, t: (key: string) => string): InstructorDisplay => {
   const activate = apiInstructor.userActivate ?? apiInstructor.activate ?? false;
-  const status: InstructorDisplay['status'] = activate ? "Actif" : "Inactif";
+  const status: InstructorDisplay['status'] = activate ? t('common.active') as "Actif" : t('common.inactive') as "Inactif";
   
   const joinedDate = apiInstructor.createdAt 
     ? new Date(apiInstructor.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) 
     : "";
 
-  // Utiliser fullName directement depuis le DTO
   const name = apiInstructor.fullName?.trim() 
     || apiInstructor.email?.split('@')[0]
-    || "Formateur sans nom";
+    || t('users.instructors.no_name');
 
   return {
     id: apiInstructor.id || 0,
@@ -91,7 +85,6 @@ const mapApiInstructorToInstructorDisplay = (apiInstructor: ApiInstructor): Inst
   };
 };
 
-// Helper function to map InstructorDisplay to UserFormData (for UserFormModal for editing user details)
 const mapInstructorDisplayToUserFormData = (instructor: InstructorDisplay): UserFormData => {
   const nameParts = instructor.name.split(' ');
   const firstName = nameParts[0] || "";
@@ -101,8 +94,7 @@ const mapInstructorDisplayToUserFormData = (instructor: InstructorDisplay): User
     nom: lastName,
     prenom: firstName,
     email: instructor.email,
-    // Ensure to map phone and other UserDb fields if available in InstructorDisplay
-    numero: "", // Placeholder or fetch from backend for complete user data
+    numero: "",
     profession: "",
     niveauEtude: "",
     filiere: "",
@@ -111,7 +103,6 @@ const mapInstructorDisplayToUserFormData = (instructor: InstructorDisplay): User
   };
 };
 
-// Helper function to map InstructorDisplay to UserDisplay for ViewUserModal
 const mapInstructorDisplayToUserDisplay = (instructor: InstructorDisplay): UserDisplay => {
   return {
     id: instructor.id,
@@ -124,16 +115,16 @@ const mapInstructorDisplayToUserDisplay = (instructor: InstructorDisplay): UserD
     avatar: instructor.avatar,
     biography: instructor.biography,
     specialization: instructor.specialization,
-    // Le téléphone pourrait être récupéré depuis la relation user si nécessaire
   };
 };
 
 export function InstructeursList() {
+  const { t } = useLanguage();
   const { toast } = useToast();
-  const promoteUserSelectModal = useModal<{ userId: number }>(); // For selecting a user to promote
-  const userCreationModal = useModal<UserDb>(); // For creating a new user
-  const promoteProfileFormModal = useModal<{ userId: number, defaultValues: Partial<InstructorProfileFormData> }>(); // For filling instructor profile
-  const editUserFormModal = useModal<InstructorDisplay>(); // For editing user details of an instructor
+  const promoteUserSelectModal = useModal<{ userId: number }>();
+  const userCreationModal = useModal<UserDb>();
+  const promoteProfileFormModal = useModal<{ userId: number, defaultValues: Partial<InstructorProfileFormData> }>();
+  const editUserFormModal = useModal<InstructorDisplay>();
   const deleteModal = useModal<InstructorDisplay>();
   const viewModal = useModal<InstructorDisplay>();
 
@@ -142,31 +133,30 @@ export function InstructeursList() {
   
   const { searchQuery, setSearchQuery, filteredData } = useSearch<InstructorDisplay>({
     data: instructors,
-    searchKeys: ["name", "email", "specialization"], // Search by name, email, and specialization for instructors
+    searchKeys: ["name", "email", "specialization"],
   });
+
   const fetchInstructors = useCallback(async () => {
     setLoading(true);
     try {
-      // Le backend retourne maintenant InstructorWithUserDto avec jointure JPA
-      // Les données User (fullName, email, etc.) sont directement dans le DTO
       const response = await instructorService.getAllInstructors();
       const instructorsData = Array.isArray(response) ? response : (response?.data || []);
       
       if (Array.isArray(instructorsData)) {
-        setInstructors(instructorsData.map(mapApiInstructorToInstructorDisplay));
+        setInstructors(instructorsData.map(inst => mapApiInstructorToInstructorDisplay(inst, t)));
       } else {
         console.error("Unexpected response structure:", response);
         setInstructors([]);
         toast({
-          title: "Erreur de données",
-          description: "La réponse de l'API pour les formateurs est inattendue.",
+          title: t('common.error'),
+          description: t('users.instructors.toasts.error_unexpected_response'),
           variant: "destructive",
         });
       }
     } catch (err: any) {
       toast({
-        title: "Erreur",
-        description: err.message || "Impossible de charger les formateurs.",
+        title: t('common.error'),
+        description: err.message || t('users.instructors.toasts.error_fetch_list'),
         variant: "destructive",
       });
       console.error("Error fetching instructors:", err);
@@ -174,7 +164,7 @@ export function InstructeursList() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [t, toast]);
 
   useEffect(() => {
     fetchInstructors();
@@ -195,14 +185,14 @@ export function InstructeursList() {
         }
       );
       toast({
-        title: "Succès",
-        description: "L'utilisateur a été promu et le profil formateur créé.",
+        title: t('common.success'),
+        description: t('users.instructors.toasts.success_promote'),
       });
       fetchInstructors();
     } catch (err: any) {
       toast({
-        title: "Erreur",
-        description: err.message || "Impossible de promouvoir l'utilisateur en formateur.",
+        title: t('common.error'),
+        description: err.message || t('users.instructors.toasts.error_promote'),
         variant: "destructive",
       });
       console.error("Error promoting user to instructor:", err);
@@ -220,20 +210,18 @@ export function InstructeursList() {
           email: data.email,
           phone: data.numero,
           activate: data.status === "Actif",
-          // biography and specialization are not updated through UserFormModal,
-          // they would need a dedicated InstructorProfileFormModal for editing.
         };
 
         await instructorService.updateInstructor(instructorId, updatedUserData);
         toast({
-          title: "Succès",
-          description: "Le formateur a été mis à jour.",
+          title: t('common.success'),
+          description: t('users.instructors.toasts.success_update'),
         });
         fetchInstructors();
       } catch (err: any) {
         toast({
-          title: "Erreur",
-          description: err.message || "Impossible de mettre à jour le formateur.",
+          title: t('common.error'),
+          description: err.message || t('users.instructors.toasts.error_update'),
           variant: "destructive",
         });
         console.error("Error updating instructor:", err);
@@ -248,14 +236,14 @@ export function InstructeursList() {
       try {
         await instructorService.deleteInstructor(deleteModal.selectedItem.id!);
         toast({
-          title: "Succès",
-          description: "Le formateur et l'utilisateur associé ont été supprimés avec succès.",
+          title: t('common.success'),
+          description: t('users.instructors.toasts.success_delete'),
         });
         fetchInstructors();
       } catch (err: any) {
         toast({
-          title: "Erreur",
-          description: err.message || "Impossible de supprimer le formateur.",
+          title: t('common.error'),
+          description: err.message || t('users.instructors.toasts.error_delete'),
           variant: "destructive",
         });
         console.error("Error deleting instructor:", err);
@@ -267,11 +255,10 @@ export function InstructeursList() {
 
   const handleUserCreated = (user: { id: number; fullName: string; email: string }) => {
     toast({
-      title: "Utilisateur créé",
-      description: `L'utilisateur ${user.fullName} a été créé. Vous pouvez maintenant le promouvoir en formateur.`,
+      title: t('users.learners.toasts.success_user_created', { name: user.fullName }),
+      description: t('users.instructors.toasts.success_user_created', { name: user.fullName }),
     });
     userCreationModal.close();
-    // Ouvrir directement le formulaire de promotion avec l'utilisateur créé
     promoteProfileFormModal.open({
       userId: user.id,
       defaultValues: {
@@ -286,7 +273,7 @@ export function InstructeursList() {
     () => [
       {
         accessorKey: "name",
-        header: "Formateur",
+        header: t('users.instructors.list.header_instructor'),
         cell: ({ row }) => {
           const instructor = row.original
           return (
@@ -311,17 +298,17 @@ export function InstructeursList() {
       },
       {
         accessorKey: "specialization",
-        header: "Spécialisation",
-        cell: ({ row }) => row.original.specialization || "N/A",
+        header: t('users.instructors.list.header_specialization'),
+        cell: ({ row }) => row.original.specialization || t('common.notAvailable'),
       },
       {
         accessorKey: "status",
-        header: "Statut",
+        header: t('users.instructors.list.header_status'),
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       {
         accessorKey: "joinedDate",
-        header: "Date d'inscription",
+        header: t('users.instructors.list.header_joined_date'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1 text-sm">
             <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
@@ -331,7 +318,7 @@ export function InstructeursList() {
       },
       {
         accessorKey: "courses",
-        header: "Formations gérées",
+        header: t('users.instructors.list.header_courses_managed'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
             <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -341,27 +328,26 @@ export function InstructeursList() {
       },
       {
         id: "actions",
-        header: "Actions",
+        header: t('users.instructors.list.header_actions'),
         cell: ({ row }) => {
           const instructor = row.original
           return (
             <ActionMenu
               actions={[
                 {
-                  label: "Voir détails",
+                  label: t('users.instructors.list.action_view_details'),
                   icon: <Eye className="h-4 w-4" />,
                   onClick: () => {
                     viewModal.open(instructor);
-                    // Les données de l'instructeur incluent déjà user via mapApiInstructorToInstructorDisplay
                   },
                 },
                 {
-                  label: "Modifier les détails utilisateur",
+                  label: t('users.instructors.list.action_edit_user'),
                   icon: <Edit className="h-4 w-4" />,
                   onClick: () => editUserFormModal.open(instructor),
                 },
                 {
-                  label: "Modifier le profil formateur",
+                  label: t('users.instructors.list.action_edit_profile'),
                   icon: <GraduationCap className="h-4 w-4" />,
                   onClick: () => promoteProfileFormModal.open({
                     userId: instructor.id,
@@ -372,7 +358,7 @@ export function InstructeursList() {
                   }),
                 },
                 {
-                  label: "Supprimer",
+                  label: t('users.instructors.list.action_delete'),
                   icon: <Trash2 className="h-4 w-4" />,
                   onClick: () => deleteModal.open(instructor),
                   variant: "destructive",
@@ -383,7 +369,7 @@ export function InstructeursList() {
         },
       },
     ],
-    [viewModal, editUserFormModal, promoteProfileFormModal, deleteModal]
+    [viewModal, editUserFormModal, promoteProfileFormModal, deleteModal, t]
   )
 
   const instructorIds = useMemo(() => instructors.map(inst => inst.id), [instructors]);
@@ -391,24 +377,24 @@ export function InstructeursList() {
   return (
     <>
       <PageHeader
-        title="Formateurs"
+        title={t('users.instructors.list.title')}
         action={
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="default" size="default" className="bg-[rgb(255,102,0)] hover:bg-[rgb(255,102,0)]/90 text-white">
                 <Plus className="h-4 w-4 mr-2" />
-                Ajouter Formateur
+                {t('users.instructors.list.add_button')}
                 <ChevronDown className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Options d'ajout</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('users.instructors.list.add_options_title')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => userCreationModal.open()}>
-                Créer un nouvel utilisateur
+                {t('users.instructors.list.add_option_create')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => promoteUserSelectModal.open()}>
-                Promouvoir un utilisateur existant
+                {t('users.instructors.list.add_option_promote')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -419,7 +405,7 @@ export function InstructeursList() {
         <CardContent>
           <div className="mb-4">
             <SearchBar
-              placeholder="Rechercher par nom ou email..."
+              placeholder={t('users.instructors.list.search_placeholder')}
               value={searchQuery}
               onChange={setSearchQuery}
             />
@@ -429,8 +415,8 @@ export function InstructeursList() {
           ) : filteredData.length === 0 ? (
             <EmptyState
               icon={GraduationCap}
-              title="Aucun formateur trouvé"
-              description="Aucun formateur ne correspond à votre recherche"
+              title={t('users.instructors.list.empty_title')}
+              description={t('users.instructors.list.empty_description')}
             />
           ) : (
             <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
@@ -442,8 +428,8 @@ export function InstructeursList() {
         open={promoteUserSelectModal.isOpen}
         onOpenChange={(open) => !open && promoteUserSelectModal.close()}
         onSelectUser={handleUserSelectedForPromotion}
-        title="Promouvoir un utilisateur en formateur"
-        description="Sélectionnez un utilisateur existant à promouvoir."
+        title={t('users.instructors.modals.promote_select_title')}
+        description={t('users.instructors.modals.promote_select_description')}
         excludeUserIds={instructorIds}
       />
 
@@ -452,9 +438,9 @@ export function InstructeursList() {
           open={userCreationModal.isOpen}
           onOpenChange={(open) => !open && userCreationModal.close()}
           onUserCreated={handleUserCreated}
-          title="Créer un nouvel utilisateur"
-          description="Créez un compte utilisateur de base qui pourra ensuite être promu en formateur."
-          submitLabel="Créer l'utilisateur"
+          title={t('users.learners.modals.create_user_title')}
+          description={t('users.instructors.toasts.success_user_created', { name: '' })}
+          submitLabel={t('users.learners.modals.create_user_submit')}
         />
       )}
 
@@ -463,9 +449,9 @@ export function InstructeursList() {
           open={promoteProfileFormModal.isOpen}
           onOpenChange={(open) => !open && promoteProfileFormModal.close()}
           onSubmit={handlePromoteUserAndCreateProfile}
-          title="Créer le profil formateur"
-          description="Ajoutez les détails spécifiques du profil de formateur."
-          submitLabel="Promouvoir et créer le profil"
+          title={t('users.instructors.modals.promote_form_title')}
+          description={t('users.instructors.modals.promote_form_description')}
+          submitLabel={t('users.instructors.modals.promote_form_submit')}
           userId={promoteProfileFormModal.selectedItem.userId}
           defaultValues={promoteProfileFormModal.selectedItem.defaultValues}
         />
@@ -475,11 +461,11 @@ export function InstructeursList() {
         <UserFormModal
           open={editUserFormModal.isOpen}
           onOpenChange={(open) => !open && editUserFormModal.close()}
-          title="Modifier les détails utilisateur du formateur"
-          description="Modifiez les informations de base de l'utilisateur."
+          title={t('users.instructors.modals.edit_user_title')}
+          description={t('users.instructors.modals.edit_user_description')}
           defaultValues={mapInstructorDisplayToUserFormData(editUserFormModal.selectedItem)}
           onSubmit={handleUpdateInstructor}
-          submitLabel="Enregistrer les modifications"
+          submitLabel={t('users.instructors.modals.edit_user_submit')}
         />
       )}
 
@@ -495,9 +481,9 @@ export function InstructeursList() {
         open={deleteModal.isOpen}
         onOpenChange={(open) => !open && deleteModal.close()}
         onConfirm={handleDeleteInstructor}
-        title="Supprimer le formateur"
-        description={`Êtes-vous sûr de vouloir supprimer le formateur ${deleteModal.selectedItem?.name} ? Cette action supprimera également l'utilisateur de base et toutes ses données associées. Cette action est irréversible.`}
-        confirmText="Supprimer"
+        title={t('users.instructors.modals.delete_title')}
+        description={t('users.instructors.modals.delete_description', { name: deleteModal.selectedItem?.name })}
+        confirmText={t('common.delete')}
         variant="destructive"
       />
     </>

@@ -20,49 +20,49 @@ import type { Route } from "@/types"
 // Admin navigation routes
 export const adminRoutes: Route[] = [
   {
-    label: "Tableau de bord",
+    label: "routes.dashboard",
     icon: LayoutDashboard,
     href: "/admin",
   },
   {
-    label: "Statistiques",
+    label: "routes.analytics",
     icon: BarChart3,
     href: "/admin/analytics",
   },
   {
-    label: "Utilisateurs",
+    label: "routes.users",
     icon: Users,
     href: "/admin/users", // Parent route can still point to a general users list
     children: [
       {
-        label: "Apprenants",
+        label: "routes.users_learners",
         icon: Users, // Or another icon
         href: "/admin/users/apprenants",
       },
       {
-        label: "Formateurs",
+        label: "routes.users_instructors",
         icon: GraduationCap,
         href: "/admin/users/instructeurs",
       },
       {
-        label: "Administrateurs",
+        label: "routes.users_admins",
         icon: Users, // Or another icon
         href: "/admin/users/administrateurs",
       },
     ],
   },
   {
-    label: "Formations",
+    label: "routes.courses",
     icon: BookOpen,
     href: "/admin/courses",
     children: [ // Add children for sub-menu
       {
-        label: "Toutes les formations", // Add a child for all courses
+        label: "routes.courses_all", // Add a child for all courses
         icon: BookOpen, // Use BookOpen icon again or a different one
         href: "/admin/courses",
       },
       {
-        label: "Catégories",
+        label: "routes.courses_categories",
         icon: Tag,
         href: "/admin/categories",
       },
@@ -70,52 +70,52 @@ export const adminRoutes: Route[] = [
   },
   // Remove top-level Instructeurs as it's now a sub-item
   {
-    label: "Certifications",
+    label: "routes.certifications",
     icon: Award,
     href: "/admin/certifications",
   },
   {
-    label: "Commentaires",
+    label: "routes.reviews",
     icon: MessageSquare,
     href: "/admin/reviews",
   },
   {
-    label: "Contenu",
+    label: "routes.content",
     icon: Upload,
     href: "/admin/content",
   },
   {
-    label: "Labs", // Renamed from Contenus
+    label: "routes.labs", // Renamed from Contenus
     icon: HardDrive, // Changed icon
     href: "/admin/labs", // Changed href
   },
   {
-    label: "Cohortes", // Replaced Modération
+    label: "routes.cohorts", // Replaced Modération
     icon: Users, // Icon for Cohortes (can be changed if needed)
     href: "/admin/cohortes", // New href for Cohortes
   },
   {
-    label: "Validation", // Nouvelle entrée pour la modération
+    label: "routes.moderation", // Nouvelle entrée pour la modération
     icon: Shield,
     href: "/admin/moderation",
   },
   {
-    label: "Notifications",
+    label: "routes.notifications",
     icon: Bell,
     href: "/admin/notifications",
   },
   {
-    label: "Évaluations", // Replaced Badges
+    label: "routes.evaluations", // Replaced Badges
     icon: FileText, // Changed icon from Award
     href: "/admin/evaluations", // Changed href from /admin/badges
   },
   {
-    label: "Classements",
+    label: "routes.leaderboard",
     icon: Award,
     href: "/admin/leaderboard",
   },
   {
-    label: "Paramètres",
+    label: "routes.settings",
     icon: Settings,
     href: "/admin/settings",
   },

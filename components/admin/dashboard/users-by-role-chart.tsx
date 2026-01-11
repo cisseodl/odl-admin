@@ -1,5 +1,6 @@
 "use client"
 
+import { useLanguage } from "@/contexts/language-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts"
 
@@ -14,12 +15,13 @@ const COLORS = {
 }
 
 export function UsersByRoleChart({ data }: UsersByRoleChartProps) {
+  const { t } = useLanguage()
   const chartData = Object.entries(data).map(([name, value]) => ({ name, value }))
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Répartition des utilisateurs par rôle</CardTitle>
+        <CardTitle>{t('dashboard.charts.users_by_role.title')}</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>

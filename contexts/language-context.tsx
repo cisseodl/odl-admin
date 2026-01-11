@@ -7,7 +7,7 @@ type Language = "fr" | "en"
 interface LanguageContextType {
   language: Language
   setLanguage: (lang: Language) => void
-  t: (key: string) => string
+  t: (key: string, params?: Record<string, string | number>) => string
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
@@ -64,7 +64,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   }, [language])
 
-  const t = (key: string): string => {
+  const t = (key: string, params?: Record<string, string | number>): string => {
     const keys = key.split(".")
     let value: any = translations
     
@@ -77,7 +77,39 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       }
     }
     
-    return typeof value === "string" ? value : key
+    let result = typeof value === "string" ? value : key
+    
+    // Gérer les pluriels automatiquement
+    if (params && typeof result === "string") {
+      // Vérifier si on a un paramètre count et si une clé _plural existe
+      if (params.count !== undefined) {
+        const pluralKey = key + "_plural"
+        const pluralKeys = pluralKey.split(".")
+        let pluralValue: any = translations
+        let pluralExists = true
+        
+        for (const k of pluralKeys) {
+          if (pluralValue && typeof pluralValue === "object" && k in pluralValue) {
+            pluralValue = pluralValue[k]
+          } else {
+            pluralExists = false
+            break
+          }
+        }
+        
+        // Utiliser la version plurielle si count > 1 et que la clé existe
+        if (pluralExists && typeof pluralValue === "string" && Number(params.count) > 1) {
+          result = pluralValue
+        }
+      }
+      
+      // Remplacer les paramètres dans la chaîne
+      Object.keys(params).forEach((paramKey) => {
+        result = result.replace(new RegExp(`{{${paramKey}}}`, "g"), String(params[paramKey]))
+      })
+    }
+    
+    return result
   }
 
   return (

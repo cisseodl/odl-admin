@@ -1,5 +1,6 @@
 "use client"
 
+import { useLanguage } from "@/contexts/language-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PageLoader } from "@/components/ui/page-loader"
 import { BookOpen, Users, TrendingUp, Award, Star } from "lucide-react"
@@ -7,6 +8,7 @@ import { useEffect, useState } from "react"; // Added useState and useEffect
 import { analyticsService, InstructorDashboardStats } from "@/services/analytics.service"; // Import analyticsService and InstructorDashboardStats type
 
 export function InstructorDashboardStats() {
+  const { t } = useLanguage()
   const [summary, setSummary] = useState<InstructorDashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,11 +22,11 @@ export function InstructorDashboardStats() {
         setSummary(data);
       } catch (err: any) {
         if (err.message.includes("API Error 403")) {
-          setError("Accès refusé. Vous n'êtes pas autorisé à voir ces statistiques.");
+          setError(t('instructor.dashboard.stats.error_access_denied'));
         } else if (err.message.includes("profil instructeur")) {
-          setError("Vous n'avez pas encore de profil instructeur. Veuillez créer un profil instructeur pour accéder au tableau de bord.");
+          setError(t('instructor.dashboard.stats.error_no_profile'));
         } else {
-          setError(err.message || "Échec de la récupération du résumé du tableau de bord.");
+          setError(err.message || t('instructor.dashboard.stats.error_load'));
         }
         console.error("Error fetching dashboard summary:", err);
       } finally {
@@ -36,30 +38,30 @@ export function InstructorDashboardStats() {
 
   const stats = [
     {
-      title: "Formations Créées",
+      title: t('instructor.dashboard.stats.courses_created'),
       value: summary?.totalCoursesCreated !== undefined ? summary.totalCoursesCreated.toString() : "...",
-      change: summary?.publishedCourses !== undefined ? `${summary.publishedCourses} publiées` : "...",
+      change: summary?.publishedCourses !== undefined ? `${summary.publishedCourses} ${t('instructor.dashboard.stats.courses_published')}` : "...",
       icon: BookOpen,
       color: "text-[hsl(var(--info))]",
     },
     {
-      title: "Total Apprenants",
+      title: t('instructor.dashboard.stats.total_students'),
       value: summary?.totalStudents !== undefined ? summary.totalStudents.toLocaleString("fr-FR") : "...",
-      change: summary?.newEnrollmentsLast30Days !== undefined ? `+${summary.newEnrollmentsLast30Days} ce mois` : "...",
+      change: summary?.newEnrollmentsLast30Days !== undefined ? `+${summary.newEnrollmentsLast30Days} ${t('instructor.dashboard.stats.new_enrollments')}` : "...",
       icon: Users,
       color: "text-[hsl(var(--success))]",
     },
     {
-      title: "Note Moyenne",
+      title: t('instructor.dashboard.stats.average_rating'),
       value: summary?.averageRating !== undefined ? summary.averageRating.toFixed(1) : "...",
-      change: summary?.newComments !== undefined ? `${summary.newComments} nouveaux avis (30j)` : "...",
+      change: summary?.newComments !== undefined ? `${summary.newComments} ${t('instructor.dashboard.stats.new_comments')}` : "...",
       icon: Star,
       color: "text-[hsl(var(--info))]",
     },
     {
-      title: "Taux de Complétion",
+      title: t('instructor.dashboard.stats.completion_rate'),
       value: summary?.averageCompletionRate !== undefined ? `${summary.averageCompletionRate.toFixed(1)}%` : "...",
-      change: summary?.activeLearners !== undefined ? `${summary.activeLearners} apprenants actifs` : "...",
+      change: summary?.activeLearners !== undefined ? `${summary.activeLearners} ${t('instructor.dashboard.stats.active_learners')}` : "...",
       icon: Award,
       color: "text-[hsl(var(--success))]",
     },

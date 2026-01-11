@@ -1,5 +1,6 @@
 "use client"
 
+import { useLanguage } from "@/contexts/language-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { TrendingUp, TrendingDown, Minus } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -21,7 +22,8 @@ interface ComparisonStatsProps {
   // Removed period, timeFilter, startDate, endDate from props
 }
 
-export function ComparisonStats({ title = "Comparaison", description }: ComparisonStatsProps) { // Removed period, timeFilter, startDate, endDate
+export function ComparisonStats({ title, description }: ComparisonStatsProps) { // Removed period, timeFilter, startDate, endDate
+  const { t } = useLanguage()
   const [statsData, setStatsData] = useState<OverallComparisonStats | null>(null); // Corrected type
   const [loading, setLoading] = useState(true);
   const [error, setError, ] = useState<string | null>(null);
@@ -75,35 +77,35 @@ export function ComparisonStats({ title = "Comparaison", description }: Comparis
 
     return [
       {
-        label: "Inscriptions",
+        label: t('dashboard.comparison.metrics.registrations'),
         current: statsData.registrationsCurrentPeriod,
         previous: statsData.registrationsPreviousPeriod,
         format: "number",
       },
       {
-        label: "Taux de complétion",
+        label: t('dashboard.comparison.metrics.completion_rate'),
         current: statsData.completionRateCurrentPeriod,
         previous: statsData.completionRatePreviousPeriod,
         format: "percentage",
       },
       {
-        label: "Formations créées",
+        label: t('dashboard.comparison.metrics.courses_created'),
         current: statsData.coursesCreatedCurrentPeriod,
         previous: statsData.coursesCreatedPreviousPeriod,
         format: "number",
       },
       {
-        label: "Utilisateurs actifs",
+        label: t('dashboard.comparison.metrics.active_users'),
         current: statsData.activeUsersCurrentPeriod,
         previous: statsData.activeUsersPreviousPeriod,
         format: "number",
       },
     ];
-  }, [statsData]);
+  }, [statsData, t]);
 
 
   // Removed periodLabel as period is no longer a prop
-  const periodLabel = "période précédente"; // Default label
+  const periodLabel = t('dashboard.comparison.previous_period'); // Default label
 
   if (loading) {
     return <PageLoader />;
@@ -114,14 +116,14 @@ export function ComparisonStats({ title = "Comparaison", description }: Comparis
   }
 
   if (!statsData || metrics.length === 0) {
-    return <div className="text-center text-muted-foreground p-4">Aucune donnée de comparaison disponible pour la période.</div>;
+    return <div className="text-center text-muted-foreground p-4">{t('dashboard.comparison.no_data')}</div>;
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        {description && <CardDescription>{description}</CardDescription>}
+        <CardTitle>{title || t('dashboard.comparison.title')}</CardTitle>
+        {description && <CardDescription>{description || t('dashboard.comparison.description')}</CardDescription>}
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -169,7 +171,7 @@ export function ComparisonStats({ title = "Comparaison", description }: Comparis
                         <Minus className="h-4 w-4" />
                         0%
                       </div>
-                      <p className="text-xs text-muted-foreground">Aucun changement</p>
+                      <p className="text-xs text-muted-foreground">{t('dashboard.comparison.no_change')}</p>
                     </>
                   )}
                 </div>
@@ -178,7 +180,7 @@ export function ComparisonStats({ title = "Comparaison", description }: Comparis
           })}
         </div>
         <div className="mt-4 pt-4 border-t text-xs text-muted-foreground text-center">
-          Comparaison avec la {periodLabel}
+          {t('dashboard.comparison.comparison_with', { period: periodLabel })}
         </div>
       </CardContent>
     </Card>

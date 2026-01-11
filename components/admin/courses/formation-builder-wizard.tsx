@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useLanguage } from "@/contexts/language-context"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -24,12 +25,7 @@ type FormationBuilderWizardProps = {
   onComplete?: (courseId: number) => void
 }
 
-const STEPS: { id: Step; label: string; description: string; icon: React.ReactNode }[] = [
-  { id: "course", label: "Formation", description: "Informations de base de la formation", icon: <BookOpen className="h-5 w-5" /> },
-  { id: "modules", label: "Modules", description: "Créer les modules de la formation", icon: <Layers className="h-5 w-5" /> },
-  { id: "lessons", label: "Leçons", description: "Ajouter les leçons aux modules", icon: <FileText className="h-5 w-5" /> },
-  { id: "quiz", label: "Quiz", description: "Créer les quiz de la formation", icon: <HelpCircle className="h-5 w-5" /> },
-]
+// STEPS sera défini dans le composant pour utiliser t()
 
 // Types pour les données du wizard
 export type CourseFormData = {
@@ -90,8 +86,16 @@ type WizardData = {
 }
 
 export function FormationBuilderWizard({ open, onOpenChange, onComplete }: FormationBuilderWizardProps) {
+  const { t } = useLanguage()
   const { toast } = useToast()
   const [currentStep, setCurrentStep] = useState<Step>("course")
+  
+  const STEPS: { id: Step; label: string; description: string; icon: React.ReactNode }[] = [
+    { id: "course", label: t('wizard.steps.course.label'), description: t('wizard.steps.course.description'), icon: <BookOpen className="h-5 w-5" /> },
+    { id: "modules", label: t('wizard.steps.modules.label'), description: t('wizard.steps.modules.description'), icon: <Layers className="h-5 w-5" /> },
+    { id: "lessons", label: t('wizard.steps.lessons.label'), description: t('wizard.steps.lessons.description'), icon: <FileText className="h-5 w-5" /> },
+    { id: "quiz", label: t('wizard.steps.quiz.label'), description: t('wizard.steps.quiz.description'), icon: <HelpCircle className="h-5 w-5" /> },
+  ]
   const [completedSteps, setCompletedSteps] = useState<Set<Step>>(new Set())
   const [isSaving, setIsSaving] = useState(false)
   const [categories, setCategories] = useState<Categorie[]>([])
@@ -135,8 +139,8 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
       } catch (error) {
         console.error("Failed to fetch data:", error)
         toast({
-          title: "Erreur",
-          description: "Impossible de charger les catégories ou les formateurs.",
+          title: t('common.error'),
+          description: t('wizard.errors.load_data_failed'),
           variant: "destructive",
         })
       } finally {
@@ -422,8 +426,8 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
       }
 
       toast({
-        title: "Succès",
-        description: "La formation a été créée avec succès !",
+        title: t('common.success'),
+        description: t('wizard.success.course_created'),
       })
 
       onComplete?.(wizardData.course.courseId)
@@ -432,8 +436,8 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
     } catch (error: any) {
       console.error("Error creating quiz:", error)
       toast({
-        title: "Erreur",
-        description: error.message || "Impossible de créer le quiz.",
+        title: t('common.error'),
+        description: error.message || t('wizard.errors.create_quiz_failed'),
         variant: "destructive",
       })
     } finally {
@@ -476,7 +480,7 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
         <DialogHeader className="px-6 pt-6 pb-4 border-b">
           <div className="flex items-center justify-between">
             <div>
-              <DialogTitle className="text-2xl font-bold">Créer une formation</DialogTitle>
+              <DialogTitle className="text-2xl font-bold">{t('wizard.title')}</DialogTitle>
               <p className="text-sm text-muted-foreground mt-1">
                 {STEPS[getCurrentStepIndex()].description}
               </p>
@@ -490,9 +494,9 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
         {/* Progress Bar */}
         <div className="px-6 pt-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Progression</span>
+            <span className="text-sm font-medium">{t('wizard.progress.label')}</span>
             <span className="text-sm text-muted-foreground">
-              Étape {getCurrentStepIndex() + 1} sur {STEPS.length}
+              {t('wizard.progress.step_info', { current: getCurrentStepIndex() + 1, total: STEPS.length })}
             </span>
           </div>
           <Progress value={progress} className="h-2" />
@@ -590,7 +594,7 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
             disabled={isSaving}
           >
             <ChevronLeft className="h-4 w-4 mr-2" />
-            {getCurrentStepIndex() === 0 ? "Annuler" : "Précédent"}
+            {getCurrentStepIndex() === 0 ? t('common.cancel') : t('wizard.buttons.previous')}
           </Button>
           {/* Les boutons "Suivant" sont gérés dans chaque étape via leur propre formulaire */}
         </div>

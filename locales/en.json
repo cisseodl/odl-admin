@@ -26,7 +26,21 @@
     "inactive": "Inactive",
     "yes": "Yes",
     "no": "No",
-    "reviews": "reviews"
+    "reviews": "reviews",
+    "notAvailable": "N/A",
+    "none": "None",
+    "breadcrumb": "Breadcrumb",
+    "open": "Open"
+  },
+  "table": {
+    "no_results": "No results found",
+    "no_results_description": "Try adjusting your search criteria",
+    "total_results": "{{count}} result(s) total",
+    "page_info": "Page {{current}} of {{total}}",
+    "first_page": "First page",
+    "previous_page": "Previous page",
+    "next_page": "Next page",
+    "last_page": "Last page"
   },
   "auth": {
     "login": "Login",
@@ -34,20 +48,236 @@
     "email": "Email",
     "password": "Password",
     "forgotPassword": "Forgot Password",
-    "rememberMe": "Remember me"
+    "rememberMe": "Remember me",
+    "loginPage": {
+      "title": "Login",
+      "description": "Sign in to access your space",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "your@email.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "••••••••",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "submit": "Sign In",
+      "submitting": "Signing in...",
+      "error": "Incorrect email or password."
+    }
+  },
+  "apprenant": {
+    "dashboard": {
+      "title": "Learner Dashboard",
+      "description": "Welcome to your learning space!",
+      "stats": {
+        "enrolledCourses": "Enrolled Courses",
+        "enrolledCoursesDesc": "Total courses you are enrolled in",
+        "completedCourses": "Completed Courses",
+        "completedCoursesDesc": "Number of courses completed successfully",
+        "certificates": "Certificates Earned",
+        "certificatesDesc": "Your completion certificates",
+        "quizzesPassed": "Quizzes Passed",
+        "quizzesPassedDesc": "Number of quizzes passed successfully"
+      }
+    }
   },
   "dashboard": {
     "title": "Dashboard",
     "overview": "Overview",
     "statistics": "Statistics",
     "recentActivity": "Recent Activity",
-    "quickActions": "Quick Actions"
+    "quickActions": "Quick Actions",
+    "description": "Overview of your training platform",
+    "loadError": "Failed to load dashboard data.",
+    "mainStats": {
+      "newUsers": "New Users (30d)",
+      "newCourses": "New Courses (30d)",
+      "totalEnrollments": "Total Enrollments",
+      "lessonsCompleted": "Lessons Completed"
+    },
+    "globalStats": {
+      "title": "Global Statistics",
+      "totalUsers": "Total Users",
+      "totalCourses": "Total Courses",
+      "publishedCourses": "Published Courses",
+      "pendingModeration": "Pending"
+    },
+    "comparison": {
+      "title": "Current vs. Previous Month Comparison",
+      "description": "Comparative performance analysis",
+      "previous_period": "previous period",
+      "no_data": "No comparison data available for the period.",
+      "no_change": "No change",
+      "comparison_with": "Comparison with the {{period}}",
+      "metrics": {
+        "registrations": "Registrations",
+        "completion_rate": "Completion Rate",
+        "courses_created": "Courses Created",
+        "active_users": "Active Users"
+      }
+    },
+    "quick_actions": {
+      "title": "Quick Actions",
+      "description": "Quick access to frequent actions",
+      "add_user": "Add a user",
+      "create_course": "Create a course",
+      "manage_cohorts": "Manage Cohorts",
+      "manage_labs": "Manage Labs"
+    },
+    "charts": {
+      "users_by_role": {
+        "title": "User Distribution by Role"
+      },
+      "top_courses": {
+        "title": "Top 5 Courses by Enrollments",
+        "enrollments_key": "Enrollments"
+      }
+    }
   },
   "users": {
     "title": "Users",
-    "admins": "Administrators",
-    "instructors": "Instructors",
-    "learners": "Learners",
+    "admins": {
+      "title": "Administrator Management",
+      "description": "Manage all administrators on the platform",
+      "list": {
+        "title": "Administrators",
+        "add_button": "Add Administrator",
+        "add_options_title": "Add options",
+        "add_option_create": "Create a new user",
+        "add_option_promote": "Promote an existing user",
+        "search_placeholder": "Search by name or email...",
+        "empty_title": "No administrators found",
+        "empty_description": "No administrators match your search",
+        "header_admin": "Administrator",
+        "header_status": "Status",
+        "header_joined_date": "Joined Date",
+        "header_courses_managed": "Courses Managed",
+        "header_actions": "Actions",
+        "action_view_details": "View details",
+        "action_edit": "Edit",
+        "action_delete": "Delete"
+      },
+      "modals": {
+        "promote_title": "Promote User to Administrator",
+        "promote_description": "Select an existing user to promote.",
+        "create_title": "Create a New User",
+        "create_description": "Create a basic user account that can then be promoted.",
+        "create_submit": "Create User",
+        "edit_title": "Edit Administrator",
+        "edit_description": "Modify the administrator's information",
+        "edit_submit": "Save Changes",
+        "delete_title": "Delete Administrator",
+        "delete_description": "Are you sure you want to delete the administrator {{name}}? This action will also delete the base user and all associated data. This action is irreversible."
+      },
+      "toasts": {
+        "error_fetch_list": "Failed to load the list of administrators.",
+        "error_unexpected_response": "The API response for administrators was unexpected.",
+        "error_promote": "Failed to promote the user to administrator.",
+        "error_update": "Failed to update the administrator.",
+        "error_delete": "Failed to delete the administrator.",
+        "success_promote": "The user has been successfully promoted to administrator.",
+        "success_update": "The administrator has been updated.",
+        "success_delete": "The administrator and associated user have been successfully deleted.",
+        "success_user_created": "User {{name}} has been created. You can now promote them to an administrator."
+      },
+      "no_name": "Unnamed User"
+    },
+    "instructors": {
+      "title": "Instructor Management",
+      "description": "Manage all instructors on the platform",
+      "list": {
+        "title": "Instructors",
+        "add_button": "Add Instructor",
+        "add_options_title": "Add options",
+        "add_option_create": "Create a new user",
+        "add_option_promote": "Promote an existing user",
+        "search_placeholder": "Search by name, email, or specialization...",
+        "empty_title": "No instructors found",
+        "empty_description": "No instructors match your search",
+        "header_instructor": "Instructor",
+        "header_specialization": "Specialization",
+        "header_status": "Status",
+        "header_joined_date": "Joined Date",
+        "header_courses_managed": "Courses Managed",
+        "header_actions": "Actions",
+        "action_view_details": "View details",
+        "action_edit_user": "Edit user details",
+        "action_edit_profile": "Edit instructor profile",
+        "action_delete": "Delete"
+      },
+      "modals": {
+        "promote_select_title": "Promote User to Instructor",
+        "promote_select_description": "Select an existing user to promote.",
+        "promote_form_title": "Create Instructor Profile",
+        "promote_form_description": "Add the specific details for the instructor's profile.",
+        "promote_form_submit": "Promote and Create Profile",
+        "edit_user_title": "Edit Instructor's User Details",
+        "edit_user_description": "Modify the user's basic information.",
+        "edit_user_submit": "Save Changes",
+        "delete_title": "Delete Instructor",
+        "delete_description": "Are you sure you want to delete the instructor {{name}}? This action will also delete the base user and all associated data. This action is irreversible."
+      },
+      "toasts": {
+        "error_fetch_list": "Failed to load instructors.",
+        "error_unexpected_response": "The API response for instructors was unexpected.",
+        "error_promote": "Failed to promote user to instructor.",
+        "error_update": "Failed to update instructor.",
+        "error_delete": "Failed to delete instructor.",
+        "success_promote": "User has been promoted and instructor profile created.",
+        "success_update": "The instructor has been updated.",
+        "success_delete": "The instructor and associated user have been successfully deleted.",
+        "success_user_created": "User {{name}} has been created. You can now promote them to an instructor."
+      },
+      "no_name": "Unnamed Instructor"
+    },
+    "learners": {
+      "title": "Learner Management",
+      "description": "Manage all learners on the platform",
+      "list": {
+        "title": "Learners",
+        "add_button": "Add Learner",
+        "add_options_title": "Add options",
+        "add_option_create": "Create a new user",
+        "add_option_promote": "Promote an existing user",
+        "search_placeholder": "Search by name or email...",
+        "empty_title": "No learners found",
+        "empty_description": "No learners match your search",
+        "header_learner": "Learner",
+        "header_phone": "Phone",
+        "header_field": "Field of Study",
+        "header_level": "Education Level",
+        "header_profession": "Profession",
+        "header_cohort": "Cohort",
+        "header_status": "Status",
+        "header_joined_date": "Joined Date",
+        "header_actions": "Actions",
+        "action_view_details": "View details",
+        "action_edit": "Edit",
+        "action_delete": "Delete"
+      },
+      "modals": {
+        "promote_title": "Promote User to Learner",
+        "promote_description": "Select an existing user to promote.",
+        "create_user_title": "Create a New User",
+        "create_user_description": "Create a basic user account that can then be promoted to a learner.",
+        "create_user_submit": "Create User",
+        "create_profile_title": "Create Learner Profile",
+        "create_profile_description": "Add the specific details for the learner's profile.",
+        "create_profile_submit": "Create Profile",
+        "edit_title": "Edit Learner",
+        "edit_description": "Modify the learner's information.",
+        "edit_submit": "Save Changes",
+        "delete_title": "Delete Learner",
+        "delete_description": "Are you sure you want to delete the learner {{name}}? This action will also delete the base user and all associated data. This action is irreversible."
+      },
+      "toasts": {
+        "error_fetch": "Failed to fetch learners.",
+        "error_update": "Failed to update learner.",
+        "error_delete": "Failed to delete learner.",
+        "error_promote": "Failed to promote user to learner.",
+        "success_promote": "User has been promoted and learner profile created.",
+        "success_user_created": "User {{name}} has been created. You can now create their learner profile.",
+        "success_delete": "The learner and associated user have been successfully deleted."
+      }
+    },
     "addUser": "Add User",
     "editUser": "Edit User",
     "deleteUser": "Delete User",
@@ -63,6 +293,11 @@
     "addCourse": "Add Course",
     "editCourse": "Edit Course",
     "deleteCourse": "Delete Course",
+    "edit_description": "Modify course information",
+    "delete_description": "Are you sure you want to delete {{name}}? This action is irreversible.",
+    "search_placeholder": "Search for a course...",
+    "filter_by_category": "Filter by category",
+    "filter_all_categories": "All categories",
     "courseTitle": "Course Title",
     "description": "Description",
     "category": "Category",
@@ -74,16 +309,122 @@
     "rating": "Rating",
     "modules": "Modules",
     "lessons": "Lessons",
-    "quizzes": "Quizzes"
+    "quizzes": "Quizzes",
+    "tabs": {
+      "all": "All",
+      "published": "Published",
+      "draft": "Drafts",
+      "in_review": "In review"
+    },
+    "actions": {
+      "create": "Create a course"
+    },
+    "chapters": "Chapters",
+    "videos": "Videos",
+    "list": {
+      "header_course": "Course",
+      "header_instructor": "Instructor",
+      "header_category": "Category",
+      "header_students": "Students",
+      "header_duration": "Duration",
+      "header_rating": "Rating",
+      "header_status": "Status",
+      "header_actions": "Actions",
+      "action_view": "View details",
+      "action_edit": "Edit",
+      "action_activate": "Activate",
+      "action_deactivate": "Deactivate",
+      "action_delete": "Delete",
+      "status_published": "Published",
+      "status_draft": "Draft",
+      "status_review": "In Review",
+      "duration_zero": "0h 0min"
+    },
+    "toasts": {
+      "error_load": "Failed to load data.",
+      "error_delete": "Failed to delete course.",
+      "success_delete": "Course deleted successfully."
+    }
   },
   "analytics": {
     "title": "Analytics",
     "kpi": "Key Performance Indicators",
     "topCourses": "Top Courses",
     "userGrowth": "User Growth",
-    "coursePerformance": "Course Performance",
+    "page": {
+      "title": "Statistics and Analysis",
+      "description": "Analyze the performance and engagement of your platform"
+    },
+    "print_button": "Print Statistics",
+    "averageRating": "Average Rating",
+    "engagementRate": "Engagement Rate",
+    "activeUsers": "Active Users",
+    "totalUsers": "Total Users",
+    "compared_to_last_month": "compared to last month",
+    "charts": {
+      "user_growth": {
+        "title": "KPI",
+        "description": "Registration Evolution",
+        "description_6months": "Registration evolution over 6 months",
+        "total_growth": "Total growth",
+        "monthly_average": "Monthly average",
+        "new_users_label": "New users",
+        "total_users_label": "Total users",
+        "new": "New",
+        "total": "Total",
+        "new_users": "New users",
+        "total_cumulative": "Cumulative total"
+      }
+    },
+    "coursePerformance": {
+      "loadError": "Failed to fetch course performance data.",
+      "notAvailable": "N/A",
+      "title": "Top Courses",
+      "description": "Number of enrolled students per course",
+      "totalLabel": "Total: {{total}}",
+      "noData": "No course performance data available for the period.",
+      "chartLabel": "Students",
+      "tooltip": {
+        "students": "Students:",
+        "completionRate": "Completion Rate:",
+        "averageRating": "Average Rating:"
+      },
+      "mostPopular": "Most Popular Course: {{course}}"
+    },
     "learningTime": "Learning Time",
-    "reports": "Reports",
+    "tabs": {
+      "learners": "Learners",
+      "learning_time": "Learning Time",
+      "reports": "Reports"
+    },
+    "learning_time": {
+      "title": "Learning Time",
+      "description": "Time spent, sessions, interactions and activity",
+      "average_time_per_course": "Average time per course",
+      "courses_with_activity": "{{count}} course with activity",
+      "courses_with_activity_plural": "{{count}} courses with activity",
+      "active_sessions": "Active sessions",
+      "last_24_hours": "Last 24 hours",
+      "average_time_per_learner": "Average time per learner",
+      "active_learners": "{{count}} active learner",
+      "active_learners_plural": "{{count}} active learners"
+    },
+    "reports": {
+      "title": "Reports",
+      "description": "Generate and export detailed reports on your platform",
+      "learning_time": {
+        "title": "Learning Time",
+        "description": "Time spent, active sessions and learner progress"
+      },
+      "users": {
+        "title": "User Report",
+        "description": "Registrations, retention, segmentation and growth"
+      },
+      "courses": {
+        "title": "Course Report",
+        "description": "Performance, popularity and statistics per course"
+      }
+    },
     "averageRating": "Average Rating",
     "engagementRate": "Engagement Rate",
     "activeUsers": "Active Users",
@@ -98,7 +439,28 @@
     "averageTimePerLearnerLabel": "Average Time Per Learner",
     "coursesWithActivity": "courses with activity",
     "last24Hours": "Last 24 hours",
-    "learnersWithActivity": "learners with activity"
+    "learnersWithActivity": "learners with activity",
+    "learnerProgress": {
+      "loadError": "Could not load learner progress.",
+      "loadingTitle": "Loading Progress",
+      "errorTitle": "Loading Error",
+      "modalTitle": "Course Progress for {{name}}",
+      "modalDescription": "Detailed overview of {{name}}'s ({{email}}) progress in each enrolled course.",
+      "period": "Period: {{period}}",
+      "chaptersCompleted": "{{completed}} / {{total}} chapters completed",
+      "noCourses": "No courses enrolled for this learner.",
+      "list": {
+        "unexpectedFormat": "Unexpected data format for learners.",
+        "loadError": "Could not load learner list.",
+        "headerLearner": "Learner",
+        "headerEmail": "Email",
+        "headerActions": "Actions",
+        "viewProgressButton": "View Progress",
+        "title": "Learner Progress",
+        "description": "Browse the list of learners and their detailed progress.",
+        "noNameUser": "Unnamed User"
+      }
+    }
   },
   "reports": {
     "title": "Reports",
@@ -119,11 +481,80 @@
   },
   "notifications": {
     "title": "Notifications",
+    "description": "Manage all your notifications and system alerts",
     "markAsRead": "Mark as Read",
     "markAllAsRead": "Mark All as Read",
     "archive": "Archive",
     "delete": "Delete",
-    "noNotifications": "No Notifications"
+    "noNotifications": "No Notifications",
+    "allUpToDate": "You're all caught up!",
+    "viewAll": "View all notifications",
+    "new": "new",
+    "new_plural": "new",
+    "unread": "unread",
+    "unread_plural": "unread",
+    "menu_label": "Notifications menu"
+  },
+  "header": {
+    "search_placeholder": "Search users, courses...",
+    "search_label": "Search users, courses",
+    "shortcuts_help": "Show keyboard shortcuts help",
+    "profile": "My profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "admin": "Administrator"
+  },
+  "evaluations": {
+    "title": "Evaluation Management",
+    "description": "Manage all platform evaluations"
+  },
+  "announcements": {
+    "title": "Announcements",
+    "description": "Manage platform announcements and communications"
+  },
+  "content": {
+    "title": "Content Management",
+    "description": "View and manage modules, lessons, and quizzes for all courses",
+    "courses": {
+      "title": "Courses",
+      "available": "{{count}} course available",
+      "available_plural": "{{count}} courses available",
+      "filter_placeholder": "Filter by course",
+      "filter_all": "All courses",
+      "empty": "No courses available."
+    },
+    "modules": {
+      "title": "Modules ({{count}})",
+      "count": "{{count}} module",
+      "count_plural": "{{count}} modules"
+    },
+    "lessons": {
+      "total": "{{count}} lesson total",
+      "total_plural": "{{count}} lessons total",
+      "count": "{{count}} lesson",
+      "count_plural": "{{count}} lessons",
+      "no_title": "Untitled lesson",
+      "duration": "Duration: {{minutes}} min",
+      "empty_module": "No lessons in this module."
+    },
+    "quizzes": {
+      "title": "Quizzes ({{count}})",
+      "count": "{{count}} quiz",
+      "no_title": "Untitled quiz",
+      "duration": "Duration: {{minutes}} min",
+      "min_score": "Minimum score: {{score}}%"
+    },
+    "lesson_types": {
+      "video": "Video",
+      "document": "Document",
+      "quiz": "Quiz",
+      "lab": "Lab"
+    },
+    "errors": {
+      "load_failed": "Failed to load courses.",
+      "load_content_failed": "Failed to load course content."
+    },
+    "empty": "No content available for this course."
   },
   "settings": {
     "title": "Settings",
@@ -133,5 +564,504 @@
     "language": "Language",
     "theme": "Theme",
     "notifications": "Notifications"
+  },
+  "sidebar": {
+    "closeMenu": "Close menu",
+    "openMenu": "Open menu",
+    "mainNav": "Main navigation",
+    "backToDashboard": "Back to dashboard",
+    "logoAlt": "E-Learning Logo"
+  },
+  "routes": {
+    "dashboard": "Dashboard",
+    "analytics": "Analytics",
+    "users": "Users",
+    "users_learners": "Learners",
+    "users_instructors": "Instructors",
+    "users_admins": "Administrators",
+    "courses": "Courses",
+    "courses_all": "All Courses",
+    "courses_categories": "Categories",
+    "certifications": "Certifications",
+    "reviews": "Reviews",
+    "content": "Content",
+    "labs": "Labs",
+    "cohorts": "Cohorts",
+    "moderation": "Moderation",
+    "notifications": "Notifications",
+    "evaluations": "Evaluations",
+    "leaderboard": "Leaderboard",
+    "settings": "Settings"
+  },
+  "categories": {
+    "title": "Category Management",
+    "description": "Organize courses by categories",
+    "list": {
+      "title": "Categories",
+      "add_button": "Add Category",
+      "search_placeholder": "Search for a category...",
+      "header_category": "Category",
+      "header_courses": "Courses",
+      "header_actions": "Actions",
+      "action_view": "View details",
+      "action_edit": "Edit",
+      "action_delete": "Delete"
+    },
+    "modals": {
+      "add_title": "Add Category",
+      "add_description": "Create a new category to organize courses",
+      "add_submit": "Create Category",
+      "edit_title": "Edit Category",
+      "edit_description": "Modify category information",
+      "edit_submit": "Save Changes",
+      "delete_title": "Delete Category",
+      "delete_description": "Are you sure you want to delete {{name}}? This action is irreversible.",
+      "delete_confirm": "Delete"
+    },
+    "toasts": {
+      "error_fetch": "Failed to load categories.",
+      "error_add": "Failed to add category.",
+      "error_update": "Failed to update category.",
+      "error_delete": "Failed to delete category.",
+      "success_add": "Category created successfully.",
+      "success_update": "Category updated successfully.",
+      "success_delete": "Category deleted successfully."
+    }
+  },
+  "certifications": {
+    "title": "Certification Management",
+    "description": "Manage all platform certifications"
+  },
+  "cohortes": {
+    "title": "Cohort Management",
+    "description": "Manage all platform cohorts"
+  },
+  "reviews": {
+    "title": "Review Management",
+    "description": "Manage all student reviews and comments"
+  },
+  "instructor": {
+    "dashboard": {
+      "title": "Instructor Dashboard",
+      "description": "Overview of your courses and learners",
+      "stats": {
+        "courses_created": "Courses Created",
+        "courses_published": "published",
+        "total_students": "Total Students",
+        "new_enrollments": "this month",
+        "average_rating": "Average Rating",
+        "new_comments": "new reviews (30d)",
+        "completion_rate": "Completion Rate",
+        "active_learners": "active learners",
+        "error_access_denied": "Access denied. You are not authorized to view these statistics.",
+        "error_no_profile": "You don't have an instructor profile yet. Please create an instructor profile to access the dashboard.",
+        "error_load": "Failed to retrieve dashboard summary."
+      }
+    },
+    "courses": {
+      "title": "My Courses Management",
+      "description": "Create and manage your courses, modules, chapters and videos"
+    },
+    "quizzes": {
+      "title": "Quizzes & Exercises",
+      "description": "Create and manage quizzes and exercises for your courses"
+    },
+    "students": {
+      "title": "My Learners",
+      "description": "Track the progress and scores of your learners"
+    },
+    "analytics": {
+      "title": "Performance Statistics",
+      "description": "Analyze the performance of your courses and learners"
+    },
+    "certificates": {
+      "title": "Certificate Management",
+      "description": "Manage certificates issued to your learners"
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Configure your instructor settings"
+    },
+    "content": {
+      "title": "Content Management",
+      "description": "Upload and organize your educational content"
+    },
+    "moderation": {
+      "title": "Course Validation",
+      "description": "Validate, reject or modify your courses pending validation"
+    }
+  },
+  "moderation": {
+    "title": "Moderation",
+    "admin": {
+      "title": "Course Moderation",
+      "description": "Approve or reject courses pending validation.",
+      "list": {
+        "header_course": "Course",
+        "header_instructor": "Instructor",
+        "header_category": "Category",
+        "header_status": "Current Status",
+        "header_actions": "Actions",
+        "action_approve": "Approve",
+        "action_edit": "Edit",
+        "action_reject": "Reject",
+        "status_review": "In Review"
+      },
+      "modals": {
+        "edit_title": "Edit Course",
+        "edit_description": "Modify course information before validation",
+        "edit_submit": "Save Changes",
+        "approve_title": "Approve Course",
+        "approve_description": "Are you sure you want to approve this course? It will become visible to users.",
+        "approve_confirm": "Approve",
+        "reject_title": "Reject Course",
+        "reject_description": "Please indicate the reason for rejection. The instructor will be notified.",
+        "reject_reason_label": "Rejection Reason *",
+        "reject_reason_placeholder": "Ex: Incomplete content, insufficient quality, does not meet standards...",
+        "reject_cancel": "Cancel",
+        "reject_confirm": "Reject",
+        "reject_error": "Please provide a reason for rejection."
+      },
+      "toasts": {
+        "error_load": "Failed to load courses for moderation.",
+        "error_data": "The API response for pending courses was unexpected.",
+        "error_update": "Failed to update course.",
+        "error_moderation": "An error occurred during moderation.",
+        "success_update": "Course updated successfully.",
+        "success_approve": "Course approved successfully.",
+        "success_reject": "Course rejected successfully."
+      }
+    }
+  },
+  "badges": {
+    "title": "Badges",
+    "header_badge": "Badge",
+    "header_type": "Type",
+    "header_score": "Score",
+    "header_participation": "Participation",
+    "header_time": "Time",
+    "header_attributions": "Awards",
+    "header_actions": "Actions",
+    "action_edit": "Edit",
+    "action_delete": "Delete",
+    "status_active": "Active",
+    "status_inactive": "Inactive",
+    "delete_confirm": "Delete"
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "description": "View user rankings and performance",
+    "tabs": {
+      "overall": "Overall",
+      "monthly": "Monthly",
+      "courses": "By Course"
+    },
+    "overall": {
+      "title": "Overall Ranking",
+      "description": "Top users by number of courses and certifications",
+      "empty": "No overall ranking found.",
+      "courses": "courses",
+      "certifications": "certifications"
+    },
+    "userDetails": {
+      "title": "Details for {{name}}",
+      "description": "Overview of completed courses and obtained certifications.",
+      "completedCourses": "Completed Courses",
+      "certifications": "Obtained Certifications",
+      "noCourses": "No completed courses.",
+      "noCertifications": "No certifications obtained.",
+      "issuedDate": "Issued on:",
+      "close": "Close"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "site": {
+      "title": "Site Settings",
+      "description": "Manage general configuration and content sections of the platform.",
+      "tab_general": "General Configuration",
+      "tab_rubriques": "Sections Management",
+      "form": {
+        "title": "General Site Configuration",
+        "description": "Update general settings and images of your platform.",
+        "homepageText": "Homepage Text",
+        "homepageTextPlaceholder": "Welcome to our platform!",
+        "homepageImage": "Homepage Image",
+        "loginImage": "Login Page Image",
+        "aboutText": "About Us Text",
+        "aboutTextPlaceholder": "Our story...",
+        "aboutImage": "About Us Image",
+        "currentImage": "Current image:",
+        "save": "Save Configuration",
+        "saving": "Saving..."
+      }
+    }
+  },
+  "certifications": {
+    "title": "Certification Management",
+    "description": "Manage all platform certifications",
+    "list": {
+      "title": "Certifications",
+      "add_button": "Add Certification",
+      "search_placeholder": "Search for a certification...",
+      "empty": "No certifications found.",
+      "header_certification": "Certification",
+      "header_course": "Associated Course",
+      "header_students": "Students",
+      "header_issued": "Issued",
+      "header_validity": "Validity",
+      "header_status": "Status",
+      "header_actions": "Actions",
+      "action_view": "View details",
+      "action_edit": "Edit",
+      "action_delete": "Delete"
+    },
+    "modals": {
+      "add_title": "Create Certification",
+      "add_description": "Create a new certification for the platform",
+      "add_submit": "Create Certification",
+      "edit_title": "Edit Certification",
+      "edit_description": "Modify certification information",
+      "edit_submit": "Save Changes",
+      "delete_title": "Delete Certification",
+      "delete_description": "Are you sure you want to delete {{name}}? This action is irreversible.",
+      "delete_confirm": "Delete"
+    },
+    "toasts": {
+      "error_fetch": "Failed to load certifications.",
+      "error_add": "Failed to add certification.",
+      "error_update": "Failed to update certification.",
+      "error_delete": "Failed to delete certification.",
+      "success_add": "Certification created successfully.",
+      "success_update": "Certification updated successfully.",
+      "success_delete": "Certification deleted successfully."
+    }
+  },
+  "cohortes": {
+    "title": "Cohort Management",
+    "description": "Manage all platform cohorts",
+    "list": {
+      "title": "Cohorts",
+      "add_button": "Add Cohort",
+      "search_placeholder": "Search for a cohort...",
+      "empty_title": "No cohorts found",
+      "empty_description": "No cohorts match your search",
+      "header_cohorte": "Cohort Name",
+      "header_start_date": "Start Date",
+      "header_end_date": "End Date",
+      "header_status": "Status",
+      "header_actions": "Actions",
+      "action_view": "View details",
+      "action_edit": "Edit",
+      "action_delete": "Delete",
+      "status_active": "Active",
+      "status_finished": "Finished",
+      "status_upcoming": "Upcoming"
+    },
+    "modals": {
+      "add_title": "Add Cohort",
+      "add_description": "Create a new training cohort",
+      "add_submit": "Create Cohort",
+      "edit_title": "Edit Cohort",
+      "edit_description": "Modify cohort information",
+      "edit_submit": "Save Changes",
+      "delete_title": "Delete Cohort",
+      "delete_description": "Are you sure you want to delete {{name}}? This action is irreversible.",
+      "delete_confirm": "Delete"
+    },
+    "toasts": {
+      "error_fetch": "Failed to load cohorts.",
+      "error_add": "Failed to add cohort.",
+      "error_update": "Failed to update cohort.",
+      "error_delete": "Failed to delete cohort.",
+      "success_add": "Cohort created successfully.",
+      "success_update": "Cohort updated successfully.",
+      "success_delete": "Cohort deleted successfully."
+    }
+  },
+  "reviews": {
+    "title": "Review Management",
+    "description": "Manage all student reviews and comments",
+    "unknown_user": "Unknown User",
+    "unknown_course": "Unknown Course",
+    "list": {
+      "title": "Reviews and Comments",
+      "description": "Manage all student reviews on courses",
+      "header_user": "User",
+      "header_course": "Course",
+      "header_rating": "Rating",
+      "header_comment": "Comment",
+      "header_date": "Date",
+      "header_status": "Status",
+      "header_actions": "Actions",
+      "status_approved": "Approved",
+      "status_pending": "Pending",
+      "status_rejected": "Rejected",
+      "action_view": "View details",
+      "action_edit": "Edit",
+      "action_approve": "Approve",
+      "action_reject": "Reject",
+      "action_delete": "Delete",
+      "search_placeholder": "Search for a review...",
+      "empty": "No reviews found",
+      "empty_description": "No reviews match your search",
+      "loading": "Loading reviews..."
+    },
+    "modals": {
+      "edit_title": "Edit Review",
+      "edit_description": "Adjust the details of \"{{user}}\"'s review on \"{{course}}\".",
+      "approve_title": "Approve Review",
+      "approve_description": "Are you sure you want to approve \"{{user}}\"'s review on \"{{course}}\"?",
+      "approve_confirm": "Approve",
+      "reject_title": "Reject Review",
+      "reject_description": "Please indicate the reason for rejecting \"{{user}}\"'s review on \"{{course}}\".",
+      "reject_reason_placeholder": "Rejection reason...",
+      "reject_confirm": "Reject",
+      "delete_title": "Delete Review",
+      "delete_description": "Are you sure you want to delete \"{{user}}\"'s review on \"{{course}}\"? This action is irreversible.",
+      "delete_confirm": "Delete",
+      "rating_placeholder": "Select a rating",
+      "stars": "Star(s)"
+    },
+    "toasts": {
+      "error_fetch": "Failed to load reviews.",
+      "error_approve": "Failed to approve review.",
+      "error_reject": "Failed to reject review.",
+      "error_delete": "Failed to delete review.",
+      "success_approve": "Review approved successfully.",
+      "success_reject": "Review rejected successfully.",
+      "success_delete": "Review deleted successfully."
+    }
+  },
+  "rubriques": {
+    "title": "Content Sections",
+    "actions": {
+      "add": "Add a section"
+    },
+    "table": {
+      "header_rubrique": "Section",
+      "header_objectifs": "Objectives",
+      "header_public_cible": "Target Audience",
+      "header_duree": "Duration"
+    },
+    "modals": {
+      "add_title": "Add a new section",
+      "add_description": "Create a new content section to organize courses.",
+      "add_submit": "Add section",
+      "edit_title": "Edit section",
+      "edit_description": "Modify the information of the selected section.",
+      "edit_submit": "Save changes",
+      "delete_title": "Delete Section",
+      "delete_description": "Are you sure you want to delete the section \"{{name}}\"? This action is irreversible.",
+      "delete_confirm": "Delete"
+    },
+    "toasts": {
+      "error_data": "Data error",
+      "error_unexpected_response": "The API response for sections is unexpected.",
+      "error_fetch": "Failed to load sections.",
+      "error_add": "Failed to add section.",
+      "error_update": "Failed to update section.",
+      "error_delete": "Failed to delete section.",
+      "success_add": "Section added successfully.",
+      "success_update": "Section updated successfully.",
+      "success_delete": "Section deleted successfully."
+    }
+  },
+  "course_form": {
+    "title_label": "Course Title *",
+    "title_placeholder": "Introduction to AWS",
+    "subtitle_label": "Subtitle (optional)",
+    "subtitle_placeholder": "Master the basics of cloud computing",
+    "description_label": "Description *",
+    "description_placeholder": "Describe your course...",
+    "category_label": "Category *",
+    "category_placeholder": "Select a category",
+    "instructor_label": "Instructor *",
+    "instructor_placeholder": "Select an instructor",
+    "instructor_no_available": "No instructor available",
+    "instructor_no_available_message": "No instructor available. Please create an instructor first.",
+    "instructor_default": "Instructor #{{id}}",
+    "image_label": "Course Image (optional)",
+    "continue_to_modules": "Continue to Modules"
+  },
+  "wizard": {
+    "title": "Create a Course",
+    "progress": {
+      "label": "Progress",
+      "step_info": "Step {{current}} of {{total}}"
+    },
+    "steps": {
+      "course": {
+        "label": "Course",
+        "description": "Basic course information"
+      },
+      "modules": {
+        "label": "Modules",
+        "description": "Create course modules"
+      },
+      "lessons": {
+        "label": "Lessons",
+        "description": "Add lessons to modules"
+      },
+      "quiz": {
+        "label": "Quiz",
+        "description": "Create course quizzes"
+      }
+    },
+    "buttons": {
+      "previous": "Previous"
+    },
+    "success": {
+      "course_created": "Course created successfully!"
+    },
+    "errors": {
+      "load_data_failed": "Failed to load categories or instructors.",
+      "create_quiz_failed": "Failed to create quiz."
+    }
+  },
+  "activity": {
+    "title": "Recent Activity",
+    "description": "The latest actions on the platform",
+    "empty": "No recent activity.",
+    "unknown_user": "Unknown user",
+    "errors": {
+      "fetch_failed": "Failed to load recent activity."
+    },
+    "actions": {
+      "created": "created",
+      "created_course": "created the course",
+      "created_account": "created the account",
+      "updated": "updated",
+      "updated_course": "updated the course",
+      "deleted": "deleted",
+      "approved": "approved",
+      "approved_course": "approved the course",
+      "rejected": "rejected",
+      "rejected_course": "rejected the course",
+      "logged_in": "logged in",
+      "other": "performed action {{action}} on"
+    },
+    "badges": {
+      "new": "New",
+      "completed": "Completed",
+      "review": "Review",
+      "certificate": "Certificate",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "creation": "Creation",
+      "update": "Update",
+      "login": "Login",
+      "deletion": "Deletion"
+    },
+    "time": {
+      "seconds_ago": "{{count}} second ago",
+      "seconds_ago_plural": "{{count}} seconds ago",
+      "minutes_ago": "{{count}} minute ago",
+      "minutes_ago_plural": "{{count}} minutes ago",
+      "hours_ago": "{{count}} hour ago",
+      "hours_ago_plural": "{{count}} hours ago",
+      "days_ago": "{{count}} day ago",
+      "days_ago_plural": "{{count}} days ago"
+    }
   }
 }

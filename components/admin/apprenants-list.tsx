@@ -11,17 +11,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { useModal } from "@/hooks/use-modal"
 import { useSearch } from "@/hooks/use-search"
-import { UserFormModal } from "@/components/shared/user-form-modal" // Reusing this modal, might need adaptation
+import { UserFormModal } from "@/components/shared/user-form-modal"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
-import { ViewUserModal } from "./modals/view-user-modal" // Reusing this modal, might need adaptation
+import { ViewUserModal } from "./modals/view-user-modal"
 import type { ColumnDef } from "@tanstack/react-table"
-import { Eye, Edit, Trash2, User, Mail, Calendar, BookOpen, GraduationCap } from "lucide-react"
-import type { UserFormData } from "@/lib/validations/user" // Reusing this form data type
-
-import { Apprenant, Cohorte } from "@/models"; // Import Apprenant and Cohorte models
-import { apprenantService, cohorteService } from "@/services"; // Import apprenantService and cohorteService
+import { Eye, Edit, Trash2, User, Mail, Calendar, GraduationCap } from "lucide-react"
+import type { UserFormData } from "@/lib/validations/user"
+import { Apprenant, Cohorte } from "@/models";
+import { apprenantService, cohorteService } from "@/services";
 import { PageLoader } from "@/components/ui/page-loader";
-import { EmptyState } from "@/components/admin/empty-state"; // Import EmptyState
+import { EmptyState } from "@/components/admin/empty-state";
 import { useToast } from "@/hooks/use-toast";
 import { UserSelectModal } from "./modals/user-select-modal";
 import { UserCreationModal } from "./modals/user-creation-modal";
@@ -30,26 +29,25 @@ import { UserDb } from "@/models";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Plus, ChevronDown } from "lucide-react";
-
+import { useLanguage } from "@/contexts/language-context"
 
 type ApprenantDisplay = {
   id: number;
   name: string;
   email: string;
   numero?: string;
-  status: "Actif" | "Inactif" | "Suspendu"; // Derived from 'activate'
-  joinedDate: string; // Derived from 'createdAt'
+  status: "Actif" | "Inactif" | "Suspendu";
+  joinedDate: string;
   filiere: string;
   niveauEtude: string;
   profession: string;
   cohorte?: Cohorte | null;
-  avatar?: string; // Apprenant model does not have avatar directly
+  avatar?: string;
   coursesEnrolled: number;
   completedCourses: number;
   totalCertificates: number;
 }
 
-// Helper function to map Apprenant to ApprenantDisplay
 const mapApprenantToApprenantDisplay = (apprenant: Apprenant): ApprenantDisplay => {
   const status: ApprenantDisplay['status'] = apprenant.activate ? "Actif" : "Inactif";
   const joinedDate = apprenant.createdAt 
@@ -68,35 +66,33 @@ const mapApprenantToApprenantDisplay = (apprenant: Apprenant): ApprenantDisplay 
     profession: apprenant.profession || "",
     cohorte: apprenant.cohorte || null,
     avatar: undefined,
-    coursesEnrolled: 0, // Sera rempli par getApprenantDashboardSummary si disponible
+    coursesEnrolled: 0,
     completedCourses: 0,
     totalCertificates: 0,
   };
 };
 
-// Helper function to map ApprenantDisplay to UserFormData
 const mapApprenantDisplayToUserFormData = (apprenant: ApprenantDisplay): UserFormData => {
   return {
-    nom: apprenant.name.split(' ').length > 1 ? apprenant.name.split(' ')[1] : apprenant.name, // Handle cases where name might be just prenom or nom
+    nom: apprenant.name.split(' ').length > 1 ? apprenant.name.split(' ')[1] : apprenant.name,
     prenom: apprenant.name.split(' ')[0] || "",
     email: apprenant.email,
     numero: apprenant.numero,
     profession: apprenant.profession,
     niveauEtude: apprenant.niveauEtude,
     filiere: apprenant.filiere,
-    role: "Apprenant", // Default role for Apprenant, can be made dynamic if needed
+    role: "Apprenant",
     status: apprenant.status,
     cohorteId: apprenant.cohorte?.id,
   };
 };
 
-// Helper function to map ApprenantDisplay to UserDisplay for ViewUserModal
 const mapApprenantDisplayToUserDisplay = (apprenant: ApprenantDisplay): UserDisplay => {
   return {
     id: apprenant.id,
     name: apprenant.name,
     email: apprenant.email,
-    role: "Apprenant", // ApprenantsList only deals with Apprenants
+    role: "Apprenant",
     status: apprenant.status,
     joinedDate: apprenant.joinedDate,
     courses: apprenant.coursesEnrolled,
@@ -106,10 +102,11 @@ const mapApprenantDisplayToUserDisplay = (apprenant: ApprenantDisplay): UserDisp
 
 
 export function ApprenantsList() {
+  const { t } = useLanguage();
   const { toast } = useToast();
-  const userCreationModal = useModal<UserDb>(); // For creating a new user
-  const promoteUserModal = useModal<{ userId: number }>(); // For selecting a user to promote
-  const promoteProfileFormModal = useModal<{ userId: number, defaultValues: Partial<ApprenantProfileFormData> }>(); // For filling apprenant profile
+  const userCreationModal = useModal<UserDb>();
+  const promoteUserModal = useModal<{ userId: number }>();
+  const promoteProfileFormModal = useModal<{ userId: number, defaultValues: Partial<ApprenantProfileFormData> }>();
   const editModal = useModal<ApprenantDisplay>()
   const deleteModal = useModal<ApprenantDisplay>()
   const viewModal = useModal<ApprenantDisplay>()
@@ -119,19 +116,11 @@ export function ApprenantsList() {
   const [error, setError] = useState<string | null>(null);
   const [cohortes, setCohortes] = useState<Cohorte[]>([]);
   
-  // For pagination if needed, similar to UsersList
-  // const [currentPage, setCurrentPage] = useState(0);
-  // const [pageSize, setPageSize] = useState(10);
-  // const [totalElements, setTotalElements] = useState(0);
-
-
-
   const { searchQuery, setSearchQuery, filteredData } = useSearch<ApprenantDisplay>({
     data: apprenants,
     searchKeys: ["name", "email", "filiere", "niveauEtude"],
   });
 
-  // Charger les cohortes au montage
   useEffect(() => {
     const fetchCohortes = async () => {
       try {
@@ -154,15 +143,12 @@ export function ApprenantsList() {
     setError(null);
     try {
       const response = await apprenantService.getAllApprenants();
-      // Le service retourne déjà response.data, donc on vérifie directement si c'est un tableau
       const apprenantsData = Array.isArray(response) ? response : (response?.data || []);
       
       if (Array.isArray(apprenantsData) && apprenantsData.length > 0) {
         const apprenantsWithSummary = await Promise.all(
           apprenantsData.map(async (apprenant: Apprenant) => {
-            // Mapper l'apprenant avec toutes ses informations
             const mapped = mapApprenantToApprenantDisplay(apprenant);
-            // Essayer de récupérer le résumé si possible (peut être optionnel)
             try {
               const summary = apprenant.id ? await apprenantService.getApprenantDashboardSummary(apprenant.id) : null;
               return {
@@ -172,24 +158,22 @@ export function ApprenantsList() {
                 totalCertificates: summary?.totalCertificates ?? 0,
               };
             } catch {
-              // Si le résumé échoue, on garde juste les données de base
               return mapped;
             }
           })
         );
         setApprenants(apprenantsWithSummary);
       } else {
-        console.warn("API did not return an array for apprenants:", response);
         setApprenants([]);
       }
     } catch (err: any) {
-      setError(err.message || "Failed to fetch apprenants.");
+      setError(err.message || t('users.learners.toasts.error_fetch'));
       console.error("Error fetching apprenants:", err);
       setApprenants([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchApprenants();
@@ -197,7 +181,6 @@ export function ApprenantsList() {
 
   const handlePromoteUserAndCreateProfile = async (promotionData: ApprenantProfileFormData & { userId: number }) => {
     try {
-      // Le backend accepte maintenant userId dans ApprenantCreateRequest
       const apprenantData = {
         userId: promotionData.userId,
         nom: promotionData.nom,
@@ -215,14 +198,14 @@ export function ApprenantsList() {
 
       await apprenantService.createApprenant(apprenantData as any);
       toast({
-        title: "Succès",
-        description: "L'utilisateur a été promu et le profil apprenant créé.",
+        title: t('common.success'),
+        description: t('users.learners.toasts.success_promote'),
       });
-      fetchApprenants(); // Rafraîchir la liste
+      fetchApprenants();
     } catch (err: any) {
       toast({
-        title: "Erreur",
-        description: err.message || "Impossible de promouvoir l'utilisateur en apprenant.",
+        title: t('common.error'),
+        description: err.message || t('users.learners.toasts.error_promote'),
         variant: "destructive",
       });
       console.error("Error promoting user to apprenant:", err);
@@ -233,7 +216,7 @@ export function ApprenantsList() {
 
   const handleUserCreated = (user: { id: number; fullName: string; email: string }) => {
     toast({
-      title: "Utilisateur créé",
+      title: t('users.learners.toasts.success_user_created', {name: user.fullName}),
       description: `L'utilisateur ${user.fullName} a été créé. Vous pouvez maintenant créer son profil apprenant.`,
     });
     userCreationModal.close();
@@ -260,9 +243,8 @@ export function ApprenantsList() {
           activate: data.status === "Actif",
         };
 
-        // If there's a cohorteId in data, add it to updatedApprenantData
         if (data.cohorteId) {
-          // @ts-ignore - cohorte is a full object, but API might expect id
+          // @ts-ignore
           updatedApprenantData.cohorte = { id: data.cohorteId } as Cohorte;
         } else if (editModal.selectedItem.cohorte) {
            // @ts-ignore
@@ -270,7 +252,6 @@ export function ApprenantsList() {
         }
 
         const updatedApprenant = await apprenantService.updateApprenant(editModal.selectedItem.id, updatedApprenantData);
-        // Le service retourne déjà response.data
         const apprenant = updatedApprenant?.data || updatedApprenant;
         setApprenants((prev) =>
           prev.map((a) =>
@@ -279,7 +260,7 @@ export function ApprenantsList() {
         );
         editModal.close();
       } catch (err: any) {
-        setError(err.message || "Failed to update apprenant.");
+        setError(err.message || t('users.learners.toasts.error_update'));
         console.error("Error updating apprenant:", err);
       }
     }
@@ -290,16 +271,16 @@ export function ApprenantsList() {
     try {
       await apprenantService.deleteApprenant(id);
       toast({
-        title: "Succès",
-        description: "L'apprenant et l'utilisateur associé ont été supprimés avec succès.",
+        title: t('common.success'),
+        description: t('users.learners.toasts.success_delete'),
       });
       setApprenants((prev) => prev.filter((apprenant) => apprenant.id !== id));
       deleteModal.close();
     } catch (err: any) {
-      setError(err.message || "Failed to delete apprenant.");
+      setError(err.message || t('users.learners.toasts.error_delete'));
       toast({
-        title: "Erreur",
-        description: err.message || "Impossible de supprimer l'apprenant.",
+        title: t('common.error'),
+        description: err.message || t('users.learners.toasts.error_delete'),
         variant: "destructive",
       });
       console.error("Error deleting apprenant:", err);
@@ -310,7 +291,7 @@ export function ApprenantsList() {
     () => [
       {
         accessorKey: "name",
-        header: "Apprenant",
+        header: t('users.learners.list.header_learner'),
         cell: ({ row }) => {
           const apprenant = row.original
           return (
@@ -335,34 +316,34 @@ export function ApprenantsList() {
       },
       {
         accessorKey: "numero",
-        header: "Téléphone",
-        cell: ({ row }) => row.original.numero || "N/A",
+        header: t('users.learners.list.header_phone'),
+        cell: ({ row }) => row.original.numero || t('common.notAvailable'),
       },
       {
         accessorKey: "filiere",
-        header: "Filière",
+        header: t('users.learners.list.header_field'),
       },
       {
         accessorKey: "niveauEtude",
-        header: "Niveau d'étude",
+        header: t('users.learners.list.header_level'),
       },
       {
         accessorKey: "profession",
-        header: "Profession",
+        header: t('users.learners.list.header_profession'),
       },
       {
         accessorKey: "cohorte",
-        header: "Cohorte",
-        cell: ({ row }) => row.original.cohorte?.nom || "Aucune",
+        header: t('users.learners.list.header_cohort'),
+        cell: ({ row }) => row.original.cohorte?.nom || t('common.none'),
       },
       {
         accessorKey: "status",
-        header: "Statut",
+        header: t('users.learners.list.header_status'),
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       {
         accessorKey: "joinedDate",
-        header: "Date d'inscription",
+        header: t('users.learners.list.header_joined_date'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1 text-sm">
             <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
@@ -372,24 +353,24 @@ export function ApprenantsList() {
       },
       {
         id: "actions",
-        header: "Actions",
+        header: t('users.learners.list.header_actions'),
         cell: ({ row }) => {
           const apprenant = row.original
           return (
             <ActionMenu
               actions={[
                 {
-                  label: "Voir détails",
+                  label: t('users.learners.list.action_view_details'),
                   icon: <Eye className="h-4 w-4" />,
                   onClick: () => viewModal.open(apprenant),
                 },
                 {
-                  label: "Modifier",
+                  label: t('users.learners.list.action_edit'),
                   icon: <Edit className="h-4 w-4" />,
                   onClick: () => editModal.open(apprenant),
                 },
                 {
-                  label: "Supprimer",
+                  label: t('users.learners.list.action_delete'),
                   icon: <Trash2 className="h-4 w-4" />,
                   onClick: () => deleteModal.open(apprenant),
                   variant: "destructive",
@@ -400,30 +381,30 @@ export function ApprenantsList() {
         },
       },
     ],
-    [viewModal, editModal, deleteModal]
+    [viewModal, editModal, deleteModal, t]
   )
 
   return (
     <>
       <PageHeader
-        title="Apprenants"
+        title={t('users.learners.list.title')}
         action={
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="default" size="default" className="bg-[rgb(255,102,0)] hover:bg-[rgb(255,102,0)]/90 text-white">
                 <Plus className="h-4 w-4 mr-2" />
-                Ajouter Apprenant
+                {t('users.learners.list.add_button')}
                 <ChevronDown className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Options d'ajout</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('users.learners.list.add_options_title')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => userCreationModal.open()}>
-                Créer un nouvel utilisateur
+                {t('users.learners.list.add_option_create')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => promoteUserModal.open()}>
-                Promouvoir un utilisateur existant
+                {t('users.learners.list.add_option_promote')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -434,7 +415,7 @@ export function ApprenantsList() {
         <CardContent>
           <div className="mb-4">
             <SearchBar
-              placeholder="Rechercher par nom ou email..."
+              placeholder={t('users.learners.list.search_placeholder')}
               value={searchQuery}
               onChange={setSearchQuery}
             />
@@ -446,8 +427,8 @@ export function ApprenantsList() {
           ) : filteredData.length === 0 ? (
             <EmptyState
               icon={GraduationCap}
-              title="Aucun apprenant trouvé"
-              description="Aucun apprenant ne correspond à votre recherche"
+              title={t('users.learners.list.empty_title')}
+              description={t('users.learners.list.empty_description')}
             />
           ) : (
             <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
@@ -455,62 +436,56 @@ export function ApprenantsList() {
         </CardContent>
       </Card>
 
-      {/* UserSelectModal for promoting existing users to apprenant */}
       <UserSelectModal
         open={promoteUserModal.isOpen}
         onOpenChange={(open) => !open && promoteUserModal.close()}
         onSelectUser={handleUserSelectedForPromotion}
-        title="Promouvoir un utilisateur en apprenant"
-        description="Sélectionnez un utilisateur existant à promouvoir."
-        excludeUserIds={apprenants.map(a => a.id)} // Exclude users that are already apprenants
+        title={t('users.learners.modals.promote_title')}
+        description={t('users.learners.modals.promote_description')}
+        excludeUserIds={apprenants.map(a => a.id)}
       />
 
-      {/* UserCreationModal for creating a new user */}
       {userCreationModal.isOpen && (
         <UserCreationModal
           open={userCreationModal.isOpen}
           onOpenChange={(open) => !open && userCreationModal.close()}
           onUserCreated={handleUserCreated}
-          title="Créer un nouvel utilisateur"
-          description="Créez un compte utilisateur de base qui pourra ensuite être promu en apprenant."
-          submitLabel="Créer l'utilisateur"
+          title={t('users.learners.modals.create_user_title')}
+          description={t('users.learners.modals.create_user_description')}
+          submitLabel={t('users.learners.modals.create_user_submit')}
         />
       )}
 
-      {/* ApprenantFormModal for creating/editing apprenant profile */}
       {promoteProfileFormModal.selectedItem && (
         <ApprenantFormModal
           open={promoteProfileFormModal.isOpen}
           onOpenChange={(open) => !open && promoteProfileFormModal.close()}
           onSubmit={handlePromoteUserAndCreateProfile}
-          title="Créer le profil apprenant"
-          description="Ajoutez les détails spécifiques du profil d'apprenant."
-          submitLabel="Créer le profil"
+          title={t('users.learners.modals.create_profile_title')}
+          description={t('users.learners.modals.create_profile_description')}
+          submitLabel={t('users.learners.modals.create_profile_submit')}
           userId={promoteProfileFormModal.selectedItem.userId}
           defaultValues={promoteProfileFormModal.selectedItem.defaultValues}
           cohortes={cohortes}
         />
       )}
 
-      {/* Modals for Edit, View, Delete */}
-      {/* Reusing UserFormModal for Edit */}
-
       {editModal.selectedItem && (
         <UserFormModal
           open={editModal.isOpen}
           onOpenChange={(open) => !open && editModal.close()}
-          title="Modifier l'apprenant"
-          description="Modifiez les informations de l'apprenant"
+          title={t('users.learners.modals.edit_title')}
+          description={t('users.learners.modals.edit_description')}
           defaultValues={mapApprenantDisplayToUserFormData(editModal.selectedItem)}
           onSubmit={handleUpdateApprenant}
-          submitLabel="Enregistrer les modifications"
-          disableRoleField={true} // Désactiver le champ rôle car on est dans la page Apprenants
-          roleDefaultValue="Apprenant" // Valeur par défaut mais le champ sera désactivé
+          submitLabel={t('users.learners.modals.edit_submit')}
+          disableRoleField={true}
+          roleDefaultValue="Apprenant"
         />
       )}
 
       {viewModal.selectedItem && (
-        <ViewUserModal // Reusing ViewUserModal
+        <ViewUserModal
           open={viewModal.isOpen}
           onOpenChange={(open) => !open && viewModal.close()}
           user={mapApprenantDisplayToUserDisplay(viewModal.selectedItem)}
@@ -521,9 +496,9 @@ export function ApprenantsList() {
         open={deleteModal.isOpen}
         onOpenChange={(open) => !open && deleteModal.close()}
         onConfirm={() => handleDeleteApprenant(deleteModal.selectedItem?.id || 0)}
-        title="Supprimer l'apprenant"
-        description={`Êtes-vous sûr de vouloir supprimer l'apprenant ${deleteModal.selectedItem?.name} ? Cette action supprimera également l'utilisateur de base et toutes ses données associées. Cette action est irréversible.`}
-        confirmText="Supprimer"
+        title={t('users.learners.modals.delete_title')}
+        description={t('users.learners.modals.delete_description', { name: deleteModal.selectedItem?.name })}
+        confirmText={t('common.delete')}
         variant="destructive"
       />
     </>

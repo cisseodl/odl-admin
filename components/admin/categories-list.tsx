@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { useLanguage } from "@/contexts/language-context"
 import { PageHeader } from "@/components/ui/page-header"
 import { SearchBar } from "@/components/ui/search-bar"
 import { DataTable } from "@/components/ui/data-table"
@@ -42,6 +43,7 @@ const mapCategorieToCategoryDisplay = (categorie: Categorie): CategoryDisplay =>
 
 
 export function CategoriesList() {
+  const { t } = useLanguage()
   const addModal = useModal<CategoryDisplay>()
   const editModal = useModal<CategoryDisplay>()
   const deleteModal = useModal<CategoryDisplay>()
@@ -67,8 +69,8 @@ export function CategoriesList() {
       } catch (err: any) {
         setError(err.message || "Failed to fetch categories.");
         toast({
-          title: "Erreur",
-          description: "Impossible de charger les catégories.",
+          title: t('common.error'),
+          description: t('categories.toasts.error_fetch'),
           variant: "destructive",
         });
         console.error("Error fetching categories:", err);
@@ -94,16 +96,16 @@ export function CategoriesList() {
       const createdCategory = await categorieService.createCategorie(newCategoryData);
       setCategories((prev) => [...prev, mapCategorieToCategoryDisplay(createdCategory)]);
       addModal.close();
-      toast({
-        title: "Succès",
-        description: "La catégorie a été créée avec succès.",
-      });
-    } catch (err: any) {
-      toast({
-        title: "Erreur",
-        description: "Impossible d'ajouter la catégorie.",
-        variant: "destructive",
-      });
+        toast({
+          title: t('common.success'),
+          description: t('categories.toasts.success_add'),
+        });
+      } catch (err: any) {
+        toast({
+          title: t('common.error'),
+          description: t('categories.toasts.error_add'),
+          variant: "destructive",
+        });
       console.error("Error adding category:", err);
     }
   };
@@ -124,13 +126,13 @@ export function CategoriesList() {
         );
         editModal.close();
         toast({
-          title: "Succès",
-          description: "La catégorie a été mise à jour.",
+          title: t('common.success'),
+          description: t('categories.toasts.success_update'),
         });
       } catch (err: any) {
         toast({
-          title: "Erreur",
-          description: "Impossible de mettre à jour la catégorie.",
+          title: t('common.error'),
+          description: t('categories.toasts.error_update'),
           variant: "destructive",
         });
         console.error("Error updating category:", err);
@@ -145,13 +147,13 @@ export function CategoriesList() {
         setCategories((prev) => prev.filter((cat) => cat.id !== deleteModal.selectedItem!.id));
         deleteModal.close();
         toast({
-          title: "Succès",
-          description: "La catégorie a été supprimée.",
+          title: t('common.success'),
+          description: t('categories.toasts.success_delete'),
         });
       } catch (err: any) {
         toast({
-          title: "Erreur",
-          description: "Impossible de supprimer la catégorie.",
+          title: t('common.error'),
+          description: t('categories.toasts.error_delete'),
           variant: "destructive",
         });
         console.error("Error deleting category:", err);
@@ -163,7 +165,7 @@ export function CategoriesList() {
     () => [
       {
         accessorKey: "title",
-        header: "Catégorie",
+        header: t('categories.list.header_category'),
         cell: ({ row }) => {
           const category = row.original
           return (
@@ -185,7 +187,7 @@ export function CategoriesList() {
       },
       {
         accessorKey: "courses",
-        header: "Formations",
+        header: t('categories.list.header_courses'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
             <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -195,24 +197,24 @@ export function CategoriesList() {
       },
       {
         id: "actions",
-        header: "Actions",
+        header: t('categories.list.header_actions'),
         cell: ({ row }) => {
           const category = row.original
           return (
             <ActionMenu
               actions={[
                 {
-                  label: "Voir détails",
+                  label: t('categories.list.action_view'),
                   icon: <Eye className="h-4 w-4" />,
                   onClick: () => viewModal.open(category),
                 },
                 {
-                  label: "Modifier",
+                  label: t('categories.list.action_edit'),
                   icon: <Edit className="h-4 w-4" />,
                   onClick: () => editModal.open(category),
                 },
                 {
-                  label: "Supprimer",
+                  label: t('categories.list.action_delete'),
                   icon: <Trash2 className="h-4 w-4" />,
                   onClick: () => deleteModal.open(category),
                   variant: "destructive",
@@ -223,15 +225,15 @@ export function CategoriesList() {
         },
       },
     ],
-    [viewModal, editModal, deleteModal]
+    [viewModal, editModal, deleteModal, t]
   )
 
   return (
     <>
       <PageHeader
-        title="Catégories"
+        title={t('categories.list.title')}
         action={{
-          label: "Ajouter une catégorie",
+          label: t('categories.list.add_button'),
           onClick: () => addModal.open(),
         }}
       />
@@ -240,7 +242,7 @@ export function CategoriesList() {
         <CardContent>
           <div className="mb-4">
             <SearchBar
-              placeholder="Rechercher une catégorie..."
+              placeholder={t('categories.list.search_placeholder')}
               value={searchQuery}
               onChange={setSearchQuery}
             />
@@ -258,21 +260,21 @@ export function CategoriesList() {
       <CategoryFormModal
         open={addModal.isOpen}
         onOpenChange={(open) => !open && addModal.close()}
-        title="Ajouter une catégorie"
-        description="Créez une nouvelle catégorie pour organiser les formations"
+        title={t('categories.modals.add_title')}
+        description={t('categories.modals.add_description')}
         onSubmit={handleAddCategory}
-        submitLabel="Créer la catégorie"
+        submitLabel={t('categories.modals.add_submit')}
       />
 
       {editModal.selectedItem && (
         <CategoryFormModal
           open={editModal.isOpen}
           onOpenChange={(open) => !open && editModal.close()}
-          title="Modifier la catégorie"
-          description="Modifiez les informations de la catégorie"
+          title={t('categories.modals.edit_title')}
+          description={t('categories.modals.edit_description')}
           defaultValues={editModal.selectedItem}
           onSubmit={handleUpdateCategory}
-          submitLabel="Enregistrer les modifications"
+          submitLabel={t('categories.modals.edit_submit')}
         />
       )}
 
@@ -288,9 +290,9 @@ export function CategoriesList() {
         open={deleteModal.isOpen}
         onOpenChange={(open) => !open && deleteModal.close()}
         onConfirm={handleDeleteCategory}
-        title="Supprimer la catégorie"
-        description={`Êtes-vous sûr de vouloir supprimer ${deleteModal.selectedItem?.title} ? Cette action est irréversible.`}
-        confirmText="Supprimer"
+        title={t('categories.modals.delete_title')}
+        description={t('categories.modals.delete_description').replace('{{name}}', deleteModal.selectedItem?.title || '')}
+        confirmText={t('categories.modals.delete_confirm')}
         variant="destructive"
       />
     </>

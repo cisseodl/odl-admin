@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useLanguage } from "@/contexts/language-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { PageLoader } from "@/components/ui/page-loader";
@@ -19,6 +20,7 @@ import { RubriqueFormModal, RubriqueFormData } from "@/components/shared/rubriqu
 type RubriqueDisplay = Rubrique;
 
 export function RubriquesList() {
+  const { t } = useLanguage()
   const { toast } = useToast();
   const [rubriques, setRubriques] = useState<RubriqueDisplay[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,16 +39,16 @@ export function RubriquesList() {
         console.error("Unexpected response structure:", response);
         setRubriques([]);
         toast({
-          title: "Erreur de données",
-          description: "La réponse de l'API pour les rubriques est inattendue.",
+          title: t('rubriques.toasts.error_data'),
+          description: t('rubriques.toasts.error_unexpected_response'),
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error("Failed to fetch rubriques:", error);
       toast({
-        title: "Erreur",
-        description: "Impossible de charger les rubriques.",
+        title: t('common.error'),
+        description: t('rubriques.toasts.error_fetch'),
         variant: "destructive",
       });
     } finally {
@@ -70,15 +72,15 @@ export function RubriquesList() {
       };
       await rubriqueService.createRubrique(newRubrique, data.imageFile);
       toast({
-        title: "Succès",
-        description: "La rubrique a été ajoutée avec succès.",
+        title: t('common.success'),
+        description: t('rubriques.toasts.success_add'),
       });
       fetchRubriques();
     } catch (error) {
       console.error("Failed to add rubrique:", error);
       toast({
-        title: "Erreur",
-        description: "Impossible d'ajouter la rubrique.",
+        title: t('common.error'),
+        description: t('rubriques.toasts.error_add'),
         variant: "destructive",
       });
     } finally {
@@ -99,15 +101,15 @@ export function RubriquesList() {
       };
       await rubriqueService.updateRubrique(editModal.selectedItem.id, updatedRubrique, data.imageFile);
       toast({
-        title: "Succès",
-        description: "La rubrique a été mise à jour.",
+        title: t('common.success'),
+        description: t('rubriques.toasts.success_update'),
       });
       fetchRubriques();
     } catch (error) {
       console.error("Failed to update rubrique:", error);
       toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour la rubrique.",
+        title: t('common.error'),
+        description: t('rubriques.toasts.error_update'),
         variant: "destructive",
       });
     } finally {
@@ -121,15 +123,15 @@ export function RubriquesList() {
     try {
       await rubriqueService.deleteRubrique(deleteModal.selectedItem.id!);
       toast({
-        title: "Succès",
-        description: "La rubrique a été supprimée.",
+        title: t('common.success'),
+        description: t('rubriques.toasts.success_delete'),
       });
       fetchRubriques();
     } catch (error) {
       console.error("Failed to delete rubrique:", error);
       toast({
-        title: "Erreur",
-        description: "Impossible de supprimer la rubrique.",
+        title: t('common.error'),
+        description: t('rubriques.toasts.error_delete'),
         variant: "destructive",
       });
     } finally {
@@ -140,7 +142,7 @@ export function RubriquesList() {
   const columns = useMemo(() => [
     {
       accessorKey: "rubrique",
-      header: "Rubrique",
+      header: t('rubriques.table.header_rubrique'),
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
           {row.original.image && (
@@ -158,32 +160,32 @@ export function RubriquesList() {
     },
     {
       accessorKey: "objectifs",
-      header: "Objectifs",
+      header: t('rubriques.table.header_objectifs'),
       cell: ({ row }) => <div className="text-sm line-clamp-2">{row.original.objectifs}</div>,
     },
     {
       accessorKey: "publicCible",
-      header: "Public Cible",
+      header: t('rubriques.table.header_public_cible'),
       cell: ({ row }) => <div className="text-sm">{row.original.publicCible}</div>,
     },
     {
       accessorKey: "dureeFormat",
-      header: "Durée",
+      header: t('rubriques.table.header_duree'),
       cell: ({ row }) => <div className="text-sm">{row.original.dureeFormat}</div>,
     },
     {
       id: "actions",
-      header: "Actions",
+      header: t('common.actions'),
       cell: ({ row }) => (
         <ActionMenu
           actions={[
             {
-              label: "Modifier",
+              label: t('common.edit'),
               icon: <Edit className="h-4 w-4" />,
               onClick: () => editModal.open(row.original),
             },
             {
-              label: "Supprimer",
+              label: t('common.delete'),
               icon: <Trash2 className="h-4 w-4" />,
               onClick: () => deleteModal.open(row.original),
               variant: "destructive",
@@ -192,16 +194,16 @@ export function RubriquesList() {
         />
       ),
     },
-  ], [editModal, deleteModal]);
+  ], [editModal, deleteModal, t]);
 
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-2xl font-bold">Rubriques de Contenu</CardTitle>
+        <CardTitle className="text-2xl font-bold">{t('rubriques.title')}</CardTitle>
         <Button size="sm" onClick={() => addModal.open()}>
           <Plus className="h-4 w-4 mr-2" />
-          Ajouter une rubrique
+          {t('rubriques.actions.add')}
         </Button>
       </CardHeader>
       <CardContent>
@@ -215,9 +217,9 @@ export function RubriquesList() {
       <RubriqueFormModal
         open={addModal.isOpen}
         onOpenChange={(open) => !open && addModal.close()}
-        title="Ajouter une nouvelle rubrique"
-        description="Créez une nouvelle rubrique de contenu pour organiser les formations."
-        submitLabel="Ajouter la rubrique"
+        title={t('rubriques.modals.add_title')}
+        description={t('rubriques.modals.add_description')}
+        submitLabel={t('rubriques.modals.add_submit')}
         onSubmit={handleAddRubrique}
       />
 
@@ -225,9 +227,9 @@ export function RubriquesList() {
         <RubriqueFormModal
           open={editModal.isOpen}
           onOpenChange={(open) => !open && editModal.close()}
-          title="Modifier la rubrique"
-          description="Modifiez les informations de la rubrique sélectionnée."
-          submitLabel="Enregistrer les modifications"
+          title={t('rubriques.modals.edit_title')}
+          description={t('rubriques.modals.edit_description')}
+          submitLabel={t('rubriques.modals.edit_submit')}
           onSubmit={handleUpdateRubrique}
           defaultValues={editModal.selectedItem}
         />
@@ -237,9 +239,9 @@ export function RubriquesList() {
         open={deleteModal.isOpen}
         onOpenChange={(isOpen) => deleteModal.close()}
         onConfirm={handleDeleteRubrique}
-        title="Supprimer la Rubrique"
-        description={`Êtes-vous sûr de vouloir supprimer la rubrique "${deleteModal.selectedItem?.rubrique}" ? Cette action est irréversible.`}
-        confirmText="Supprimer"
+        title={t('rubriques.modals.delete_title')}
+        description={t('rubriques.modals.delete_description').replace('{{name}}', deleteModal.selectedItem?.rubrique || '')}
+        confirmText={t('rubriques.modals.delete_confirm')}
         variant="destructive"
       />
     </Card>

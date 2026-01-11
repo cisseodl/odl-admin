@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
+import { useLanguage } from "@/contexts/language-context"
 import { PageHeader } from "@/components/ui/page-header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -32,6 +33,7 @@ interface UserDetails extends LeaderboardEntry {
 }
 
 export default function LeaderboardPage() {
+  const { t } = useLanguage()
   const [selectedUser, setSelectedUser] = useState<UserDetails | null>(null)
   const [showUserDetailsModal, setShowUserDetailsModal] = useState(false)
 
@@ -115,8 +117,8 @@ export default function LeaderboardPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Classements"
-        description="Consultez les classements et performances des utilisateurs"
+        title={t('leaderboard.title')}
+        description={t('leaderboard.description')}
       />
 
       {loading ? (
@@ -130,32 +132,32 @@ export default function LeaderboardPage() {
               value="overall"
               className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
             >
-              Général
+              {t('leaderboard.tabs.overall')}
             </TabsTrigger>
             <TabsTrigger
               value="monthly"
               className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
             >
-              Mensuel
+              {t('leaderboard.tabs.monthly')}
             </TabsTrigger>
             <TabsTrigger
               value="courses"
               className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
             >
-              Par formation
+              {t('leaderboard.tabs.courses')}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overall" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Classement Général</CardTitle>
-                <CardDescription>Top utilisateurs par nombre de formations et certifications</CardDescription>
+                <CardTitle>{t('leaderboard.overall.title')}</CardTitle>
+                <CardDescription>{t('leaderboard.overall.description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {overallLeaderboard.length === 0 ? (
-                    <div className="text-center text-muted-foreground p-4">Aucun classement général trouvé.</div>
+                    <div className="text-center text-muted-foreground p-4">{t('leaderboard.overall.empty')}</div>
                   ) : (
                     overallLeaderboard.map((entry) => (
                       <div
@@ -176,9 +178,9 @@ export default function LeaderboardPage() {
                           <div className="flex-1">
                             <div className="font-medium">{entry.userName}</div>
                             <div className="text-sm text-muted-foreground flex items-center gap-4">
-                              <span>{entry.coursesCompleted} formations</span>
+                              <span>{entry.coursesCompleted} {t('leaderboard.overall.courses')}</span>
                               <span>•</span>
-                              <span>{entry.certifications} certifications</span>
+                              <span>{entry.certifications} {t('leaderboard.overall.certifications')}</span>
                             </div>
                           </div>
                         </div>
@@ -204,16 +206,16 @@ export default function LeaderboardPage() {
       <Dialog open={showUserDetailsModal} onOpenChange={setShowUserDetailsModal}>
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Détails de {selectedUser?.userName}</DialogTitle>
+            <DialogTitle>{t('leaderboard.userDetails.title').replace('{{name}}', selectedUser?.userName || '')}</DialogTitle>
             <DialogDescription>
-              Aperçu des formations terminées et des certifications obtenues.
+              {t('leaderboard.userDetails.description')}
             </DialogDescription>
           </DialogHeader>
           {selectedUser ? (
             <div className="space-y-6 py-4">
               <div>
                 <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                  <BookOpen className="h-5 w-5 text-primary" /> Formations Terminées ({selectedUser.completedCoursesList.length})
+                  <BookOpen className="h-5 w-5 text-primary" /> {t('leaderboard.userDetails.completedCourses')} ({selectedUser.completedCoursesList.length})
                 </h3>
                 {selectedUser.completedCoursesList.length > 0 ? (
                   <ul className="list-disc pl-5 space-y-1">
@@ -222,7 +224,7 @@ export default function LeaderboardPage() {
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-muted-foreground text-sm">Aucune formation terminée.</p>
+                  <p className="text-muted-foreground text-sm">{t('leaderboard.userDetails.noCourses')}</p>
                 )}
               </div>
 
@@ -230,18 +232,18 @@ export default function LeaderboardPage() {
 
               <div>
                 <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                  <GraduationCap className="h-5 w-5 text-primary" /> Certifications Obtenues ({selectedUser.certificationsList.length})
+                  <GraduationCap className="h-5 w-5 text-primary" /> {t('leaderboard.userDetails.certifications')} ({selectedUser.certificationsList.length})
                 </h3>
                 {selectedUser.certificationsList.length > 0 ? (
                   <ul className="list-disc pl-5 space-y-1">
                     {selectedUser.certificationsList.map((cert) => (
                       <li key={cert.id} className="text-muted-foreground text-sm">
-                        {cert.title} (Délivré le: {cert.issuedDate})
+                        {cert.title} ({t('leaderboard.userDetails.issuedDate')} {cert.issuedDate})
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-muted-foreground text-sm">Aucune certification obtenue.</p>
+                  <p className="text-muted-foreground text-sm">{t('leaderboard.userDetails.noCertifications')}</p>
                 )}
               </div>
             </div>
@@ -249,7 +251,7 @@ export default function LeaderboardPage() {
             <PageLoader /> // Show loader while fetching user details
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowUserDetailsModal(false)}>Fermer</Button>
+            <Button variant="outline" onClick={() => setShowUserDetailsModal(false)}>{t('leaderboard.userDetails.close')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

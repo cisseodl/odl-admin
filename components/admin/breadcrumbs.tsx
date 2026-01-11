@@ -1,28 +1,31 @@
 "use client"
 
 import { usePathname } from "next/navigation"
+import { useLanguage } from "@/contexts/language-context"
 import Link from "next/link"
 import { ChevronRight, Home } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const routeLabels: Record<string, string> = {
-  "/admin": "Tableau de bord",
-  "/admin/users": "Utilisateurs",
-  "/admin/courses": "Formations",
-  "/admin/instructors": "Formateurs",
-  "/admin/categories": "Catégories",
-  "/admin/certifications": "Certifications",
-  "/admin/analytics": "Statistiques",
-  "/admin/reviews": "Commentaires",
-  "/admin/content": "Contenus",
-  "/admin/moderation": "Modération",
-  "/admin/notifications": "Notifications",
-  "/admin/badges": "Badges",
-  "/admin/leaderboard": "Classements",
-  "/admin/settings": "Paramètres",
-}
-
 export function Breadcrumbs() {
+  const { t } = useLanguage()
+  
+  const routeLabels: Record<string, string> = {
+    "/admin": t('routes.dashboard'),
+    "/admin/users": t('routes.users'),
+    "/admin/courses": t('routes.courses'),
+    "/admin/instructors": t('routes.instructors'),
+    "/admin/categories": t('routes.categories'),
+    "/admin/certifications": t('routes.certifications'),
+    "/admin/analytics": t('routes.analytics'),
+    "/admin/reviews": t('routes.reviews'),
+    "/admin/content": t('routes.content'),
+    "/admin/moderation": t('routes.moderation'),
+    "/admin/notifications": t('routes.notifications'),
+    "/admin/badges": t('routes.badges'),
+    "/admin/leaderboard": t('routes.leaderboard'),
+    "/admin/settings": t('routes.settings'),
+  }
+
   const pathname = usePathname()
   const paths = pathname.split("/").filter(Boolean)
 
@@ -37,16 +40,16 @@ export function Breadcrumbs() {
   }
 
   return (
-    <nav aria-label="Breadcrumb" className="mb-4">
+    <nav aria-label={t('common.breadcrumb')} className="mb-4">
       <ol className="flex items-center gap-2 text-sm text-muted-foreground">
         <li>
           <Link
             href="/admin"
             className="flex items-center gap-1 hover:text-foreground transition-colors"
-            aria-label="Tableau de bord"
+            aria-label={t('routes.dashboard')}
           >
             <Home className="h-4 w-4" />
-            <span className="sr-only">Tableau de bord</span>
+            <span className="sr-only">{t('routes.dashboard')}</span>
           </Link>
         </li>
         {breadcrumbs.map((crumb, index) => {

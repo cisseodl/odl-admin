@@ -1,5 +1,6 @@
 "use client"
 
+import { useLanguage } from "@/contexts/language-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -16,6 +17,7 @@ type StatCardProps = {
 }
 
 export function StatCard({ title, value, change, icon: Icon, color, className, children }: StatCardProps) {
+  const { t } = useLanguage()
   return (
     <Card className={cn("relative", className)}>
       {children}
@@ -27,7 +29,7 @@ export function StatCard({ title, value, change, icon: Icon, color, className, c
         <div className="text-2xl font-bold leading-tight">{value}</div>
         {change && (
           <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-            <span className={change.startsWith("+") ? "text-[hsl(var(--success))]" : "text-destructive"}>{change}</span> par rapport au mois dernier
+            <span className={change.startsWith("+") ? "text-[hsl(var(--success))]" : "text-destructive"}>{change}</span> {t('analytics.compared_to_last_month')}
           </p>
         )}
       </CardContent>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useLanguage } from "@/contexts/language-context"
 import { reviewService, type Review as ApiReview } from "@/services/review.service"
 import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -48,6 +49,7 @@ type Review = {
 }
 
 export function ReviewsList() {
+  const { t } = useLanguage()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedReview, setSelectedReview] = useState<Review | null>(null)
   const [reviews, setReviews] = useState<Review[]>([])
@@ -71,8 +73,8 @@ export function ReviewsList() {
       // Convertir les reviews de l'API au format attendu par le composant
       const formattedReviews: Review[] = apiReviews.map((apiReview: ApiReview) => ({
         id: apiReview.id,
-        user: apiReview.user?.fullName || apiReview.user?.email || "Utilisateur inconnu",
-        course: apiReview.course?.title || "Cours inconnu",
+        user: apiReview.user?.fullName || apiReview.user?.email || t('reviews.unknown_user'),
+        course: apiReview.course?.title || t('reviews.unknown_course'),
         rating: apiReview.rating || 0,
         comment: apiReview.comment || "",
         date: apiReview.createdAt ? new Date(apiReview.createdAt).toLocaleDateString("fr-FR", {
@@ -86,8 +88,8 @@ export function ReviewsList() {
     } catch (error: any) {
       console.error("Error fetching reviews:", error)
       toast({
-        title: "Erreur",
-        description: error.message || "Impossible de charger les commentaires.",
+        title: t('common.error'),
+        description: error.message || t('reviews.toasts.error_fetch'),
         variant: "destructive",
       })
     } finally {
@@ -104,11 +106,11 @@ export function ReviewsList() {
 
   const getStatusVariant = (status: string) => {
     switch (status) {
-      case "Approuvé":
+      case t('reviews.list.status_approved'):
         return "default"
-      case "En attente":
+      case t('reviews.list.status_pending'):
         return "outline"
-      case "Rejeté":
+      case t('reviews.list.status_rejected'):
         return "destructive"
       default:
         return "secondary"
@@ -131,7 +133,7 @@ export function ReviewsList() {
       setReviews(
         reviews.map((r) =>
           r.id === selectedReview.id
-            ? { ...r, status: "Approuvé" as const }
+            ? { ...r, status: t('reviews.list.status_approved') as const }
             : r
         )
       )
@@ -145,7 +147,7 @@ export function ReviewsList() {
       setReviews(
         reviews.map((r) =>
           r.id === selectedReview.id
-            ? { ...r, status: "Rejeté" as const, rejectionReason }
+            ? { ...r, status: t('reviews.list.status_rejected') as const, rejectionReason }
             : r
         )
       )
@@ -165,7 +167,7 @@ export function ReviewsList() {
 
   const handleSaveEdit = (editedReview: Review) => {
     setReviews(
-      reviews.map((r) => (r.id === editedReview.id ? { ...editedReview, status: "En attente" as const } : r)) // Remettre en attente si modifié
+      reviews.map((r) => (r.id === editedReview.id ? { ...editedReview, status: t('reviews.list.status_pending') as const } : r)) // Remettre en attente si modifié
     )
     setShowEditModal(false)
     setSelectedReview(null)
@@ -176,8 +178,8 @@ export function ReviewsList() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Commentaires et Avis</CardTitle>
-            <CardDescription>Gérez tous les avis des étudiants sur les formations</CardDescription>
+            <CardTitle>{t('reviews.list.title')}</CardTitle>
+            <CardDescription>{t('reviews.list.description')}</CardDescription>
           </div>
         </div>
       </CardHeader>
@@ -186,7 +188,7 @@ export function ReviewsList() {
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Rechercher un avis..."
+              placeholder={t('reviews.list.search_placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-8"
@@ -278,7 +280,7 @@ export function ReviewsList() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuLabel>{t('reviews.list.header_actions')}</DropdownMenuLabel>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={() => {
@@ -287,9 +289,9 @@ export function ReviewsList() {
                             }}
                           >
                             <Edit className="mr-2 h-4 w-4" />
-                            Modifier
+                            {t('reviews.list.action_edit')}
                           </DropdownMenuItem>
-                          {review.status === "En attente" && (
+                          {review.status === t('reviews.list.status_pending') && (
                             <>
                               <DropdownMenuItem
                                 onClick={() => {
@@ -298,7 +300,7 @@ export function ReviewsList() {
                                 }}
                               >
                                 <Check className="mr-2 h-4 w-4" />
-                                Valider
+                                {t('reviews.list.action_approve')}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => {
@@ -307,7 +309,7 @@ export function ReviewsList() {
                                 }}
                               >
                                 <X className="mr-2 h-4 w-4" />
-                                Rejeter
+                                {t('reviews.list.action_reject')}
                               </DropdownMenuItem>
                             </>
                           )}
@@ -319,7 +321,7 @@ export function ReviewsList() {
                             }}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Supprimer
+                            {t('reviews.list.action_delete')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -336,54 +338,54 @@ export function ReviewsList() {
       <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
         <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Modifier l'avis</DialogTitle>
+            <DialogTitle>{t('reviews.modals.edit_title')}</DialogTitle>
             <DialogDescription>
-              Ajustez les détails de l'avis de "{selectedReview?.user}" sur "{selectedReview?.course}".
+              {t('reviews.modals.edit_description').replace('{{user}}', selectedReview?.user || '').replace('{{course}}', selectedReview?.course || '')}
             </DialogDescription>
           </DialogHeader>
           {selectedReview && (
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="user" className="text-right">
-                  Utilisateur
+                  {t('reviews.list.header_user')}
                 </Label>
                 <Input id="user" value={selectedReview.user} onChange={(e) => setSelectedReview({ ...selectedReview, user: e.target.value })} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="course" className="text-right">
-                  Formation
+                  {t('reviews.list.header_course')}
                 </Label>
                 <Input id="course" value={selectedReview.course} onChange={(e) => setSelectedReview({ ...selectedReview, course: e.target.value })} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="rating" className="text-right">
-                  Note
+                  {t('reviews.list.header_rating')}
                 </Label>
                 <Select
                   value={String(selectedReview.rating)}
                   onValueChange={(value) => setSelectedReview({ ...selectedReview, rating: parseInt(value) })}
                 >
                   <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Sélectionner une note" />
+                    <SelectValue placeholder={t('reviews.modals.rating_placeholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {[1, 2, 3, 4, 5].map((r) => (
-                      <SelectItem key={r} value={String(r)}>{r} Étoile(s)</SelectItem>
+                      <SelectItem key={r} value={String(r)}>{r} {t('reviews.modals.stars')}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid grid-cols-4 items-start gap-4">
                 <Label htmlFor="comment" className="text-right mt-2">
-                  Commentaire
+                  {t('reviews.list.header_comment')}
                 </Label>
                 <Textarea id="comment" value={selectedReview.comment} onChange={(e) => setSelectedReview({ ...selectedReview, comment: e.target.value })} className="col-span-3 min-h-[100px]" />
               </div>
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditModal(false)}>Annuler</Button>
-            <Button onClick={() => selectedReview && handleSaveEdit(selectedReview)}>Sauvegarder</Button>
+            <Button variant="outline" onClick={() => setShowEditModal(false)}>{t('common.cancel')}</Button>
+            <Button onClick={() => selectedReview && handleSaveEdit(selectedReview)}>{t('common.save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -392,14 +394,14 @@ export function ReviewsList() {
       <Dialog open={showApproveModal} onOpenChange={setShowApproveModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Valider l'avis</DialogTitle>
+            <DialogTitle>{t('reviews.modals.approve_title')}</DialogTitle>
             <DialogDescription>
-              Êtes-vous sûr de vouloir valider l'avis de "{selectedReview?.user}" sur "{selectedReview?.course}" ?
+              {t('reviews.modals.approve_description').replace('{{user}}', selectedReview?.user || '').replace('{{course}}', selectedReview?.course || '')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowApproveModal(false)}>Annuler</Button>
-            <Button onClick={handleApprove}>Valider</Button>
+            <Button variant="outline" onClick={() => setShowApproveModal(false)}>{t('common.cancel')}</Button>
+            <Button onClick={handleApprove}>{t('reviews.modals.approve_confirm')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -408,21 +410,21 @@ export function ReviewsList() {
       <Dialog open={showRejectModal} onOpenChange={setShowRejectModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rejeter l'avis</DialogTitle>
+            <DialogTitle>{t('reviews.modals.reject_title')}</DialogTitle>
             <DialogDescription>
-              Veuillez indiquer la raison pour laquelle vous rejetez l'avis de "{selectedReview?.user}" sur "{selectedReview?.course}".
+              {t('reviews.modals.reject_description').replace('{{user}}', selectedReview?.user || '').replace('{{course}}', selectedReview?.course || '')}
             </DialogDescription>
           </DialogHeader>
           <Textarea
-            placeholder="Raison du rejet..."
+            placeholder={t('reviews.modals.reject_reason_placeholder')}
             value={rejectionReason}
             onChange={(e) => setRejectionReason(e.target.value)}
             className="min-h-[100px]"
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRejectModal(false)}>Annuler</Button>
+            <Button variant="outline" onClick={() => setShowRejectModal(false)}>{t('common.cancel')}</Button>
             <Button variant="destructive" onClick={handleReject} disabled={!rejectionReason.trim()}>
-              Rejeter
+              {t('reviews.modals.reject_confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -432,15 +434,14 @@ export function ReviewsList() {
       <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Supprimer l'avis</DialogTitle>
+            <DialogTitle>{t('reviews.modals.delete_title')}</DialogTitle>
             <DialogDescription>
-              Êtes-vous sûr de vouloir supprimer l'avis de "{selectedReview?.user}" sur "{selectedReview?.course}" ?
-              Cette action est irréversible.
+              {t('reviews.modals.delete_description').replace('{{user}}', selectedReview?.user || '').replace('{{course}}', selectedReview?.course || '')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>Annuler</Button>
-            <Button variant="destructive" onClick={handleDelete}>Supprimer</Button>
+            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>{t('common.cancel')}</Button>
+            <Button variant="destructive" onClick={handleDelete}>{t('reviews.modals.delete_confirm')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

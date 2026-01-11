@@ -1,3 +1,6 @@
+"use client"
+
+import { useLanguage } from "@/contexts/language-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -24,23 +27,33 @@ type ActivityDisplay = {
 }
 
 // Helper to format time (e.g., "5 minutes ago")
-const formatTimeAgo = (timestamp: string): string => {
+const formatTimeAgo = (timestamp: string, t: (key: string, params?: Record<string, number>) => string): string => {
   const now = new Date();
   const date = new Date(timestamp);
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-  if (seconds < 60) return `${seconds} seconde${seconds > 1 ? "s" : ""} ago`;
+  if (seconds < 60) {
+    const key = seconds === 1 ? 'activity.time.seconds_ago' : 'activity.time.seconds_ago_plural';
+    return t(key, { count: seconds });
+  }
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+  if (minutes < 60) {
+    const key = minutes === 1 ? 'activity.time.minutes_ago' : 'activity.time.minutes_ago_plural';
+    return t(key, { count: minutes });
+  }
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} heure${hours > 1 ? "s" : ""} ago`;
+  if (hours < 24) {
+    const key = hours === 1 ? 'activity.time.hours_ago' : 'activity.time.hours_ago_plural';
+    return t(key, { count: hours });
+  }
   const days = Math.floor(hours / 24);
-  return `${days} jour${days > 1 ? "s" : ""} ago`;
+  const key = days === 1 ? 'activity.time.days_ago' : 'activity.time.days_ago_plural';
+  return t(key, { count: days });
 };
 
 
 // Helper to map AuditLog to ActivityDisplay
-const mapAuditLogToActivityDisplay = (log: AuditLog): ActivityDisplay | null => {
+const mapAuditLogToActivityDisplay = (log: AuditLog, t: (key: string) => string): ActivityDisplay | null => {
   let actionText: string = "";
   let type: string = "";
   let icon: any = Clock; // Default icon
@@ -72,49 +85,49 @@ const mapAuditLogToActivityDisplay = (log: AuditLog): ActivityDisplay | null => 
 
   switch (log.action) {
     case "create":
-      actionText = "a créé";
+      actionText = t('activity.actions.created');
       type = "creation";
       icon = UserPlus;
       iconColor = "text-[hsl(var(--info))]";
-      if (log.resource === "course" || log.resource?.startsWith("course")) actionText = "a créé la formation";
-      if (log.resource === "user" || log.resource?.startsWith("user")) actionText = "a créé le compte";
+      if (log.resource === "course" || log.resource?.startsWith("course")) actionText = t('activity.actions.created_course');
+      if (log.resource === "user" || log.resource?.startsWith("user")) actionText = t('activity.actions.created_account');
       break;
     case "update":
-      actionText = "a mis à jour";
+      actionText = t('activity.actions.updated');
       type = "update";
       icon = CheckCircle2;
       iconColor = "text-[hsl(var(--warning))]";
-      if (log.resource === "course" || log.resource?.startsWith("course")) actionText = "a mis à jour la formation";
+      if (log.resource === "course" || log.resource?.startsWith("course")) actionText = t('activity.actions.updated_course');
       break;
     case "delete":
-      actionText = "a supprimé";
+      actionText = t('activity.actions.deleted');
       type = "deletion";
       icon = XCircle;
       iconColor = "text-destructive";
       break;
     case "approve":
-      actionText = "a approuvé";
+      actionText = t('activity.actions.approved');
       type = "approval";
       icon = CheckCircle2;
       iconColor = "text-[hsl(var(--success))]";
-      if (log.resource === "course" || log.resource?.startsWith("course")) actionText = "a validé la formation";
+      if (log.resource === "course" || log.resource?.startsWith("course")) actionText = t('activity.actions.approved_course');
       break;
     case "reject":
-      actionText = "a rejeté";
+      actionText = t('activity.actions.rejected');
       type = "rejection";
       icon = XCircle;
       iconColor = "text-destructive";
-      if (log.resource === "course" || log.resource?.startsWith("course")) actionText = "a rejeté la formation";
+      if (log.resource === "course" || log.resource?.startsWith("course")) actionText = t('activity.actions.rejected_course');
       break;
     case "login":
-      actionText = "s'est connecté";
+      actionText = t('activity.actions.logged_in');
       type = "login";
       icon = UserPlus;
       iconColor = "text-[hsl(var(--info))]";
       resourceDisplay = ""; // Pas de ressource spécifique pour le login
       break;
     default:
-      actionText = `a effectué l'action ${log.action} sur`;
+      actionText = t('activity.actions.other', { action: log.action });
       type = "other";
       break;
   }
@@ -124,11 +137,11 @@ const mapAuditLogToActivityDisplay = (log: AuditLog): ActivityDisplay | null => 
 
   return {
     id: log.id || 0,
-    user: log.userName || "Utilisateur inconnu",
+    user: log.userName || t('activity.unknown_user'),
     avatar: "/placeholder-user.jpg",
     action: actionText,
     resourceDisplay: resourceDisplay,
-    time: formatTimeAgo(log.createdAt),
+    time: formatTimeAgo(log.createdAt, t),
     type: type,
     icon: icon,
     iconColor: iconColor,
@@ -137,6 +150,7 @@ const mapAuditLogToActivityDisplay = (log: AuditLog): ActivityDisplay | null => 
 
 
 export function RecentActivity({ limit = 4 }: RecentActivityProps) {
+  const { t } = useLanguage()
   const [activities, setActivities] = useState<ActivityDisplay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -147,17 +161,17 @@ export function RecentActivity({ limit = 4 }: RecentActivityProps) {
       setError(null);
       try {
         const fetchedLogs = await auditService.getRecentActivity(limit);
-        const mappedActivities = fetchedLogs.map(mapAuditLogToActivityDisplay).filter(Boolean) as ActivityDisplay[];
+        const mappedActivities = fetchedLogs.map(log => mapAuditLogToActivityDisplay(log, t)).filter(Boolean) as ActivityDisplay[];
         setActivities(mappedActivities);
       } catch (err: any) {
-        setError(err.message || "Failed to fetch recent activity.");
+        setError(err.message || t('activity.errors.fetch_failed'));
         console.error("Error fetching recent activity:", err);
       } finally {
         setLoading(false);
       }
     };
     fetchRecentActivity();
-  }, [limit]); // Re-fetch quand la limite change
+  }, [limit, t]); // Re-fetch quand la limite change
 
   if (loading) {
     return <PageLoader />;
@@ -170,12 +184,12 @@ export function RecentActivity({ limit = 4 }: RecentActivityProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Activité Récente</CardTitle>
-        <CardDescription>Les dernières actions sur la plateforme</CardDescription>
+        <CardTitle>{t('activity.title')}</CardTitle>
+        <CardDescription>{t('activity.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         {activities.length === 0 ? (
-          <div className="text-center text-muted-foreground p-4">Aucune activité récente.</div>
+          <div className="text-center text-muted-foreground p-4">{t('activity.empty')}</div>
         ) : (
           <div className="space-y-4">
             {activities.map((activity) => {
@@ -209,16 +223,16 @@ export function RecentActivity({ limit = 4 }: RecentActivityProps) {
                     className="flex items-center gap-1"
                   >
                     <IconComponent className="h-3 w-3" />
-                    {activity.type === "inscription" && "Nouveau"}
-                    {activity.type === "completion" && "Complété"}
-                    {activity.type === "review" && "Avis"}
-                    {activity.type === "certificate" && "Certificat"}
-                    {activity.type === "approval" && "Approuvé"}
-                    {activity.type === "rejection" && "Rejeté"}
-                    {activity.type === "creation" && "Création"}
-                    {activity.type === "update" && "Mise à jour"}
-                    {activity.type === "login" && "Connexion"}
-                    {activity.type === "deletion" && "Suppression"}
+                    {activity.type === "inscription" && t('activity.badges.new')}
+                    {activity.type === "completion" && t('activity.badges.completed')}
+                    {activity.type === "review" && t('activity.badges.review')}
+                    {activity.type === "certificate" && t('activity.badges.certificate')}
+                    {activity.type === "approval" && t('activity.badges.approved')}
+                    {activity.type === "rejection" && t('activity.badges.rejected')}
+                    {activity.type === "creation" && t('activity.badges.creation')}
+                    {activity.type === "update" && t('activity.badges.update')}
+                    {activity.type === "login" && t('activity.badges.login')}
+                    {activity.type === "deletion" && t('activity.badges.deletion')}
                   </Badge>
                 </div>
               )

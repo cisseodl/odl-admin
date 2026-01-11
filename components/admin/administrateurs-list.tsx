@@ -19,7 +19,6 @@ import { Eye, Edit, Trash2, User, Mail, Calendar, BookOpen, Shield, ChevronDown,
 import type { UserFormData } from "@/lib/validations/user"
 
 import { UserDb } from "@/models";
-import { userService } from "@/services";
 import { adminService } from "@/services/admin.service";
 import { FULL_API_URL } from "@/services/api.config";
 import { PageLoader } from "@/components/ui/page-loader";
@@ -28,7 +27,8 @@ import { useToast } from "@/hooks/use-toast";
 import { UserSelectModal } from "./modals/user-select-modal";
 import { UserCreationModal } from "./modals/user-creation-modal";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button"; // Import Button for DropdownMenuTrigger
+import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/language-context";
 
 
 type AdministrateurDisplay = {
@@ -42,49 +42,28 @@ type AdministrateurDisplay = {
   role: "Admin";
 };
 
-// Helper function to map AdminWithUserDto (avec jointure JPA) to AdministrateurDisplay
-const mapAdminToAdministrateurDisplay = (adminData: any): AdministrateurDisplay => {
-  // Le nouveau DTO AdminWithUserDto a les données User directement dans l'objet (pas dans user)
-  // fullName, email, phone, avatar, userActivate sont au niveau racine du DTO
-  
-  // Debug: log pour voir la structure des données
-  if (!adminData.fullName && !adminData.email) {
-    console.warn("Admin data without fullName or email:", {
-      id: adminData.id,
-      userId: adminData.userId,
-      fullName: adminData.fullName,
-      email: adminData.email,
-      allKeys: Object.keys(adminData),
-      fullData: adminData
-    });
-  }
-  
+const mapAdminToAdministrateurDisplay = (adminData: any, t: (key: string) => string): AdministrateurDisplay => {
   const activate = adminData.userActivate ?? adminData.activate ?? false;
-  const status: AdministrateurDisplay['status'] = activate ? "Actif" : "Inactif";
+  const status: AdministrateurDisplay['status'] = activate ? t('common.active') as "Actif" : t('common.inactive') as "Inactif";
   
   const joinedDate = adminData.createdAt 
     ? new Date(adminData.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) 
     : "";
   
-  // Utiliser fullName directement depuis le DTO (pas depuis user.fullName)
-  // Essayer aussi user.fullName au cas où la structure serait différente
-  // Vérifier aussi si fullName est null vs undefined vs empty string
   const fullName = (adminData.fullName && adminData.fullName.trim()) 
     || (adminData.user?.fullName && adminData.user.fullName.trim())
     || "";
   
   const email = adminData.email || adminData.user?.email || "";
   
-  // Construire le nom : utiliser fullName, sinon extraire de l'email, sinon message par défaut
   let name = fullName;
   if (!name && email) {
     name = email.split('@')[0];
   }
   if (!name) {
-    name = "Utilisateur sans nom";
-    // Si on a un userId, on peut au moins afficher quelque chose
+    name = t('users.admins.no_name');
     if (adminData.userId) {
-      name = `Utilisateur #${adminData.userId}`;
+      name = `${t('users.admins.no_name')} #${adminData.userId}`;
     }
   }
 
@@ -100,10 +79,6 @@ const mapAdminToAdministrateurDisplay = (adminData: any): AdministrateurDisplay 
   };
 };
 
-// Legacy function name for backward compatibility
-const mapUserDbToAdministrateurDisplay = mapAdminToAdministrateurDisplay;
-
-// Helper function to map AdministrateurDisplay to UserFormData (for UserFormModal)
 const mapAdministrateurDisplayToUserFormData = (administrateur: AdministrateurDisplay): UserFormData => {
   const nameParts = administrateur.name.split(' ');
   const prenom = nameParts[0] || "";
@@ -122,7 +97,6 @@ const mapAdministrateurDisplayToUserFormData = (administrateur: AdministrateurDi
   };
 };
 
-// Helper function to map AdministrateurDisplay to UserDisplay for ViewUserModal
 const mapAdministrateurDisplayToUserDisplay = (administrateur: AdministrateurDisplay, userDb?: UserDb): UserDisplay => {
   return {
     id: administrateur.id,
@@ -139,9 +113,10 @@ const mapAdministrateurDisplayToUserDisplay = (administrateur: AdministrateurDis
 
 
 export function AdministrateursList() {
+  const { t } = useLanguage();
   const { toast } = useToast();
-  const promoteUserModal = useModal<UserDb>(); // Use for promoting existing users
-  const userCreationModal = useModal<UserDb>(); // For creating a new user
+  const promoteUserModal = useModal<UserDb>();
+  const userCreationModal = useModal<UserDb>();
   const editModal = useModal<AdministrateurDisplay>();
   const deleteModal = useModal<AdministrateurDisplay>();
   const viewModal = useModal<AdministrateurDisplay>();
@@ -149,25 +124,17 @@ export function AdministrateursList() {
   const [administrateurs, setAdministrateurs] = useState<AdministrateurDisplay[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewModalUserData, setViewModalUserData] = useState<UserDb | null>(null);
-  const [rawAdminsData, setRawAdminsData] = useState<any[]>([]); // Stocker les données brutes pour extraire userId
+  const [rawAdminsData, setRawAdminsData] = useState<any[]>([]);
   
   const { searchQuery, setSearchQuery, filteredData } = useSearch<AdministrateurDisplay>({
     data: administrateurs,
-    searchKeys: ["name", "email"], // Search by name and email for administrators
+    searchKeys: ["name", "email"],
   });
+
   const fetchAdministrateurs = useCallback(async () => {
     setLoading(true);
     try {
-      // Le backend retourne maintenant AdminWithUserDto avec jointure JPA
-      // Les données User (fullName, email, etc.) sont directement dans le DTO
       const response = await adminService.getAllAdmins();
-      
-      // Debug: log la réponse complète pour voir la structure
-      console.log("Raw response from getAllAdmins:", response);
-      
-      // Le service retourne déjà response.data || response
-      // Si c'est un tableau, l'utiliser directement
-      // Sinon, essayer d'extraire response.data
       let adminsData: any[] = [];
       
       if (Array.isArray(response)) {
@@ -177,38 +144,21 @@ export function AdministrateursList() {
       } else if (response?.ok && response?.data && Array.isArray(response.data)) {
         adminsData = response.data;
       } else {
-        console.error("Unexpected response structure for getAllAdmins:", response);
-        console.error("Response type:", typeof response);
-        console.error("Response keys:", Object.keys(response || {}));
         toast({
-          title: "Erreur de données",
-          description: "La réponse de l'API pour les administrateurs est inattendue.",
+          title: t('common.error'),
+          description: t('users.admins.toasts.error_unexpected_response'),
           variant: "destructive",
         });
         setAdministrateurs([]);
         return;
       }
       
-      // Debug: log tous les admins pour voir la structure
-      console.log("Extracted adminsData:", adminsData);
-      adminsData.forEach((admin, index) => {
-        console.log(`Admin ${index}:`, {
-          id: admin.id,
-          fullName: admin.fullName,
-          email: admin.email,
-          userId: admin.userId,
-          user: admin.user,
-          allKeys: Object.keys(admin)
-        });
-      });
-      
-      // Sauvegarder les données brutes pour extraire les userIds
       setRawAdminsData(adminsData);
-      setAdministrateurs(adminsData.map(mapAdminToAdministrateurDisplay));
+      setAdministrateurs(adminsData.map(admin => mapAdminToAdministrateurDisplay(admin, t)));
     } catch (err: any) {
       toast({
-        title: "Erreur",
-        description: err.message || "Impossible de charger la liste des administrateurs.",
+        title: t('common.error'),
+        description: err.message || t('users.admins.toasts.error_fetch_list'),
         variant: "destructive",
       });
       console.error("Error fetching administrators:", err);
@@ -216,7 +166,7 @@ export function AdministrateursList() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [t, toast]);
 
   useEffect(() => {
     fetchAdministrateurs();
@@ -226,14 +176,14 @@ export function AdministrateursList() {
     try {
       await adminService.promoteUserToAdmin(userId);
       toast({
-        title: "Succès",
-        description: "L'utilisateur a été promu administrateur avec succès.",
+        title: t('common.success'),
+        description: t('users.admins.toasts.success_promote'),
       });
       fetchAdministrateurs();
     } catch (err: any) {
       toast({
-        title: "Erreur",
-        description: err.message || "Impossible de promouvoir l'utilisateur en administrateur.",
+        title: t('common.error'),
+        description: err.message || t('users.admins.toasts.error_promote'),
         variant: "destructive",
       });
       console.error("Error promoting user to admin:", err);
@@ -255,14 +205,14 @@ export function AdministrateursList() {
 
         await adminService.updateAdmin(adminId, updatedAdminData);
         toast({
-          title: "Succès",
-          description: "L'administrateur a été mis à jour.",
+          title: t('common.success'),
+          description: t('users.admins.toasts.success_update'),
         });
         fetchAdministrateurs();
       } catch (err: any) {
         toast({
-          title: "Erreur",
-          description: err.message || "Impossible de mettre à jour l'administrateur.",
+          title: t('common.error'),
+          description: err.message || t('users.admins.toasts.error_update'),
           variant: "destructive",
         });
         console.error("Error updating administrator:", err);
@@ -277,14 +227,14 @@ export function AdministrateursList() {
       try {
         await adminService.deleteAdmin(deleteModal.selectedItem.id);
         toast({
-          title: "Succès",
-          description: "L'administrateur et l'utilisateur associé ont été supprimés avec succès.",
+          title: t('common.success'),
+          description: t('users.admins.toasts.success_delete'),
         });
         fetchAdministrateurs();
       } catch (err: any) {
         toast({
-          title: "Erreur",
-          description: err.message || "Impossible de supprimer l'administrateur.",
+          title: t('common.error'),
+          description: err.message || t('users.admins.toasts.error_delete'),
           variant: "destructive",
         });
         console.error("Error deleting administrator:", err);
@@ -296,12 +246,10 @@ export function AdministrateursList() {
 
   const handleUserCreated = (user: { id: number; fullName: string; email: string }) => {
     toast({
-      title: "Utilisateur créé",
-      description: `L'utilisateur ${user.fullName} a été créé. Vous pouvez maintenant le promouvoir en administrateur.`,
+      title: t('users.learners.toasts.success_user_created', { name: user.fullName }), // Reusing learner toast
+      description: t('users.admins.toasts.success_user_created', { name: user.fullName }),
     });
     userCreationModal.close();
-    // Ouvrir le modal de sélection pour permettre à l'admin de choisir l'utilisateur à promouvoir
-    // L'utilisateur créé apparaîtra dans la liste des utilisateurs disponibles
     promoteUserModal.open();
   };
 
@@ -309,7 +257,7 @@ export function AdministrateursList() {
     () => [
       {
         accessorKey: "name",
-        header: "Administrateur",
+        header: t('users.admins.list.header_admin'),
         cell: ({ row }) => {
           const administrateur = row.original
           return (
@@ -343,12 +291,12 @@ export function AdministrateursList() {
       },
       {
         accessorKey: "status",
-        header: "Statut",
+        header: t('users.admins.list.header_status'),
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       {
         accessorKey: "joinedDate",
-        header: "Date d'inscription",
+        header: t('users.admins.list.header_joined_date'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1 text-sm">
             <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
@@ -358,7 +306,7 @@ export function AdministrateursList() {
       },
       {
         accessorKey: "courses",
-        header: "Cours gérés",
+        header: t('users.admins.list.header_courses_managed'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
             <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -368,22 +316,20 @@ export function AdministrateursList() {
       },
       {
         id: "actions",
-        header: "Actions",
+        header: t('users.admins.list.header_actions'),
         cell: ({ row }) => {
           const administrateur = row.original
           return (
             <ActionMenu
               actions={[
                 {
-                  label: "Voir détails",
+                  label: t('users.admins.list.action_view_details'),
                   icon: <Eye className="h-4 w-4" />,
                   onClick: async () => {
                     viewModal.open(administrateur);
-                    // Charger les détails complets de l'admin avec la relation user
                     try {
                       const adminDetails = await adminService.getAdminById(administrateur.id);
                       const admin = adminDetails?.data || adminDetails;
-                      // Extraire l'objet user de la réponse
                       const userData = admin?.user || admin;
                       setViewModalUserData(userData || null);
                     } catch (err) {
@@ -393,12 +339,12 @@ export function AdministrateursList() {
                   },
                 },
                 {
-                  label: "Modifier",
+                  label: t('users.admins.list.action_edit'),
                   icon: <Edit className="h-4 w-4" />,
                   onClick: () => editModal.open(administrateur),
                 },
                 {
-                  label: "Supprimer",
+                  label: t('users.admins.list.action_delete'),
                   icon: <Trash2 className="h-4 w-4" />,
                   onClick: () => deleteModal.open(administrateur),
                   variant: "destructive",
@@ -409,10 +355,9 @@ export function AdministrateursList() {
         },
       },
     ],
-    [viewModal, editModal, deleteModal]
+    [viewModal, editModal, deleteModal, t]
   )
 
-  // Extraire les userIds depuis les données brutes AdminWithUserDto
   const adminUserIds = useMemo(() => {
     return rawAdminsData
       .map((admin: any) => admin.userId)
@@ -422,24 +367,24 @@ export function AdministrateursList() {
   return (
     <>
       <PageHeader
-        title="Administrateurs"
+        title={t('users.admins.list.title')}
         action={
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="default" size="default" className="bg-[rgb(255,102,0)] hover:bg-[rgb(255,102,0)]/90 text-white">
                 <Plus className="h-4 w-4 mr-2" />
-                Ajouter Administrateur
+                {t('users.admins.list.add_button')}
                 <ChevronDown className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Options d'ajout</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('users.admins.list.add_options_title')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => userCreationModal.open()}>
-                Créer un nouvel utilisateur
+                {t('users.admins.list.add_option_create')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => promoteUserModal.open()}>
-                Promouvoir un utilisateur existant
+                {t('users.admins.list.add_option_promote')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -450,7 +395,7 @@ export function AdministrateursList() {
         <CardContent>
           <div className="mb-4">
             <SearchBar
-              placeholder="Rechercher par nom ou email..."
+              placeholder={t('users.admins.list.search_placeholder')}
               value={searchQuery}
               onChange={setSearchQuery}
             />
@@ -460,8 +405,8 @@ export function AdministrateursList() {
           ) : filteredData.length === 0 ? (
             <EmptyState
               icon={Shield}
-              title="Aucun administrateur trouvé"
-              description="Aucun administrateur ne correspond à votre recherche"
+              title={t('users.admins.list.empty_title')}
+              description={t('users.admins.list.empty_description')}
             />
           ) : (
             <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
@@ -469,35 +414,33 @@ export function AdministrateursList() {
         </CardContent>
       </Card>
 
-      {/* UserSelectModal for promoting existing users to admin */}
       <UserSelectModal
         open={promoteUserModal.isOpen}
         onOpenChange={(open) => !open && promoteUserModal.close()}
         onSelectUser={handlePromoteUserToAdmin}
-        title="Promouvoir un utilisateur en administrateur"
-        description="Sélectionnez un utilisateur existant à promouvoir."
-        excludeUserIds={adminUserIds} // Exclude users that are already admins (use userId, not admin.id)
+        title={t('users.admins.modals.promote_title')}
+        description={t('users.admins.modals.promote_description')}
+        excludeUserIds={adminUserIds}
       />
 
-      {/* UserCreationModal for creating a new user */}
       <UserCreationModal
         open={userCreationModal.isOpen}
         onOpenChange={(open) => !open && userCreationModal.close()}
         onUserCreated={handleUserCreated}
-        title="Créer un nouvel utilisateur"
-        description="Créez un compte utilisateur de base qui pourra ensuite être promu."
-        submitLabel="Créer l'utilisateur"
+        title={t('users.admins.modals.create_title')}
+        description={t('users.admins.modals.create_description')}
+        submitLabel={t('users.admins.modals.create_submit')}
       />
 
       {editModal.selectedItem && (
         <UserFormModal
           open={editModal.isOpen}
           onOpenChange={(open) => !open && editModal.close()}
-          title="Modifier l'administrateur"
-          description="Modifiez les informations de l'administrateur"
+          title={t('users.admins.modals.edit_title')}
+          description={t('users.admins.modals.edit_description')}
           defaultValues={mapAdministrateurDisplayToUserFormData(editModal.selectedItem)}
           onSubmit={handleUpdateAdministrateur}
-          submitLabel="Enregistrer les modifications"
+          submitLabel={t('users.admins.modals.edit_submit')}
         />
       )}
 
@@ -518,9 +461,9 @@ export function AdministrateursList() {
         open={deleteModal.isOpen}
         onOpenChange={(open) => !open && deleteModal.close()}
         onConfirm={handleDeleteAdministrateur}
-        title="Supprimer l'administrateur"
-        description={`Êtes-vous sûr de vouloir supprimer l'administrateur ${deleteModal.selectedItem?.name} ? Cette action supprimera également l'utilisateur de base et toutes ses données associées. Cette action est irréversible.`}
-        confirmText="Supprimer"
+        title={t('users.admins.modals.delete_title')}
+        description={t('users.admins.modals.delete_description', { name: deleteModal.selectedItem?.name })}
+        confirmText={t('common.delete')}
         variant="destructive"
       />
     </>

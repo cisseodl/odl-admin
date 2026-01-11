@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useLanguage } from "@/contexts/language-context"
 import {
   ColumnDef,
   flexRender,
@@ -38,6 +39,7 @@ export function DataTable<TData, TValue>({
   enablePagination = true,
   pageSize = 10,
 }: DataTableProps<TData, TValue>) {
+  const { t } = useLanguage()
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
@@ -106,8 +108,8 @@ export function DataTable<TData, TValue>({
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
                   <div className="flex flex-col items-center justify-center py-8">
-                    <p className="text-sm font-medium text-muted-foreground">Aucun résultat trouvé</p>
-                    <p className="text-xs text-muted-foreground mt-1">Essayez de modifier vos critères de recherche</p>
+                    <p className="text-sm font-medium text-muted-foreground">{t('table.no_results')}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t('table.no_results_description')}</p>
                   </div>
                 </TableCell>
               </TableRow>
@@ -118,7 +120,7 @@ export function DataTable<TData, TValue>({
       {enablePagination && (
         <div className="flex items-center justify-between px-2">
           <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredRowModel().rows.length} résultat(s) au total
+            {t('table.total_results', { count: table.getFilteredRowModel().rows.length })}
           </div>
           <div className="flex items-center space-x-2">
             <Button
@@ -126,7 +128,7 @@ export function DataTable<TData, TValue>({
               size="sm"
               onClick={() => table.setPageIndex(0)}
               disabled={!table.getCanPreviousPage()}
-              aria-label="Première page"
+              aria-label={t('table.first_page')}
               className="focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <ChevronsLeft className="h-4 w-4" />
@@ -136,14 +138,14 @@ export function DataTable<TData, TValue>({
               size="sm"
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
-              aria-label="Page précédente"
+              aria-label={t('table.previous_page')}
               className="focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">
-                Page {table.getState().pagination.pageIndex + 1} sur {table.getPageCount()}
+                {t('table.page_info', { current: table.getState().pagination.pageIndex + 1, total: table.getPageCount() })}
               </span>
             </div>
             <Button
@@ -151,7 +153,7 @@ export function DataTable<TData, TValue>({
               size="sm"
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
-              aria-label="Page suivante"
+              aria-label={t('table.next_page')}
               className="focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <ChevronRight className="h-4 w-4" />
@@ -161,7 +163,7 @@ export function DataTable<TData, TValue>({
               size="sm"
               onClick={() => table.setPageIndex(table.getPageCount() - 1)}
               disabled={!table.getCanNextPage()}
-              aria-label="Dernière page"
+              aria-label={t('table.last_page')}
               className="focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <ChevronsRight className="h-4 w-4" />

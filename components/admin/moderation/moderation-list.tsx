@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { useLanguage } from "@/contexts/language-context"
 import { DataTable } from "@/components/ui/data-table";
 import { ActionMenu } from "@/components/ui/action-menu";
 import { PageHeader } from "@/components/ui/page-header";
@@ -31,6 +32,7 @@ import { useModal } from "@/hooks/use-modal";
 type CourseForModeration = CourseModel;
 
 export function ModerationList() {
+  const { t } = useLanguage()
   const { toast } = useToast();
   const [courses, setCourses] = useState<CourseForModeration[]>([]);
   const [categories, setCategories] = useState<Categorie[]>([]);
@@ -62,16 +64,16 @@ export function ModerationList() {
         console.error("Unexpected response structure:", response);
         setCourses([]);
         toast({
-          title: "Erreur de données",
-          description: "La réponse de l'API pour les cours en attente est inattendue.",
+          title: t('common.error'),
+          description: t('moderation.admin.toasts.error_data'),
           variant: "destructive",
         });
       }
     } catch (error: any) {
       console.error("Failed to fetch courses for moderation:", error);
       toast({
-        title: "Erreur",
-        description: error.message || "Impossible de charger les cours à modérer.",
+        title: t('common.error'),
+        description: error.message || t('moderation.admin.toasts.error_load'),
         variant: "destructive",
       });
       setCourses([]);
@@ -89,14 +91,14 @@ export function ModerationList() {
     try {
       await courseService.updateCourse(editModal.selectedItem.id, data, data.imageFile);
       toast({
-        title: "Succès",
-        description: "La formation a été mise à jour.",
+        title: t('common.success'),
+        description: t('moderation.admin.toasts.success_update'),
       });
       fetchModerationCourses(); // Refresh list
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour la formation.",
+        title: t('common.error'),
+        description: t('moderation.admin.toasts.error_update'),
         variant: "destructive",
       });
     } finally {
@@ -108,14 +110,14 @@ export function ModerationList() {
     try {
       await courseService.validateCourse(courseId, action, reason);
       toast({
-        title: "Succès",
-        description: `La formation a été ${action === "APPROVE" ? "approuvée" : "rejetée"} avec succès.`,
+        title: t('common.success'),
+        description: action === "APPROVE" ? t('moderation.admin.toasts.success_approve') : t('moderation.admin.toasts.success_reject'),
       });
       await fetchModerationCourses();
     } catch (error: any) {
       toast({
-        title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de la modération.",
+        title: t('common.error'),
+        description: error.message || t('moderation.admin.toasts.error_moderation'),
         variant: "destructive",
       });
     } finally {
@@ -129,7 +131,7 @@ export function ModerationList() {
     () => [
       {
         accessorKey: "title",
-        header: "Formation",
+        header: t('moderation.admin.list.header_course'),
         cell: ({ row }) => (
           <div className="font-medium flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -139,49 +141,49 @@ export function ModerationList() {
       },
       {
         accessorKey: "instructor.fullName",
-        header: "Instructeur",
+        header: t('moderation.admin.list.header_instructor'),
         cell: ({ row }) => (
             <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
-                {row.original.instructor?.fullName || "N/A"}
+                {row.original.instructor?.fullName || t('common.notAvailable')}
             </div>
         ),
       },
       {
         accessorKey: "categorie.title",
-        header: "Catégorie",
+        header: t('moderation.admin.list.header_category'),
         cell: ({ row }) => (
             <div className="flex items-center gap-2">
                 <Tag className="h-4 w-4 text-muted-foreground" />
-                {row.original.categorie?.title || "N/A"}
+                {row.original.categorie?.title || t('common.notAvailable')}
             </div>
         ),
       },
       {
         accessorKey: "status",
-        header: "Statut Actuel",
-        cell: ({ row }) => <StatusBadge status={"En révision"} />,
+        header: t('moderation.admin.list.header_status'),
+        cell: ({ row }) => <StatusBadge status={t('moderation.admin.list.status_review')} />,
       },
       {
         id: "actions",
-        header: "Actions",
+        header: t('moderation.admin.list.header_actions'),
         cell: ({ row }) => {
           const course = row.original;
           return (
             <ActionMenu
               actions={[
                 {
-                  label: "Approuver",
+                  label: t('moderation.admin.list.action_approve'),
                   icon: <Check className="h-4 w-4" />,
                   onClick: () => setValidateDialog({ isOpen: true, courseId: course.id }),
                 },
                 {
-                  label: "Modifier",
+                  label: t('moderation.admin.list.action_edit'),
                   icon: <Edit className="h-4 w-4" />,
                   onClick: () => editModal.open(course),
                 },
                 {
-                  label: "Rejeter",
+                  label: t('moderation.admin.list.action_reject'),
                   icon: <X className="h-4 w-4" />,
                   onClick: () => setRejectDialog({ isOpen: true, courseId: course.id }),
                   variant: "destructive",
@@ -192,14 +194,14 @@ export function ModerationList() {
         },
       },
     ],
-    [editModal]
+    [editModal, t]
   );
 
   return (
     <>
       <PageHeader
-        title="Modération des Formations"
-        description="Approuvez ou rejetez les formations en attente de validation."
+        title={t('moderation.admin.title')}
+        description={t('moderation.admin.description')}
       />
 
       <Card className="mt-6">
@@ -216,11 +218,11 @@ export function ModerationList() {
         <CourseFormModal
           open={editModal.isOpen}
           onOpenChange={(open) => !open && editModal.close()}
-          title="Modifier la formation"
-          description="Modifiez les informations de la formation avant validation"
+          title={t('moderation.admin.modals.edit_title')}
+          description={t('moderation.admin.modals.edit_description')}
           defaultValues={editModal.selectedItem}
           onSubmit={handleUpdateCourse}
-          submitLabel="Enregistrer les modifications"
+          submitLabel={t('moderation.admin.modals.edit_submit')}
           categories={categories || []}
         />
       )}
@@ -229,9 +231,9 @@ export function ModerationList() {
         open={validateDialog.isOpen}
         onOpenChange={(isOpen) => setValidateDialog({ isOpen, courseId: validateDialog.courseId })}
         onConfirm={() => handleValidation(validateDialog.courseId!, "APPROVE")}
-        title="Approuver la formation"
-        description="Êtes-vous sûr de vouloir approuver cette formation ? Elle deviendra visible pour les utilisateurs."
-        confirmText="Approuver"
+        title={t('moderation.admin.modals.approve_title')}
+        description={t('moderation.admin.modals.approve_description')}
+        confirmText={t('moderation.admin.modals.approve_confirm')}
       />
 
       {/* Dialog de rejet avec champ de raison */}
@@ -246,17 +248,17 @@ export function ModerationList() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rejeter la formation</DialogTitle>
+            <DialogTitle>{t('moderation.admin.modals.reject_title')}</DialogTitle>
             <DialogDescription>
-              Veuillez indiquer la raison du rejet. L'instructeur en sera notifié.
+              {t('moderation.admin.modals.reject_description')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="rejection-reason">Raison du rejet *</Label>
+              <Label htmlFor="rejection-reason">{t('moderation.admin.modals.reject_reason_label')}</Label>
               <Textarea
                 id="rejection-reason"
-                placeholder="Ex: Contenu incomplet, qualité insuffisante, non conforme aux standards..."
+                placeholder={t('moderation.admin.modals.reject_reason_placeholder')}
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 className="min-h-[100px]"
@@ -272,7 +274,7 @@ export function ModerationList() {
                 setRejectionReason("");
               }}
             >
-              Annuler
+              {t('moderation.admin.modals.reject_cancel')}
             </Button>
             <Button
               variant="destructive"
@@ -281,15 +283,15 @@ export function ModerationList() {
                   handleValidation(rejectDialog.courseId!, "REJECT", rejectionReason.trim());
                 } else {
                   toast({
-                    title: "Erreur",
-                    description: "Veuillez indiquer une raison pour le rejet.",
+                    title: t('common.error'),
+                    description: t('moderation.admin.modals.reject_error'),
                     variant: "destructive",
                   });
                 }
               }}
               disabled={!rejectionReason.trim()}
             >
-              Rejeter
+              {t('moderation.admin.modals.reject_confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>

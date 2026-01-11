@@ -1,1 +1,196 @@
-https://main.d7kfdxiyupcrp.amplifyapp.com
+Voici le détail des métriques présentes sur le tableau de bord de l'administration.
+
+---
+## **Métriques Principales (Derniers 30 jours)**
+---
+
+### **1. Nouveaux utilisateurs (30j)**
+**Description (Français):**
+Ce chiffre représente le nombre total de nouveaux comptes utilisateurs qui ont été créés sur la plateforme au cours des 30 derniers jours. C'est un indicateur clé de la croissance et de l'attractivité de la plateforme. Il permet de mesurer l'efficacité des campagnes d'acquisition ou l'intérêt organique pour votre offre de formation.
+
+**Description (English):**
+This number represents the total count of new user accounts created on the platform over the last 30 days. It is a key indicator of the platform's growth and attractiveness. It helps measure the effectiveness of acquisition campaigns or the organic interest in your training offerings.
+
+---
+
+### **2. Nouveaux cours (30j)**
+**Description (Français):**
+Cette métrique indique le nombre de nouveaux cours qui ont été créés et ajoutés à la plateforme au cours des 30 derniers jours. Elle reflète la dynamique de création de contenu et l'enrichissement du catalogue de formations. Un nombre élevé suggère une communauté d'instructeurs active.
+
+**Description (English):**
+This metric indicates the number of new courses that have been created and added to the platform over the last 30 days. It reflects the momentum of content creation and the enrichment of the course catalog. A high number suggests an active instructor community.
+
+---
+
+### **3. Inscriptions totales**
+**Description (Français):**
+Ce nombre représente le total cumulé des inscriptions de tous les utilisateurs à tous les cours. Si un utilisateur s'inscrit à trois cours, cela compte pour trois inscriptions. C'est une mesure de l'engagement global et de la consommation de contenu sur la plateforme.
+
+**Description (English):**
+This number represents the cumulative total of all user enrollments across all courses. If one user enrolls in three courses, it counts as three enrollments. It is a measure of overall engagement and content consumption on the platform.
+
+---
+
+### **4. Leçons terminées**
+**Description (Français):**
+Indique le nombre total de leçons individuelles qui ont été marquées comme "terminées" par les apprenants sur l'ensemble de la plateforme. Cette métrique est un excellent indicateur de la progression réelle des utilisateurs dans les cours et de leur assiduité.
+
+**Description (English):**
+Indicates the total number of individual lessons that have been marked as "completed" by learners across the entire platform. This metric is an excellent indicator of users' actual progress in the courses and their diligence.
+
+---
+## **Statistiques Globales (Depuis l'origine)**
+---
+
+### **5. Total Utilisateurs**
+**Description (Français):**
+Ce chiffre représente le nombre total absolu de comptes utilisateurs enregistrés sur la plateforme depuis sa création, tous rôles et statuts confondus (apprenants, instructeurs, administrateurs).
+
+**Description (English):**
+This figure represents the absolute total number of user accounts registered on the platform since its inception, including all roles and statuses (learners, instructors, administrators).
+
+---
+
+### **6. Total Cours**
+**Description (Français):**
+Ceci est le nombre total de cours qui existent sur la plateforme, qu'ils soient publiés, en brouillon ou en attente de modération. Il donne une vue d'ensemble de tout le contenu de formation jamais créé.
+
+**Description (English):**
+This is the total number of courses that exist on the platform, whether they are published, in draft, or pending moderation. It provides an overview of all training content ever created.
+
+---
+
+### **7. Cours publiés**
+**Description (Français):**
+Cette métrique précise le nombre de cours qui sont actuellement en ligne, visibles et accessibles aux inscriptions par les apprenants. C'est le reflet de votre catalogue de formation "actif".
+
+**Description (English):**
+This metric specifies the number of courses that are currently online, visible, and available for enrollment by learners. It reflects your "active" training catalog.
+
+---
+
+### **8. En attente**
+**Description (Français):**
+Fait référence au nombre de cours soumis par les instructeurs qui sont en attente d'une validation (modération) par un administrateur avant d'être publiés. Un chiffre élevé peut indiquer un besoin de ressources supplémentaires pour la modération.
+
+**Description (English):**
+Refers to the number of courses submitted by instructors that are awaiting approval (moderation) by an administrator before being published. A high number may indicate a need for additional moderation resources.
+
+---
+## **Graphiques et Visualisations**
+---
+
+### **9. Répartition des utilisateurs par rôle**
+**Description (Français):**
+Ce graphique (généralement un diagramme circulaire ou en anneau) montre la distribution des utilisateurs selon leur rôle (par exemple, 60% Apprenants, 30% Instructeurs, 10% Admins). Il aide à comprendre la structure de la communauté de la plateforme.
+
+**Description (English):**
+This chart (usually a pie or donut chart) shows the distribution of users according to their role (e.g., 60% Learners, 30% Instructors, 10% Admins). It helps in understanding the structure of the platform's community.
+
+---
+
+### **10. Top 5 des cours par inscription**
+**Description (Français):**
+Cette visualisation (souvent un diagramme à barres) met en évidence les cinq cours qui ont attiré le plus grand nombre d'inscriptions. C'est un outil précieux pour identifier les sujets les plus populaires et les contenus les plus performants.
+
+**Description (English):**
+This visualization (often a bar chart) highlights the five courses that have attracted the highest number of enrollments. It is a valuable tool for identifying the most popular topics and best-performing content.
+
+---
+
+### **11. Comparaison Mois Actuel vs Précédent**
+**Description (Français):**
+Cette section est dédiée à l'analyse des tendances. Elle compare des indicateurs clés (comme les nouvelles inscriptions ou les nouveaux utilisateurs) entre le mois en cours et le mois précédent, souvent exprimés en pourcentage de croissance ou de déclin. Cela permet d'évaluer la dynamique de la plateforme à court terme.
+
+**Description (English):**
+This section is dedicated to trend analysis. It compares key indicators (like new enrollments or new users) between the current month and the previous one, often expressed as a percentage of growth or decline. This helps to evaluate the platform's short-term momentum.
+
+---
+---
+# **Page: Statistiques et Analyses (admin/analytics)**
+---
+## **Indicateurs de Performance Clés (KPIs)**
+---
+
+### **12. Note moyenne**
+**Description (Français):**
+Cette carte affiche la note moyenne calculée à partir de tous les avis laissés par les utilisateurs sur l'ensemble des cours. Elle est généralement accompagnée du nombre total d'avis pour donner un contexte sur la robustesse de la note. C'est un indicateur direct de la satisfaction globale des apprenants.
+
+**Description (English):**
+This card displays the average rating calculated from all reviews left by users across all courses. It is usually accompanied by the total number of reviews to provide context on the rating's robustness. It is a direct indicator of overall learner satisfaction.
+
+---
+
+### **13. Taux d'engagement**
+**Description (Français):**
+Le taux d'engagement mesure le pourcentage d'utilisateurs qui sont considérés comme "actifs" par rapport au nombre total d'utilisateurs. La définition d'un utilisateur actif peut varier (connexion récente, activité dans un cours, etc.). C'est une métrique essentielle pour mesurer la santé et la pertinence de la plateforme.
+
+**Description (English):**
+The engagement rate measures the percentage of users who are considered "active" compared to the total number of users. The definition of an active user can vary (recent login, course activity, etc.). It is an essential metric for measuring the health and relevance of the platform.
+
+---
+## **Graphiques d'Analyse**
+---
+
+### **14. Croissance des utilisateurs**
+**Description (Français):**
+Ce graphique linéaire montre l'évolution du nombre total d'utilisateurs sur une période donnée (par exemple, par jour, semaine ou mois). Il permet de visualiser les tendances de croissance, d'identifier les périodes de forte acquisition et d'évaluer l'impact des actions marketing.
+
+**Description (English):**
+This line chart shows the evolution of the total number of users over a given period (e.g., by day, week, or month). It allows for visualizing growth trends, identifying periods of high acquisition, and evaluating the impact of marketing actions.
+
+---
+
+### **15. Performance des cours**
+**Description (Français):**
+Cette visualisation, souvent un tableau ou un graphique combiné, analyse la performance des cours selon plusieurs axes, comme le nombre d'inscriptions, le taux de complétion, et la note moyenne. Elle aide à identifier les cours à succès et ceux qui nécessitent des améliorations.
+
+**Description (English):**
+This visualization, often a table or a combined chart, analyzes course performance across several axes, such as number of enrollments, completion rate, and average rating. It helps identify successful courses and those that require improvement.
+
+---
+## **Analyses Détaillées par Onglets**
+---
+
+### **16. Liste de progression des apprenants**
+**Description (Français):**
+Cet onglet présente une liste détaillée des apprenants, montrant pour chacun leur progression individuelle. On y trouve généralement le nombre de cours commencés, le nombre de leçons terminées et le taux de complétion moyen. C'est un outil de suivi puissant pour les administrateurs et les tuteurs.
+
+**Description (English):**
+This tab presents a detailed list of learners, showing their individual progress. It typically includes the number of courses started, the number of lessons completed, and the average completion rate. It is a powerful tracking tool for administrators and tutors.
+
+---
+
+### **17. Temps moyen par cours**
+**Description (Français):**
+Cette métrique, située dans l'onglet "Temps d'apprentissage", calcule la durée moyenne que les apprenants passent sur un cours avant de le terminer ou de devenir inactifs. Elle peut aider à évaluer si la longueur d'un cours est adéquate.
+
+**Description (English):**
+This metric, located in the "Learning Time" tab, calculates the average duration learners spend on a course before completing it or becoming inactive. It can help assess whether the length of a course is appropriate.
+
+---
+
+### **18. Sessions actives**
+**Description (Français):**
+Affiche le nombre de sessions utilisateurs uniques qui ont été actives sur la plateforme au cours d'une période récente (par exemple, les dernières 24 heures). C'est un indicateur de l'activité en temps réel sur la plateforme.
+
+**Description (English):**
+Displays the number of unique user sessions that have been active on the platform within a recent period (e.g., the last 24 hours). It is an indicator of real-time activity on the platform.
+
+---
+
+### **19. Temps moyen par apprenant**
+**Description (Français):**
+Calcule le temps total moyen passé par chaque apprenant actif sur l'ensemble des contenus de la plateforme. Cette métrique donne une idée de l'intensité de l'engagement de l'utilisateur moyen.
+
+**Description (English):**
+Calculates the average total time spent by each active learner across all platform content. This metric provides an idea of the intensity of the average user's engagement.
+
+---
+
+### **20. Génération de Rapports**
+**Description (Français):**
+Cette section permet de générer des rapports téléchargeables sur des sujets spécifiques. Les types de rapports disponibles (Temps d'apprentissage, Utilisateurs, Formations) permettent une analyse approfondie et hors ligne des données clés de la plateforme, utile pour le reporting et la prise de décision stratégique.
+
+**Description (English):**
+This section allows for the generation of downloadable reports on specific topics. The available report types (Learning Time, Users, Courses) enable in-depth, offline analysis of the platform's key data, useful for reporting and strategic decision-making.

@@ -82,7 +82,7 @@ export function AnalyticsDashboard() {
       <div className="flex justify-end mb-4 no-print">
         <Button onClick={handlePrint} className="flex items-center gap-2">
           <Printer className="h-4 w-4" />
-          Imprimer les Statistiques
+          {t('analytics.print_button')}
         </Button>
       </div>
 
@@ -129,19 +129,19 @@ export function AnalyticsDashboard() {
             value="learners"
             className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
           >
-            Apprenants
+            {t('analytics.tabs.learners')}
           </TabsTrigger>
           <TabsTrigger
             value="learning-time"
             className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
           >
-            Temps d'apprentissage
+            {t('analytics.tabs.learning_time')}
           </TabsTrigger>
           <TabsTrigger
             value="reports"
             className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
           >
-            Rapports
+            {t('analytics.tabs.reports')}
           </TabsTrigger>
         </TabsList>
         
@@ -152,9 +152,9 @@ export function AnalyticsDashboard() {
         <TabsContent value="learning-time" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-xl font-semibold leading-tight">Temps d'apprentissage</CardTitle>
+              <CardTitle className="text-xl font-semibold leading-tight">{t('analytics.learning_time.title')}</CardTitle>
               <CardDescription className="text-sm leading-relaxed">
-                Temps passé, sessions, interactions et activité
+                {t('analytics.learning_time.description')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -165,22 +165,22 @@ export function AnalyticsDashboard() {
               ) : learningTimeMetrics ? (
                 <div className="grid gap-4 md:grid-cols-3">
                   <div className="p-6 rounded-lg border shadow-sm bg-card">
-                    <p className="text-sm text-muted-foreground mb-2 leading-relaxed">Temps moyen par cours</p>
+                    <p className="text-sm text-muted-foreground mb-2 leading-relaxed">{t('analytics.learning_time.average_time_per_course')}</p>
                     <p className="text-3xl font-bold leading-tight">{Math.round(learningTimeMetrics.averageTimePerCourseMinutes)} min</p>
                     <p className="text-xs text-muted-foreground mt-2">
-                      {learningTimeMetrics.coursesWithActivity} cours avec activité
+                      {t('analytics.learning_time.courses_with_activity', { count: learningTimeMetrics.coursesWithActivity })}
                     </p>
                   </div>
                   <div className="p-6 rounded-lg border shadow-sm bg-card">
-                    <p className="text-sm text-muted-foreground mb-2 leading-relaxed">Sessions actives</p>
+                    <p className="text-sm text-muted-foreground mb-2 leading-relaxed">{t('analytics.learning_time.active_sessions')}</p>
                     <p className="text-3xl font-bold leading-tight">{learningTimeMetrics.activeSessions.toLocaleString("fr-FR")}</p>
-                    <p className="text-xs text-muted-foreground mt-2">24 dernières heures</p>
+                    <p className="text-xs text-muted-foreground mt-2">{t('analytics.learning_time.last_24_hours')}</p>
                   </div>
                   <div className="p-6 rounded-lg border shadow-sm bg-card">
-                    <p className="text-sm text-muted-foreground mb-2 leading-relaxed">Temps moyen par apprenant</p>
+                    <p className="text-sm text-muted-foreground mb-2 leading-relaxed">{t('analytics.learning_time.average_time_per_learner')}</p>
                     <p className="text-3xl font-bold leading-tight">{Math.round(learningTimeMetrics.averageTimePerLearnerMinutes)} min</p>
                     <p className="text-xs text-muted-foreground mt-2">
-                      {learningTimeMetrics.learnersWithActivity} apprenants actifs
+                      {t('analytics.learning_time.active_learners', { count: learningTimeMetrics.learnersWithActivity })}
                     </p>
                   </div>
                 </div>
@@ -194,10 +194,10 @@ export function AnalyticsDashboard() {
             <CardHeader>
               <CardTitle className="text-xl font-semibold leading-tight flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Rapports
+                {t('analytics.reports.title')}
               </CardTitle>
               <CardDescription className="text-sm leading-relaxed">
-                Générez et exportez des rapports détaillés sur votre plateforme
+                {t('analytics.reports.description')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -205,8 +205,8 @@ export function AnalyticsDashboard() {
                 <ReportCard
                   reportType={{
                     id: "learning-time",
-                    title: "Temps d'apprentissage",
-                    description: "Temps passé, sessions actives et progression des apprenants",
+                    title: t('analytics.reports.learning_time.title'),
+                    description: t('analytics.reports.learning_time.description'),
                     icon: Clock,
                     color: "text-[hsl(var(--chart-1))]",
                   }}
@@ -214,8 +214,8 @@ export function AnalyticsDashboard() {
                 <ReportCard
                   reportType={{
                     id: "users",
-                    title: "Rapport Utilisateurs",
-                    description: "Inscriptions, rétention, segmentation et croissance",
+                    title: t('analytics.reports.users.title'),
+                    description: t('analytics.reports.users.description'),
                     icon: Users,
                     color: "text-[hsl(var(--chart-2))]",
                   }}
@@ -223,8 +223,8 @@ export function AnalyticsDashboard() {
                 <ReportCard
                   reportType={{
                     id: "courses",
-                    title: "Rapport Formations",
-                    description: "Performance, popularité et statistiques par formation",
+                    title: t('analytics.reports.courses.title'),
+                    description: t('analytics.reports.courses.description'),
                     icon: BookOpen,
                     color: "text-[hsl(var(--chart-3))]",
                   }}

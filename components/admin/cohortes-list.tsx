@@ -2,6 +2,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
+import { useLanguage } from "@/contexts/language-context"
 import { PageHeader } from "@/components/ui/page-header"
 import { SearchBar } from "@/components/ui/search-bar"
 import { DataTable } from "@/components/ui/data-table"
@@ -56,6 +57,7 @@ const mapCohorteToCohorteDisplay = (cohorte: Cohorte): CohorteDisplay => {
 };
 
 export function CohortesList() {
+  const { t } = useLanguage()
   const addModal = useModal<CohorteDisplay>()
   const editModal = useModal<CohorteDisplay>()
   const deleteModal = useModal<CohorteDisplay>()
@@ -149,7 +151,7 @@ export function CohortesList() {
     () => [
       {
         accessorKey: "nom",
-        header: "Nom de la cohorte",
+        header: t('cohortes.list.header_cohorte'),
         cell: ({ row }) => (
           <div className="font-medium flex items-center gap-2">
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -173,7 +175,7 @@ export function CohortesList() {
       },
       {
         accessorKey: "dateFin",
-        header: "Date de fin",
+        header: t('cohortes.list.header_end_date'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1 text-sm">
             <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
@@ -222,9 +224,9 @@ export function CohortesList() {
   return (
     <>
       <PageHeader
-        title="Cohortes"
+        title={t('cohortes.list.title')}
         action={{
-          label: "Ajouter une cohorte",
+          label: t('cohortes.list.add_button'),
           onClick: () => addModal.open(),
         }}
       />
@@ -233,7 +235,7 @@ export function CohortesList() {
         <CardContent>
           <div className="mb-4">
             <SearchBar
-              placeholder="Rechercher une cohorte..."
+              placeholder={t('cohortes.list.search_placeholder')}
               value={searchQuery}
               onChange={setSearchQuery}
             />
@@ -245,8 +247,8 @@ export function CohortesList() {
           ) : filteredData.length === 0 ? (
             <EmptyState
               icon={Users}
-              title="Aucune cohorte trouvée"
-              description="Aucune cohorte ne correspond à votre recherche"
+              title={t('cohortes.list.empty_title')}
+              description={t('cohortes.list.empty_description')}
             />
           ) : (
             <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
@@ -258,21 +260,21 @@ export function CohortesList() {
       <CohorteFormModal
         open={addModal.isOpen}
         onOpenChange={(open) => !open && addModal.close()}
-        title="Ajouter une cohorte"
-        description="Créez une nouvelle cohorte de formation"
+        title={t('cohortes.modals.add_title')}
+        description={t('cohortes.modals.add_description')}
         onSubmit={handleAddCohorte}
-        submitLabel="Créer la cohorte"
+        submitLabel={t('cohortes.modals.add_submit')}
       />
 
       {editModal.selectedItem && (
         <CohorteFormModal
           open={editModal.isOpen}
           onOpenChange={(open) => !open && editModal.close()}
-          title="Modifier la cohorte"
-          description="Modifiez les informations de la cohorte"
+          title={t('cohortes.modals.edit_title')}
+          description={t('cohortes.modals.edit_description')}
           defaultValues={editModal.selectedItem}
           onSubmit={handleUpdateCohorte}
-          submitLabel="Enregistrer les modifications"
+          submitLabel={t('cohortes.modals.edit_submit')}
         />
       )}
 
@@ -288,9 +290,9 @@ export function CohortesList() {
         open={deleteModal.isOpen}
         onOpenChange={(open) => !open && deleteModal.close()}
         onConfirm={handleDeleteCohorte}
-        title="Supprimer la cohorte"
-        description={`Êtes-vous sûr de vouloir supprimer ${deleteModal.selectedItem?.nom} ? Cette action est irréversible.`}
-        confirmText="Supprimer"
+        title={t('cohortes.modals.delete_title')}
+        description={t('cohortes.modals.delete_description').replace('{{name}}', deleteModal.selectedItem?.nom || '')}
+        confirmText={t('cohortes.modals.delete_confirm')}
         variant="destructive"
       />
     </>

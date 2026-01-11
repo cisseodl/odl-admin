@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useLanguage } from "@/contexts/language-context"
 import { z } from "zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -38,6 +39,7 @@ export const siteConfigFormSchema = z.object({
 export type SiteConfigFormData = z.infer<typeof siteConfigFormSchema>;
 
 export function SiteConfigurationForm() {
+  const { t } = useLanguage()
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
 
@@ -123,10 +125,10 @@ export function SiteConfigurationForm() {
       <CardHeader>
         <CardTitle className="text-2xl font-bold flex items-center gap-2">
           <Settings className="h-6 w-6" />
-          Configuration Générale du Site
+          {t('settings.site.form.title')}
         </CardTitle>
         <CardDescription>
-          Mettez à jour les paramètres généraux et les images de votre plateforme.
+          {t('settings.site.form.description')}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -140,9 +142,9 @@ export function SiteConfigurationForm() {
                 name="homepageText"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Texte de la Page d'Accueil</FormLabel>
+                    <FormLabel>{t('settings.site.form.homepageText')}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Bienvenue sur notre plateforme !" />
+                      <Input {...field} placeholder={t('settings.site.form.homepageTextPlaceholder')} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -154,7 +156,7 @@ export function SiteConfigurationForm() {
                 name="homepageImageFile"
                 render={({ field: { value, onChange, ...fieldProps } }) => (
                   <FormItem>
-                    <FormLabel>Image de la Page d'Accueil</FormLabel>
+                    <FormLabel>{t('settings.site.form.homepageImage')}</FormLabel>
                     <FormControl>
                       <Input
                         {...fieldProps}
@@ -170,7 +172,7 @@ export function SiteConfigurationForm() {
                     {form.watch("homepageImageUrl") && (
                       <div className="mt-2 flex items-center gap-2">
                         <Image className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">Image actuelle : {form.watch("homepageImageUrl")?.split('/').pop()}</span>
+                        <span className="text-sm text-muted-foreground">{t('settings.site.form.currentImage')} {form.watch("homepageImageUrl")?.split('/').pop()}</span>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={form.watch("homepageImageUrl")} alt="Current Homepage" className="h-10 w-10 object-cover rounded-md" />
                       </div>
@@ -184,7 +186,7 @@ export function SiteConfigurationForm() {
                 name="loginImageFile"
                 render={({ field: { value, onChange, ...fieldProps } }) => (
                   <FormItem>
-                    <FormLabel>Image de la Page de Connexion</FormLabel>
+                    <FormLabel>{t('settings.site.form.loginImage')}</FormLabel>
                     <FormControl>
                       <Input
                         {...fieldProps}
@@ -200,7 +202,7 @@ export function SiteConfigurationForm() {
                     {form.watch("loginImageUrl") && (
                       <div className="mt-2 flex items-center gap-2">
                         <Image className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">Image actuelle : {form.watch("loginImageUrl")?.split('/').pop()}</span>
+                        <span className="text-sm text-muted-foreground">{t('settings.site.form.currentImage')} {form.watch("loginImageUrl")?.split('/').pop()}</span>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={form.watch("loginImageUrl")} alt="Current Login" className="h-10 w-10 object-cover rounded-md" />
                       </div>
@@ -228,7 +230,7 @@ export function SiteConfigurationForm() {
                 name="aboutImageFile"
                 render={({ field: { value, onChange, ...fieldProps } }) => (
                   <FormItem>
-                    <FormLabel>Image "À propos de nous"</FormLabel>
+                    <FormLabel>{t('settings.site.form.aboutImage')}</FormLabel>
                     <FormControl>
                       <Input
                         {...fieldProps}
@@ -244,7 +246,7 @@ export function SiteConfigurationForm() {
                     {form.watch("aboutImageUrl") && (
                       <div className="mt-2 flex items-center gap-2">
                         <Image className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">Image actuelle : {form.watch("aboutImageUrl")?.split('/').pop()}</span>
+                        <span className="text-sm text-muted-foreground">{t('settings.site.form.currentImage')} {form.watch("aboutImageUrl")?.split('/').pop()}</span>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={form.watch("aboutImageUrl")} alt="Current About" className="h-10 w-10 object-cover rounded-md" />
                       </div>
@@ -255,7 +257,7 @@ export function SiteConfigurationForm() {
 
               <Button type="submit" disabled={form.formState.isSubmitting}>
                 <Save className="h-4 w-4 mr-2" />
-                {form.formState.isSubmitting ? "Sauvegarde..." : "Enregistrer la Configuration"}
+                {form.formState.isSubmitting ? t('settings.site.form.saving') : t('settings.site.form.save')}
               </Button>
             </form>
           </Form>

@@ -16,10 +16,12 @@ import { QuickActions } from "@/components/admin/quick-actions"
 import { analyticsService, type AdminDashboardAnalytics } from "@/services/analytics.service";
 import { UsersByRoleChart } from "./users-by-role-chart"
 import { TopCoursesChart } from "./top-courses-chart"
+import { useLanguage } from "@/contexts/language-context"
 
 type TimeFilter = "7d" | "30d" | "90d" | "custom" | "all"
 
 export function DashboardEnhanced() {
+  const { t } = useLanguage();
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("30d")
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>(undefined)
   const [customEndDate, setCustomEndDate] = useState<Date | undefined>(undefined)
@@ -37,12 +39,12 @@ export function DashboardEnhanced() {
       const data = await analyticsService.getAdminDashboardAnalytics(); // Corrected method call
       setOverviewData(data);
     } catch (err) {
-      setError("Impossible de charger les données du tableau de bord.");
+      setError(t('dashboard.loadError'));
       console.error(err);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchOverview();
@@ -57,22 +59,22 @@ export function DashboardEnhanced() {
   const mainStats = useMemo((): StatItem[] => {
     if (!overviewData) return [];
     return [
-      { title: "Nouveaux utilisateurs (30j)", value: overviewData.newUsersLast30Days.toLocaleString("fr-FR"), icon: Users, color: "text-primary" },
-      { title: "Nouveaux cours (30j)", value: overviewData.newCoursesLast30Days.toLocaleString("fr-FR"), icon: BookOpen, color: "text-primary" },
-      { title: "Inscriptions totales", value: overviewData.totalEnrollments.toLocaleString("fr-FR"), icon: TrendingUp, color: "text-primary" },
-      { title: "Leçons terminées", value: overviewData.lessonsCompleted.toLocaleString("fr-FR"), icon: CheckCircle, color: "text-primary" },
+      { title: t('dashboard.mainStats.newUsers'), value: overviewData.newUsersLast30Days.toLocaleString("fr-FR"), icon: Users, color: "text-primary" },
+      { title: t('dashboard.mainStats.newCourses'), value: overviewData.newCoursesLast30Days.toLocaleString("fr-FR"), icon: BookOpen, color: "text-primary" },
+      { title: t('dashboard.mainStats.totalEnrollments'), value: overviewData.totalEnrollments.toLocaleString("fr-FR"), icon: TrendingUp, color: "text-primary" },
+      { title: t('dashboard.mainStats.lessonsCompleted'), value: overviewData.lessonsCompleted.toLocaleString("fr-FR"), icon: CheckCircle, color: "text-primary" },
     ];
-  }, [overviewData]);
+  }, [overviewData, t]);
 
   const globalStats = useMemo((): StatItem[] => {
     if (!overviewData) return [];
     return [
-        { title: "Total Utilisateurs", value: overviewData.totalUsers.toLocaleString("fr-FR"), icon: Users, color: "text-blue-500" },
-        { title: "Total Cours", value: overviewData.totalCourses.toLocaleString("fr-FR"), icon: BookOpen, color: "text-green-500" },
-        { title: "Cours publiés", value: overviewData.publishedCourses.toLocaleString("fr-FR"), icon: CheckCircle, color: "text-green-500" },
-        { title: "En attente", value: overviewData.pendingModeration.toLocaleString("fr-FR"), icon: BarChart3, color: "text-yellow-500" },
+        { title: t('dashboard.globalStats.totalUsers'), value: overviewData.totalUsers.toLocaleString("fr-FR"), icon: Users, color: "text-blue-500" },
+        { title: t('dashboard.globalStats.totalCourses'), value: overviewData.totalCourses.toLocaleString("fr-FR"), icon: BookOpen, color: "text-green-500" },
+        { title: t('dashboard.globalStats.publishedCourses'), value: overviewData.publishedCourses.toLocaleString("fr-FR"), icon: CheckCircle, color: "text-green-500" },
+        { title: t('dashboard.globalStats.pendingModeration'), value: overviewData.pendingModeration.toLocaleString("fr-FR"), icon: BarChart3, color: "text-yellow-500" },
     ];
-  }, [overviewData]);
+  }, [overviewData, t]);
 
   const getDateRange = useMemo(() => {
     const now = new Date()
@@ -92,9 +94,9 @@ export function DashboardEnhanced() {
       {/* Header avec filtres */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight leading-tight text-balance">Tableau de bord</h1>
+          <h1 className="text-3xl font-bold tracking-tight leading-tight text-balance">{t('dashboard.title')}</h1>
           <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-            Vue d'ensemble de votre plateforme de formation
+            {t('dashboard.description')}
             {dateRange.start && dateRange.end && (
               <span className="ml-2">
                 ({format(dateRange.start, "d MMM")} - {format(dateRange.end, "d MMM yyyy")})
@@ -115,7 +117,7 @@ export function DashboardEnhanced() {
 
       {/* Titre pour les stats globales */}
       <div className="flex items-center justify-between mt-6">
-        <h2 className="text-2xl font-bold tracking-tight">Statistiques Globales</h2>
+        <h2 className="text-2xl font-bold tracking-tight">{t('dashboard.globalStats.title')}</h2>
       </div>
 
       {/* Stats globales */}
@@ -132,13 +134,13 @@ export function DashboardEnhanced() {
 
       {/* Comparaisons (pourrait être alimenté par un autre service plus tard) */}
       <ComparisonStats
-        title="Comparaison Mois Actuel vs Précédent"
-        description="Analyse comparative des performances"
+        title={t('dashboard.comparison.title')}
+        description={t('dashboard.comparison.description')}
         // period="month" // Removed
         // timeFilter={timeFilter} // Removed
       />
 
-      {/* Activité récente */}
+      {/* Activité recente */}
       <RecentActivity limit={5} />
 
 

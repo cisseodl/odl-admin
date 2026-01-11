@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { useLanguage } from "@/contexts/language-context"
 import { PageHeader } from "@/components/ui/page-header";
 import { SearchBar } from "@/components/ui/search-bar";
 import { DataTable } from "@/components/ui/data-table";
@@ -41,6 +42,7 @@ type Course = {
 };
 
 export function CoursesManager() {
+  const { t } = useLanguage()
   const { user, isLoading: authLoading } = useAuth(); // Utiliser useAuth
   const [courses, setCourses] = useState<Course[]>([]);
   const [categories, setCategories] = useState<Categorie[]>([]);
@@ -137,7 +139,7 @@ export function CoursesManager() {
     () => [
       {
         accessorKey: "title",
-        header: "Formation",
+        header: t('courses.list.header_course'),
         cell: ({ row }) => (
           <div className="font-medium flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -147,7 +149,7 @@ export function CoursesManager() {
       },
       {
         accessorKey: "modules",
-        header: "Modules",
+        header: t('courses.modules'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
             <FileText className="h-4 w-4 text-muted-foreground" />
@@ -157,11 +159,11 @@ export function CoursesManager() {
       },
       {
         accessorKey: "chapters",
-        header: "Chapitres",
+        header: t('courses.chapters'),
       },
       {
         accessorKey: "videos",
-        header: "Vidéos",
+        header: t('courses.videos'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
             <Video className="h-4 w-4 text-muted-foreground" />
@@ -171,7 +173,7 @@ export function CoursesManager() {
       },
       {
         accessorKey: "students",
-        header: "Apprenants",
+        header: t('courses.list.header_students'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -181,7 +183,7 @@ export function CoursesManager() {
       },
       {
         accessorKey: "rating",
-        header: "Note",
+        header: t('courses.list.header_rating'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
             <Star className="h-4 w-4 fill-primary text-primary" />
@@ -191,19 +193,19 @@ export function CoursesManager() {
       },
       {
         accessorKey: "status",
-        header: "Statut",
+        header: t('courses.list.header_status'),
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       {
         id: "actions",
-        header: "Actions",
+        header: t('common.actions'),
         cell: ({ row }) => {
           const course = row.original;
           return (
             <ActionMenu
               actions={[
                 {
-                  label: "Voir",
+                  label: t('common.view'),
                   icon: <Eye className="h-4 w-4" />,
                   onClick: () => console.log("View", course),
                 },
@@ -213,16 +215,16 @@ export function CoursesManager() {
         },
       },
     ],
-    []
+    [t]
   );
 
   return (
     <>
       <PageHeader
-        title="Mes Formations"
-        description="Gérez vos formations, modules, chapitres et vidéos"
+        title={t('instructor.courses.title')}
+        description={t('instructor.courses.description')}
         action={{
-          label: "Créer une formation",
+          label: t('courses.actions.create'),
           onClick: addCourseModal.open,
         }}
       />
@@ -267,7 +269,7 @@ export function CoursesManager() {
               <TabsContent value="all" className="space-y-4">
                 <div className="mb-4">
                   <SearchBar
-                    placeholder="Rechercher une formation..."
+                    placeholder={t('courses.search_placeholder')}
                     value={searchQuery}
                     onChange={setSearchQuery}
                   />
@@ -282,7 +284,7 @@ export function CoursesManager() {
               <TabsContent value="published" className="space-y-4">
                 <div className="mb-4">
                   <SearchBar
-                    placeholder="Rechercher une formation..."
+                    placeholder={t('courses.search_placeholder')}
                     value={searchQuery}
                     onChange={setSearchQuery}
                   />
@@ -297,7 +299,7 @@ export function CoursesManager() {
               <TabsContent value="draft" className="space-y-4">
                 <div className="mb-4">
                   <SearchBar
-                    placeholder="Rechercher une formation..."
+                    placeholder={t('courses.search_placeholder')}
                     value={searchQuery}
                     onChange={setSearchQuery}
                   />
@@ -312,7 +314,7 @@ export function CoursesManager() {
               <TabsContent value="review" className="space-y-4">
                 <div className="mb-4">
                   <SearchBar
-                    placeholder="Rechercher une formation..."
+                    placeholder={t('courses.search_placeholder')}
                     value={searchQuery}
                     onChange={setSearchQuery}
                   />

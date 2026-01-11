@@ -1,5 +1,6 @@
 "use client"
 
+import { useLanguage } from "@/contexts/language-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 
@@ -8,12 +9,14 @@ interface TopCoursesChartProps {
 }
 
 export function TopCoursesChart({ data }: TopCoursesChartProps) {
-  const chartData = Object.entries(data).map(([name, value]) => ({ name, Inscriptions: value })).sort((a, b) => b.Inscriptions - a.Inscriptions);
+  const { t } = useLanguage()
+  const enrollmentsKey = 'enrollments'
+  const chartData = Object.entries(data).map(([name, value]) => ({ name, [enrollmentsKey]: value })).sort((a, b) => b[enrollmentsKey] - a[enrollmentsKey]);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Top 5 des cours par inscriptions</CardTitle>
+        <CardTitle>{t('dashboard.charts.top_courses.title')}</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -23,11 +26,11 @@ export function TopCoursesChart({ data }: TopCoursesChartProps) {
             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
+            <XAxis type="number" label={{ value: t('dashboard.charts.top_courses.enrollments_key'), position: 'insideBottom', offset: -5 }} />
             <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 12 }} />
             <Tooltip />
-            <Legend />
-            <Bar dataKey="Inscriptions" fill="#8884d8" />
+            <Legend formatter={() => t('dashboard.charts.top_courses.enrollments_key')} />
+            <Bar dataKey={enrollmentsKey} fill="#8884d8" />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

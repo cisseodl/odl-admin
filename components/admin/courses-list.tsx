@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useCallback } from "react"
+import { useLanguage } from "@/contexts/language-context"
 import { PageHeader } from "@/components/ui/page-header"
 import { SearchBar } from "@/components/ui/search-bar"
 import { DataTable } from "@/components/ui/data-table"
@@ -19,7 +20,7 @@ import { Eye, Edit, Trash2, Power, Users, Clock, Star, BookOpen } from "lucide-r
 import type { CourseFormData } from "@/lib/validations/course";
 
 import { Course as CourseModel, Categorie } from "@/models"; // Import Course from models/index.ts
-import { courseService, categorieService, moduleService } from "@/services"; // Import courseService from services/index.ts
+import { courseService, categorieService, moduleService, instructorService } from "@/services"; // Import courseService from services/index.ts
 import { convertDurationToSeconds, convertSecondsToDurationString } from "@/lib/utils"; // Import duration conversion utilities
 import { useEffect } from "react";
 import { PageLoader } from "@/components/ui/page-loader";
@@ -32,6 +33,7 @@ import { ModulesPayload } from "@/services/module.service";
 type CourseDisplay = CourseModel;
 
 export function CoursesList() {
+  const { t } = useLanguage()
   const addModal = useModal<CourseDisplay>();
   const editModal = useModal<CourseDisplay>();
   const deleteModal = useModal<CourseDisplay>();
@@ -40,19 +42,41 @@ export function CoursesList() {
 
   const [courses, setCourses] = useState<CourseDisplay[]>([]);
   const [categories, setCategories] = useState<Categorie[]>([]); // State to store categories
+  const [instructors, setInstructors] = useState<any[]>([]); // State to store instructors
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null); // State for selected category filter
   const [loading, setLoading] = useState(true);
   
   const fetchCourses = useCallback(async () => {
     setLoading(true);
     try {
-      const categoriesResponse = await categorieService.getAllCategories();
+      // Charger les catégories et instructeurs en parallèle
+      const [categoriesResponse, instructorsResponse] = await Promise.all([
+        categorieService.getAllCategories(),
+        instructorService.getAllInstructors()
+      ]);
+
+      let categoriesData: Categorie[] = [];
       if (categoriesResponse && Array.isArray(categoriesResponse.data)) {
-        setCategories(categoriesResponse.data);
+        categoriesData = categoriesResponse.data;
+        setCategories(categoriesData);
+      } else if (Array.isArray(categoriesResponse)) {
+        categoriesData = categoriesResponse;
+        setCategories(categoriesData);
       } else {
         console.error("Unexpected categories response structure:", categoriesResponse);
         setCategories([]);
       }
+
+      // Traiter la réponse des instructeurs
+      let instructorsData: any[] = [];
+      if (instructorsResponse) {
+        if (Array.isArray(instructorsResponse.data)) {
+          instructorsData = instructorsResponse.data;
+        } else if (Array.isArray(instructorsResponse)) {
+          instructorsData = instructorsResponse;
+        }
+      }
+      setInstructors(instructorsData);
 
       let coursesResponse;
       if (selectedCategory) {
@@ -62,28 +86,188 @@ export function CoursesList() {
       }
       
       // getAllCourses peut retourner directement un tableau ou un objet avec data
+      let coursesData: any[] = [];
       if (Array.isArray(coursesResponse)) {
-        setCourses(coursesResponse);
+        coursesData = coursesResponse;
       } else if (coursesResponse && Array.isArray(coursesResponse.data)) {
-        setCourses(coursesResponse.data);
+        coursesData = coursesResponse.data;
       } else if (coursesResponse && coursesResponse.data && Array.isArray(coursesResponse.data)) {
-        setCourses(coursesResponse.data);
+        coursesData = coursesResponse.data;
       } else {
-        // Si c'est un objet mais pas un tableau, essayer d'extraire les données
         console.warn("Unexpected courses response structure:", coursesResponse);
-        setCourses([]);
+        coursesData = [];
       }
+
+      // Debug: Log pour voir la structure des données
+      if (coursesData.length > 0) {
+        console.log("Sample course data (full):", JSON.stringify(coursesData[0], null, 2));
+        console.log("Available categories:", categoriesData.length);
+        console.log("Available instructors:", instructorsData.length);
+        if (instructorsData.length > 0) {
+          console.log("Sample instructor:", instructorsData[0]);
+        }
+      }
+
+      // Enrichir les cours avec les informations de catégorie et d'instructeur
+      let enrichedCourses = coursesData.map((course: any) => {
+        const enriched: CourseDisplay = { ...course };
+
+        // Le backend retourne category comme string (titre) et instructor comme InstructorDto
+        // Enrichir la catégorie : le backend retourne 'category' comme string (titre)
+        if (course.category && typeof course.category === 'string') {
+          // Chercher la catégorie par titre dans notre liste
+          const category = categoriesData.find((cat: Categorie) => cat.title === course.category);
+          if (category) {
+            enriched.categorie = category;
+          }
+        } else if (!enriched.categorie || !enriched.categorie.title) {
+          // Fallback : essayer de trouver par ID
+          const categoryId = course.categorieId || course.categoryId || course.categorie?.id || 
+                            (typeof course.categorie === 'number' ? course.categorie : null);
+          if (categoryId) {
+            const category = categoriesData.find((cat: Categorie) => cat.id === Number(categoryId));
+            if (category) {
+              enriched.categorie = category;
+            }
+          }
+        }
+
+        // Enrichir l'instructeur : le backend peut retourner 'instructor' comme InstructorDto avec 'name'
+        // ou null si le profil instructeur n'existe pas
+        let instructorFound = false;
+
+        // 1. Vérifier si instructor est présent et a un nom
+        if (course.instructor) {
+          if (course.instructor.name) {
+            // InstructorDto du backend avec 'name'
+            enriched.instructor = {
+              id: course.instructor.id,
+              fullName: course.instructor.name,
+              email: undefined,
+              avatar: course.instructor.avatar,
+            };
+            instructorFound = true;
+          } else if (course.instructor.fullName) {
+            // Objet User avec fullName
+            enriched.instructor = course.instructor;
+            instructorFound = true;
+          } else if (course.instructor.id || course.instructor.userId) {
+            // Chercher dans la liste des instructeurs par ID
+            const instructorId = course.instructor.id || course.instructor.userId;
+            const instructor = instructorsData.find((inst: any) => 
+              Number(inst.id) === Number(instructorId) || 
+              Number(inst.userId) === Number(instructorId)
+            );
+            if (instructor) {
+              enriched.instructor = {
+                id: instructor.userId || instructor.id,
+                fullName: instructor.fullName || instructor.email || `Instructor #${instructor.userId || instructor.id}`,
+                email: instructor.email,
+                avatar: instructor.avatar,
+              };
+              instructorFound = true;
+            }
+          }
+        }
+
+        // 2. Si instructor n'est pas trouvé, chercher par instructorId dans les champs du cours
+        if (!instructorFound) {
+          // Le backend peut retourner instructorId dans différents champs
+          // Essayer toutes les variantes possibles
+          const instructorId = course.instructorId || 
+                              course.instructor_id || 
+                              course.instructorId || 
+                              (course.instructor && typeof course.instructor === 'number' ? course.instructor : null) ||
+                              (course.instructor && course.instructor.id ? course.instructor.id : null) ||
+                              (course.instructor && course.instructor.userId ? course.instructor.userId : null);
+          
+          if (instructorId) {
+            // Chercher dans la liste des instructeurs
+            const instructor = instructorsData.find((inst: any) => {
+              const instId = inst.id || inst.userId;
+              return Number(instId) === Number(instructorId);
+            });
+            
+            if (instructor) {
+              enriched.instructor = {
+                id: instructor.userId || instructor.id,
+                fullName: instructor.fullName || instructor.email || `Instructor #${instructor.userId || instructor.id}`,
+                email: instructor.email,
+                avatar: instructor.avatar,
+              };
+              instructorFound = true;
+            } else {
+              // Log seulement pour le premier cours pour éviter le spam
+              if (coursesData.indexOf(course) === 0) {
+                console.warn(`Instructor with ID ${instructorId} not found in instructors list. Available instructor IDs:`, 
+                  instructorsData.map((inst: any) => inst.id || inst.userId));
+              }
+            }
+          }
+        }
+
+        // 3. Si toujours pas trouvé, essayer de récupérer depuis getCourseById (seulement pour le premier pour debug)
+        if (!instructorFound && coursesData.indexOf(course) === 0) {
+          console.warn("No instructor found for course:", course.id, "Course data keys:", Object.keys(course));
+          // Ne pas faire d'appel API ici car c'est trop coûteux, juste logger
+        }
+
+        return enriched;
+      });
+
+      // Pour les cours qui n'ont toujours pas d'instructeur, essayer de récupérer les détails complets
+      const coursesWithoutInstructor = enrichedCourses.filter(c => !c.instructor || !c.instructor.fullName);
+      
+      if (coursesWithoutInstructor.length > 0) {
+        console.log(`Found ${coursesWithoutInstructor.length} courses without instructor, trying to fetch details...`);
+        
+        // Récupérer les détails complets pour les cours sans instructeur (limité aux 10 premiers pour performance)
+        const coursesToFetch = coursesWithoutInstructor.slice(0, 10);
+        const courseDetailsPromises = coursesToFetch.map(course => 
+          courseService.getCourseById(course.id).catch(err => {
+            console.warn(`Failed to fetch details for course ${course.id}:`, err);
+            return null;
+          })
+        );
+        
+        try {
+          const courseDetails = await Promise.all(courseDetailsPromises);
+          
+          // Mettre à jour les cours avec les détails récupérés
+          courseDetails.forEach((details, index) => {
+            if (details && details.instructor) {
+              const courseIndex = enrichedCourses.findIndex(c => c.id === coursesToFetch[index].id);
+              if (courseIndex !== -1) {
+                if (details.instructor.name) {
+                  enrichedCourses[courseIndex].instructor = {
+                    id: details.instructor.id,
+                    fullName: details.instructor.name,
+                    email: undefined,
+                    avatar: details.instructor.avatar,
+                  };
+                } else if (details.instructor.fullName) {
+                  enrichedCourses[courseIndex].instructor = details.instructor;
+                }
+              }
+            }
+          });
+        } catch (err) {
+          console.error("Error fetching course details:", err);
+        }
+      }
+
+      setCourses(enrichedCourses);
     } catch (err: any) {
       toast({
-        title: "Erreur de chargement",
-        description: "Impossible de charger les données.",
+        title: t('common.error'),
+        description: t('courses.toasts.error_load'),
         variant: "destructive",
       });
       console.error("Error fetching data:", err);
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory, toast]);
+  }, [selectedCategory, toast, t]);
 
   useEffect(() => {
     fetchCourses();
@@ -200,8 +384,8 @@ export function CoursesList() {
         });
       } catch (err: any) {
         toast({
-          title: "Erreur",
-          description: "Impossible de supprimer la formation.",
+          title: t('common.error'),
+          description: t('courses.toasts.error_delete'),
           variant: "destructive",
         });
         console.error("Error deleting course:", err);
@@ -213,7 +397,7 @@ export function CoursesList() {
     () => [
       {
         accessorKey: "title",
-        header: "Formation",
+        header: t('courses.list.header_course'),
         cell: ({ row }) => (
           <div className="font-medium flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -222,18 +406,32 @@ export function CoursesList() {
         ),
       },
       {
-        accessorKey: "instructor.fullName", // Updated accessorKey
-        header: "Formateur",
-        cell: ({ row }) => row.original.instructor?.fullName || "N/A", // Display full name
+        accessorKey: "instructor", 
+        header: t('courses.list.header_instructor'),
+        cell: ({ row }) => {
+          const course = row.original;
+          // Le backend peut retourner instructor comme InstructorDto avec 'name' ou comme User avec 'fullName'
+          const instructorName = course.instructor?.name || course.instructor?.fullName;
+          // Si pas de nom, vérifier si on a au moins un ID pour afficher quelque chose
+          if (!instructorName && course.instructor?.id) {
+            return `Instructor #${course.instructor.id}`;
+          }
+          return instructorName || t('common.notAvailable');
+        },
       },
       {
-        accessorKey: "categorie.title", // Updated accessorKey
-        header: "Catégorie",
-        cell: ({ row }) => row.original.categorie?.title || "N/A", // Display category title
+        accessorKey: "categorie", 
+        header: t('courses.list.header_category'),
+        cell: ({ row }) => {
+          const course = row.original;
+          // Le backend peut retourner category comme string (titre) ou comme objet Categorie
+          const categoryTitle = course.categorie?.title || (typeof course.category === 'string' ? course.category : null);
+          return categoryTitle || t('common.notAvailable');
+        },
       },
       {
         accessorKey: "students", // This still needs to be populated from backend
-        header: "Étudiants",
+        header: t('courses.list.header_students'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -243,17 +441,17 @@ export function CoursesList() {
       },
       {
         accessorKey: "duration",
-        header: "Durée",
+        header: t('courses.list.header_duration'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4 text-muted-foreground" />
-            {row.original.duration ? convertSecondsToDurationString(row.original.duration) : "0h 0min"}
+            {row.original.duration ? convertSecondsToDurationString(row.original.duration) : t('courses.list.duration_zero')}
           </div>
         ),
       },
       {
         accessorKey: "rating", // This still needs to be populated from backend
-        header: "Note",
+        header: t('courses.list.header_rating'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
             <Star className="h-4 w-4 fill-primary text-primary" />
@@ -263,35 +461,45 @@ export function CoursesList() {
       },
       {
         accessorKey: "status",
-        header: "Statut",
-        cell: ({ row }) => <StatusBadge status={row.original.status === "PUBLISHED" ? "Publié" : (row.original.status === "DRAFT" ? "Brouillon" : "En révision")} />,
+        header: t('courses.list.header_status'),
+        cell: ({ row }) => {
+          const statusMap: Record<string, string> = {
+            "PUBLIE": t('courses.list.status_published'),
+            "PUBLISHED": t('courses.list.status_published'),
+            "BROUILLON": t('courses.list.status_draft'),
+            "DRAFT": t('courses.list.status_draft'),
+            "IN_REVIEW": t('courses.list.status_review'),
+          }
+          const statusText = statusMap[row.original.status] || row.original.status
+          return <StatusBadge status={statusText} />
+        },
       },
       {
         id: "actions",
-        header: "Actions",
+        header: t('courses.list.header_actions'),
         cell: ({ row }) => {
           const course = row.original
           return (
             <ActionMenu
               actions={[
                 {
-                  label: "Voir détails",
+                  label: t('courses.list.action_view'),
                   icon: <Eye className="h-4 w-4" />,
                   onClick: () => viewModal.open(course),
                 },
                 {
-                  label: "Modifier",
+                  label: t('courses.list.action_edit'),
                   icon: <Edit className="h-4 w-4" />,
                   onClick: () => editModal.open(course),
                 },
                 {
-                  label: course.activate ? 'Stopper' : 'Activer', // Use activate property for label
+                  label: course.activate ? t('courses.list.action_deactivate') : t('courses.list.action_activate'),
                   icon: <Power className="h-4 w-4" />,
                   onClick: () => handleToggleActivate(course),
                   variant: course.activate ? 'destructive' : 'default',
                 },
                 {
-                  label: "Supprimer",
+                  label: t('courses.list.action_delete'),
                   icon: <Trash2 className="h-4 w-4" />,
                   onClick: () => deleteModal.open(course),
                   variant: "destructive",
@@ -302,16 +510,16 @@ export function CoursesList() {
         },
       },
     ],
-    [viewModal, editModal, deleteModal, handleToggleActivate]
+    [viewModal, editModal, deleteModal, handleToggleActivate, t]
   )
 
   console.log("CoursesList render - loading:", loading, "filteredData:", filteredData); // Debug log
   return (
     <>
       <PageHeader
-        title="Formations"
+        title={t('courses.title')}
         action={{
-          label: "Ajouter une formation",
+          label: t('courses.addCourse'),
           onClick: () => addModal.open(),
         }}
       />
@@ -320,7 +528,7 @@ export function CoursesList() {
         <CardContent>
           <div className="mb-4 flex items-center gap-2"> {/* Added flex container */}
             <SearchBar
-              placeholder="Rechercher une formation..."
+              placeholder={t('courses.search_placeholder')}
               value={searchQuery}
               onChange={setSearchQuery}
             />
@@ -328,14 +536,14 @@ export function CoursesList() {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="flex-shrink-0"> {/* flex-shrink-0 to prevent button from shrinking */}
                   <ListFilter className="mr-2 h-4 w-4" />
-                  {selectedCategory ? categories.find(cat => cat.id === selectedCategory)?.title : "Toutes les catégories"}
+                  {selectedCategory ? categories.find(cat => cat.id === selectedCategory)?.title : t('courses.filter_all_categories')}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Filtrer par catégorie</DropdownMenuLabel>
+                <DropdownMenuLabel>{t('courses.filter_by_category')}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setSelectedCategory(null)}>
-                  Toutes les catégories
+                  {t('courses.filter_all_categories')}
                 </DropdownMenuItem>
                 {categories.map((category) => (
                   <DropdownMenuItem key={category.id} onClick={() => setSelectedCategory(category.id)}>
@@ -362,11 +570,11 @@ export function CoursesList() {
         <CourseFormModal
           open={editModal.isOpen}
           onOpenChange={(open) => !open && editModal.close()}
-          title="Modifier la formation"
-          description="Modifiez les informations de la formation"
+          title={t('courses.editCourse')}
+          description={t('courses.edit_description')}
           defaultValues={editModal.selectedItem}
           onSubmit={handleUpdateCourse}
-          submitLabel="Enregistrer les modifications"
+          submitLabel={t('common.save')}
           categories={categories}
         />
       )}
@@ -383,9 +591,9 @@ export function CoursesList() {
         open={deleteModal.isOpen}
         onOpenChange={(open) => !open && deleteModal.close()}
         onConfirm={handleDeleteCourse}
-        title="Supprimer la formation"
-        description={`Êtes-vous sûr de vouloir supprimer ${deleteModal.selectedItem?.title} ? Cette action est irréversible.`}
-        confirmText="Supprimer"
+        title={t('courses.deleteCourse')}
+        description={t('courses.delete_description').replace('{{name}}', deleteModal.selectedItem?.title || '')}
+        confirmText={t('common.delete')}
         variant="destructive"
       />
     </>

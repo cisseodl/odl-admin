@@ -1,5 +1,8 @@
+"use client"
+
 // app/admin/settings/page.tsx
 import { Suspense } from "react";
+import { useLanguage } from "@/contexts/language-context"
 import { PageLoader } from "@/components/ui/page-loader";
 import { PageHeader } from "@/components/ui/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,11 +11,12 @@ import { SiteConfigurationForm } from "@/components/admin/settings/site-configur
 import { List, Settings } from "lucide-react";
 
 export default function SettingsPage() {
+  const { t } = useLanguage()
   return (
     <>
       <PageHeader
-        title="Paramètres du Site"
-        description="Gérez la configuration générale et les rubriques de contenu de la plateforme."
+        title={t('settings.site.title')}
+        description={t('settings.site.description')}
       />
 
       <Suspense fallback={<PageLoader />}>
@@ -24,14 +28,14 @@ export default function SettingsPage() {
                 className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
               >
                 <Settings className="h-4 w-4 mr-2" />
-                Configuration Générale
+                {t('settings.site.tab_general')}
               </TabsTrigger>
               <TabsTrigger
                 value="rubriques"
                 className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
               >
                 <List className="h-4 w-4 mr-2" />
-                Gestion des Rubriques
+                {t('settings.site.tab_rubriques')}
               </TabsTrigger>
             </TabsList>
 
