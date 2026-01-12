@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { UserPlus, CheckCircle2, Star, Award, Clock, XCircle, BookOpen, FileText as FileTextIcon } from "lucide-react" // Ajout de BookOpen et FileTextIcon
 import { useEffect, useState } from "react";
 import { analyticsService, InstructorActivityDataPoint } from "@/services/analytics.service"; // Import analyticsService et InstructorActivityDataPoint
+import { useLanguage } from "@/contexts/language-context"
 import { PageLoader } from "@/components/ui/page-loader";
 
 interface InstructorRecentActivityProps {
@@ -23,55 +24,73 @@ type ActivityDisplay = {
   type: string; // activityType from API
   icon: any;
   iconColor: string;
+  badgeText?: string;
 }
 
-const formatTimeAgo = (timestamp: string): string => {
+const formatTimeAgo = (timestamp: string, t: (key: string, params?: any) => string): string => {
   const now = new Date();
   const date = new Date(timestamp);
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-  if (seconds < 60) return `${seconds} seconde${seconds > 1 ? "s" : ""} ago`;
+  if (seconds < 60) {
+    const timeStr = t(`instructor.activity.time.seconds${seconds > 1 ? '_plural' : ''}`, { count: seconds });
+    return t('instructor.activity.time.ago', { time: timeStr });
+  }
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+  if (minutes < 60) {
+    const timeStr = t(`instructor.activity.time.minutes${minutes > 1 ? '_plural' : ''}`, { count: minutes });
+    return t('instructor.activity.time.ago', { time: timeStr });
+  }
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} heure${hours > 1 ? "s" : ""} ago`;
+  if (hours < 24) {
+    const timeStr = t(`instructor.activity.time.hours${hours > 1 ? '_plural' : ''}`, { count: hours });
+    return t('instructor.activity.time.ago', { time: timeStr });
+  }
   const days = Math.floor(hours / 24);
-  return `${days} jour${days > 1 ? "s" : ""} ago`;
+  const timeStr = t(`instructor.activity.time.days${days > 1 ? '_plural' : ''}`, { count: days });
+  return t('instructor.activity.time.ago', { time: timeStr });
 };
 
-const mapInstructorActivityToActivityDisplay = (activity: InstructorActivityDataPoint, index: number): ActivityDisplay => {
+const mapInstructorActivityToActivityDisplay = (activity: InstructorActivityDataPoint, index: number, t: (key: string, params?: any) => string): ActivityDisplay => {
   let actionText: string = "";
   let icon: any = Clock;
   let iconColor: string = "text-muted-foreground";
+  let badgeText: string = "";
 
   switch (activity.activityType) {
     case "COURSE_CREATED":
-      actionText = "a créé la formation";
+      actionText = t('instructor.activity.actions.course_created');
+      badgeText = t('instructor.activity.badges.course_created');
       icon = BookOpen;
       iconColor = "text-[hsl(var(--info))]";
       break;
     case "COURSE_UPDATED":
-      actionText = "a mis à jour la formation";
+      actionText = t('instructor.activity.actions.course_updated');
+      badgeText = t('instructor.activity.badges.course_updated');
       icon = BookOpen;
       iconColor = "text-[hsl(var(--warning))]";
       break;
     case "QUIZ_PUBLISHED":
-      actionText = "a publié un quiz pour";
+      actionText = t('instructor.activity.actions.quiz_published');
+      badgeText = t('instructor.activity.badges.quiz_published');
       icon = FileTextIcon;
       iconColor = "text-[hsl(var(--info))]";
       break;
     case "REVIEW_RESPONDED":
-      actionText = "a répondu à un avis sur";
+      actionText = t('instructor.activity.actions.review_responded');
+      badgeText = t('instructor.activity.badges.review_responded');
       icon = Star;
       iconColor = "text-[hsl(var(--success))]";
       break;
     case "CERTIFICATE_ISSUED":
-      actionText = "a délivré un certificat pour";
+      actionText = t('instructor.activity.actions.certificate_issued');
+      badgeText = t('instructor.activity.badges.certificate_issued');
       icon = Award;
       iconColor = "text-[hsl(var(--success))]";
       break;
     default:
-      actionText = `a effectué l'action ${activity.activityType} sur`;
+      actionText = t('instructor.activity.actions.unknown', { type: activity.activityType });
+      badgeText = activity.activityType;
       break;
   }
 
@@ -81,14 +100,16 @@ const mapInstructorActivityToActivityDisplay = (activity: InstructorActivityData
     avatar: "/placeholder-user.jpg", // Placeholder or fetch instructor's avatar
     actionText: actionText,
     resourceDisplay: activity.courseTitle || `Cours #${activity.courseId}`,
-    time: formatTimeAgo(activity.timestamp),
+    time: formatTimeAgo(activity.timestamp, t),
     type: activity.activityType,
     icon: icon,
     iconColor: iconColor,
+    badgeText: badgeText,
   };
 };
 
 export function InstructorRecentActivity({ instructorId, limit = 4 }: InstructorRecentActivityProps) {
+  const { t } = useLanguage()
   const [activities, setActivities] = useState<ActivityDisplay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -99,7 +120,7 @@ export function InstructorRecentActivity({ instructorId, limit = 4 }: Instructor
       setError(null);
       try {
         const fetchedActivities = await analyticsService.getInstructorActivity(instructorId, limit);
-        const mappedActivities = fetchedActivities.map((activity, index) => mapInstructorActivityToActivityDisplay(activity, index));
+        const mappedActivities = fetchedActivities.map((activity, index) => mapInstructorActivityToActivityDisplay(activity, index, t));
         setActivities(mappedActivities);
       } catch (err: any) {
         setError(err.message || "Failed to fetch recent activity.");
@@ -109,7 +130,7 @@ export function InstructorRecentActivity({ instructorId, limit = 4 }: Instructor
       }
     };
     fetchRecentActivity();
-  }, [instructorId, limit]);
+  }, [instructorId, limit, t]);
 
   if (loading) {
     return <PageLoader />;
@@ -122,12 +143,12 @@ export function InstructorRecentActivity({ instructorId, limit = 4 }: Instructor
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Votre Activité Récente</CardTitle>
-        <CardDescription>Vos dernières actions sur la plateforme</CardDescription>
+        <CardTitle>{t('instructor.activity.title')}</CardTitle>
+        <CardDescription>{t('instructor.activity.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         {activities.length === 0 ? (
-          <div className="text-center text-muted-foreground p-4">Aucune activité récente.</div>
+          <div className="text-center text-muted-foreground p-4">{t('instructor.activity.no_activity')}</div>
         ) : (
           <div className="space-y-4">
             {activities.map((activity) => {
@@ -161,13 +182,7 @@ export function InstructorRecentActivity({ instructorId, limit = 4 }: Instructor
                     className="flex items-center gap-1"
                   >
                     <IconComponent className="h-3 w-3" />
-                    {activity.type === "COURSE_CREATED" && "Création Cours"}
-                    {activity.type === "COURSE_UPDATED" && "Mise à jour Cours"}
-                    {activity.type === "QUIZ_PUBLISHED" && "Quiz Publié"}
-                    {activity.type === "REVIEW_RESPONDED" && "Avis Répondu"}
-                    {activity.type === "CERTIFICATE_ISSUED" && "Certificat Délivré"}
-                    {/* Default case if type is not matched */}
-                    {!["COURSE_CREATED", "COURSE_UPDATED", "QUIZ_PUBLISHED", "REVIEW_RESPONDED", "CERTIFICATE_ISSUED"].includes(activity.type) && activity.type}
+                    {activity.badgeText || activity.type}
                   </Badge>
                 </div>
               )

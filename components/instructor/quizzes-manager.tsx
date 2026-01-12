@@ -54,13 +54,12 @@ export function QuizzesManager() {
       setError(null);
       try {
         // 1. Fetch courses
-        const courseResponse = await courseService.getCoursesByInstructorId(Number(user.id));
-        let instructorCourses: Course[] = [];
-        if (courseResponse && Array.isArray(courseResponse.data)) {
-          instructorCourses = courseResponse.data;
+        const instructorCourses = await courseService.getCoursesByInstructorId(Number(user.id));
+        // Le service retourne déjà un tableau Course[]
+        if (Array.isArray(instructorCourses)) {
           setCourses(instructorCourses);
         } else {
-          console.error("Unexpected courses response structure:", courseResponse);
+          console.error("Unexpected courses response structure:", instructorCourses);
           setCourses([]);
         }
 
@@ -278,7 +277,7 @@ export function QuizzesManager() {
           {loading ? ( // Use loading for overall loading state here
             <PageLoader />
           ) : error ? (
-            <div className="text-center text-destructive p-4">{errorCourses}</div>
+            <div className="text-center text-destructive p-4">{error}</div>
           ) : (
             <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
           )}

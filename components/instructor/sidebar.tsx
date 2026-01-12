@@ -8,9 +8,11 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { instructorRoutes } from "@/constants/routes"
+import { useLanguage } from "@/contexts/language-context"
 import Image from "next/image"
 
 export function InstructorSidebar() {
+  const { t } = useLanguage()
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
 
@@ -69,7 +71,7 @@ export function InstructorSidebar() {
                     )}
                   >
                     <route.icon className="h-4 w-4 shrink-0" />
-                    <span>{route.label}</span>
+                    <span>{route.label.startsWith('routes.') || route.label.startsWith('instructor.') ? t(route.label) : route.label}</span>
                   </Link>
                 )
               })}

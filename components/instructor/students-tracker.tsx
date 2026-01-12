@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
+import { useLanguage } from "@/contexts/language-context"
 import { PageHeader } from "@/components/ui/page-header"
 import { SearchBar } from "@/components/ui/search-bar"
 import { DataTable } from "@/components/ui/data-table"
@@ -13,7 +14,7 @@ import { User, Mail, BookOpen, TrendingUp, Calendar } from "lucide-react"
 
 import { useAuth } from "@/contexts/auth-context"; // Import useAuth
 import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
-import { apprenantService, courseService } from "@/services"; // Import services
+import { apprenantService, courseService, detailsCourseService } from "@/services"; // Import services
 import { Apprenant } from "@/models/apprenant.model"; // Import Apprenant model
 import { Course } from "@/models/course.model"; // Import Course model
 
@@ -31,28 +32,10 @@ type Student = {
   avatar?: string
 }
 
-// Helper function to map Apprenant and Course data to StudentDisplay
-const mapApprenantToStudent = (apprenant: Apprenant, courses: Course[]): Student => {
-  // This is a simplified mapping. In a real app, you'd have specific API endpoints
-  // for learner progress on courses by a specific instructor.
-  const course = courses[Math.floor(Math.random() * courses.length)]; // Simulate assigning a random course from instructor's courses
-  
-  return {
-    id: apprenant.id || 0,
-    name: `${apprenant.prenom || ''} ${apprenant.nom || ''}`.trim(),
-    email: apprenant.email || "",
-    course: course?.title || "N/A", // Use course title if available
-    progress: Math.floor(Math.random() * 100), // Placeholder
-    score: Math.floor(Math.random() * (100 - 60 + 1) + 60), // Placeholder
-    completedModules: Math.floor(Math.random() * 5), // Placeholder
-    totalModules: 5, // Placeholder
-    lastActivity: new Date(apprenant.updatedAt || apprenant.createdAt || Date.now()).toLocaleDateString("fr-FR", { year: 'numeric', month: 'short', day: 'numeric' }),
-    avatar: undefined, // Apprenant model does not have avatar directly
-  };
-};
 
 
 export function StudentsTracker() {
+  const { t } = useLanguage()
   const { user, isLoading: authLoading } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,16 +51,106 @@ export function StudentsTracker() {
       setLoading(true);
       setError(null);
       try {
-        // Fetch all apprenants (temporarily, as no instructor-specific endpoint)
-        const allApprenants = await apprenantService.getAllApprenants();
-        // Fetch courses for the current instructor
+        // Récupérer les cours de l'instructeur
         const instructorCourses = await courseService.getCoursesByInstructorId(Number(user.id));
-
-        // Filter apprenants who are somehow linked to instructorCourses (simplified for now)
-        // In a real scenario, this would involve backend logic or a more complex filtering/matching
-        const relevantStudents = allApprenants.map(apprenant => mapApprenantToStudent(apprenant, instructorCourses));
         
-        setStudents(relevantStudents);
+        if (!instructorCourses || instructorCourses.length === 0) {
+          setStudents([]);
+          setLoading(false);
+          return;
+        }
+
+        // Récupérer les détails de cours (inscriptions) pour les cours de l'instructeur
+        const courseIds = instructorCourses.map((c: any) => c.id);
+        const allDetailsCourses: any[] = [];
+        
+        // Récupérer les détails pour chaque cours
+        for (const courseId of courseIds) {
+          try {
+            const details = await detailsCourseService.getDetailsByCourseId(courseId);
+            if (Array.isArray(details)) {
+              allDetailsCourses.push(...details);
+            } else if (details?.data && Array.isArray(details.data)) {
+              allDetailsCourses.push(...details.data);
+            }
+          } catch (err) {
+            console.warn(`Failed to fetch details for course ${courseId}:`, err);
+          }
+        }
+
+        // Récupérer les apprenants uniques qui sont inscrits aux cours de l'instructeur
+        const learnerIds = [...new Set(allDetailsCourses.map(dc => dc.learnerId).filter(Boolean))];
+        
+        if (learnerIds.length === 0) {
+          setStudents([]);
+          setLoading(false);
+          return;
+        }
+
+        // Récupérer les apprenants
+        const allApprenants = await apprenantService.getAllApprenants();
+        const relevantApprenants = allApprenants.filter((a: Apprenant) => 
+          learnerIds.includes(a.id)
+        );
+
+        // Mapper les apprenants avec leurs données de progression réelles
+        // Pour chaque apprenant, trouver son cours et calculer sa progression
+        const mappedStudents: Student[] = [];
+        
+        for (const apprenant of relevantApprenants) {
+          // Trouver les détails de cours pour cet apprenant
+          const apprenantDetailsCourses = allDetailsCourses.filter(dc => 
+            dc.learnerId === apprenant.id
+          );
+          
+          // Pour chaque inscription de l'apprenant à un cours de l'instructeur
+          for (const detail of apprenantDetailsCourses) {
+            const course = instructorCourses.find((c: any) => c.id === detail.courseId);
+            if (!course) continue;
+            
+            // Récupérer le cours complet avec modules pour calculer la progression
+            try {
+              const fullCourse = await courseService.getCourseById(course.id);
+              const totalModules = fullCourse.modules?.length || fullCourse.curriculum?.length || 0;
+              
+              // Pour l'instant, on ne peut pas calculer la progression réelle sans endpoint dédié
+              // On utilise 0 pour la progression et les modules complétés
+              // TODO: Implémenter un endpoint backend pour récupérer la progression réelle
+              const student: Student = {
+                id: apprenant.id || 0,
+                name: `${apprenant.prenom || ''} ${apprenant.nom || ''}`.trim(),
+                email: apprenant.email || "",
+                course: fullCourse.title || course.title || "N/A",
+                progress: 0, // Progression réelle à calculer depuis l'API
+                score: 0, // Score réel à récupérer depuis l'API
+                completedModules: 0, // Modules complétés à récupérer depuis l'API
+                totalModules: totalModules,
+                lastActivity: new Date(apprenant.updatedAt || apprenant.createdAt || Date.now()).toLocaleDateString("fr-FR", { year: 'numeric', month: 'short', day: 'numeric' }),
+                avatar: undefined,
+              };
+              
+              mappedStudents.push(student);
+            } catch (err) {
+              console.warn(`Failed to fetch full course ${course.id} for student ${apprenant.id}:`, err);
+              // Ajouter quand même l'étudiant avec des données partielles
+              const student: Student = {
+                id: apprenant.id || 0,
+                name: `${apprenant.prenom || ''} ${apprenant.nom || ''}`.trim(),
+                email: apprenant.email || "",
+                course: course.title || "N/A",
+                progress: 0,
+                score: 0,
+                completedModules: 0,
+                totalModules: 0,
+                lastActivity: new Date(apprenant.updatedAt || apprenant.createdAt || Date.now()).toLocaleDateString("fr-FR", { year: 'numeric', month: 'short', day: 'numeric' }),
+                avatar: undefined,
+              };
+              mappedStudents.push(student);
+            }
+          }
+        }
+        
+        setStudents(mappedStudents);
 
       } catch (err: any) {
         setError(err.message || "Failed to fetch students data.");
@@ -98,7 +171,7 @@ export function StudentsTracker() {
     () => [
       {
         accessorKey: "name",
-        header: "Apprenant",
+        header: t('instructor.students.table.header_learner'),
         cell: ({ row }) => {
           const student = row.original
           return (
@@ -123,7 +196,7 @@ export function StudentsTracker() {
       },
       {
         accessorKey: "course",
-        header: "Formation",
+        header: t('instructor.students.table.header_course'),
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -133,13 +206,16 @@ export function StudentsTracker() {
       },
       {
         accessorKey: "progress",
-        header: "Progression",
+        header: t('instructor.students.table.header_progress'),
         cell: ({ row }) => (
           <div className="space-y-1">
             <div className="flex items-center justify-between text-sm">
               <span>{row.original.progress}%</span>
               <span className="text-muted-foreground">
-                {row.original.completedModules}/{row.original.totalModules} modules
+                {t('instructor.students.table.modules_completed', { 
+                  completed: row.original.completedModules, 
+                  total: row.original.totalModules 
+                })}
               </span>
             </div>
             <Progress value={row.original.progress} className="h-2" />
@@ -148,7 +224,7 @@ export function StudentsTracker() {
       },
       {
         accessorKey: "score",
-        header: "Score",
+        header: t('instructor.students.table.header_score'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -158,7 +234,7 @@ export function StudentsTracker() {
       },
       {
         accessorKey: "lastActivity",
-        header: "Dernière activité",
+        header: t('instructor.students.table.header_last_activity'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1 text-sm">
             <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
@@ -167,13 +243,14 @@ export function StudentsTracker() {
         ),
       },
     ],
-    []
+    [t]
   )
 
   return (
     <>
       <PageHeader
-        title="Mes Apprenants"
+        title={t('instructor.students.title')}
+        description={t('instructor.students.description')}
       />
 
       <Card className="mt-6">
@@ -186,13 +263,13 @@ export function StudentsTracker() {
             <>
               <div className="mb-4">
                 <SearchBar
-                  placeholder="Rechercher un apprenant..."
+                  placeholder={t('instructor.students.search_placeholder')}
                   value={searchQuery}
                   onChange={setSearchQuery}
                 />
               </div>
               {students.length === 0 ? (
-                <div className="text-center text-muted-foreground p-4">Aucun apprenant trouvé.</div>
+                <div className="text-center text-muted-foreground p-4">{t('instructor.students.table.no_students')}</div>
               ) : (
                 <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
               )}

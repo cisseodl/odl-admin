@@ -27,6 +27,18 @@ export class DetailsCourseService {
   async deleteDetailsCourse(id: number): Promise<void> {
     console.log(`Deleting detailsCourse with ID: ${id}`);
   }
+
+  async getDetailsByCourseId(courseId: number): Promise<any> {
+    try {
+      const response = await fetchApi<any>(`/details-course/course/${courseId}`, {
+        method: "GET",
+      });
+      return response.data || response || [];
+    } catch (error) {
+      console.error(`Error fetching details for course ${courseId}:`, error);
+      return [];
+    }
+  }
 }
 
 export const detailsCourseService = new DetailsCourseService();

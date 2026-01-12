@@ -27,6 +27,7 @@ import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
 import { courseService, categorieService } from "@/services"; // Import courseService and categorieService
 import { useModal } from "@/hooks/use-modal";
 import { CourseFormModal, CourseFormData } from "@/components/shared/course-form-modal";
+import { ViewCourseModal } from "@/components/admin/modals/view-course-modal";
 import { Categorie } from "@/models";
 
 type Course = {
@@ -49,6 +50,7 @@ export function CoursesManager() {
   const [loading, setLoading] = useState(true); // Nouveau state
   const [error, setError] = useState<string | null>(null); // Nouveau state
   const addCourseModal = useModal();
+  const viewCourseModal = useModal<Course>();
 
   const fetchCourses = async () => {
     if (authLoading || !user) {
@@ -201,13 +203,34 @@ export function CoursesManager() {
         header: t('common.actions'),
         cell: ({ row }) => {
           const course = row.original;
+          // Convertir le Course local en Course du modèle pour la modal
+          const courseForModal: any = {
+            id: course.id,
+            title: course.title,
+            subtitle: "",
+            description: "",
+            imagePath: "",
+            duration: 0,
+            level: "",
+            language: "",
+            bestseller: false,
+            objectives: [],
+            features: [],
+            modules: [],
+            status: course.status === "Publié" ? "PUBLISHED" : course.status === "Brouillon" ? "DRAFT" : "IN_REVIEW",
+            price: 0,
+            categorie: null,
+            instructor: null,
+            students: course.students,
+            rating: course.rating,
+          };
           return (
             <ActionMenu
               actions={[
                 {
                   label: t('common.view'),
                   icon: <Eye className="h-4 w-4" />,
-                  onClick: () => console.log("View", course),
+                  onClick: () => viewCourseModal.open(courseForModal),
                 },
               ]}
             />
@@ -215,7 +238,7 @@ export function CoursesManager() {
         },
       },
     ],
-    [t]
+    [t, viewCourseModal]
   );
 
   return (
@@ -242,27 +265,25 @@ export function CoursesManager() {
                   value="all"
                   className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
                 >
-                  Toutes ({courses.length})
+                  {t('courses.tabs.all')} ({courses.length})
                 </TabsTrigger>
                 <TabsTrigger
                   value="published"
                   className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
                 >
-                  Publiées ({courses.filter((c) => c.status === "Publié").length})
+                  {t('courses.tabs.published')} ({courses.filter((c) => c.status === "Publié").length})
                 </TabsTrigger>
                 <TabsTrigger
                   value="draft"
                   className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
                 >
-                  Brouillons (
-                  {courses.filter((c) => c.status === "Brouillon").length})
+                  {t('courses.tabs.draft')} ({courses.filter((c) => c.status === "Brouillon").length})
                 </TabsTrigger>
                 <TabsTrigger
                   value="review"
                   className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
                 >
-                  En révision (
-                  {courses.filter((c) => c.status === "En révision").length})
+                  {t('courses.tabs.review')} ({courses.filter((c) => c.status === "En révision").length})
                 </TabsTrigger>
               </TabsList>
 
@@ -332,12 +353,20 @@ export function CoursesManager() {
       <CourseFormModal
         open={addCourseModal.isOpen}
         onOpenChange={addCourseModal.close}
-        title="Créer une formation"
-        description="Remplissez les informations de base de votre nouvelle formation."
+        title={t('courses.actions.create')}
+        description={t('courses.create_description')}
         onSubmit={handleAddCourse}
-        submitLabel="Créer la formation"
+        submitLabel={t('courses.actions.create')}
         categories={categories}
       />
+      
+      {viewCourseModal.selectedItem && (
+        <ViewCourseModal
+          open={viewCourseModal.isOpen}
+          onOpenChange={(open) => !open && viewCourseModal.close()}
+          course={viewCourseModal.selectedItem}
+        />
+      )}
     </>
   );
 }

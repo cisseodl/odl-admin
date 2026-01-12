@@ -29,8 +29,10 @@ export function ViewCourseModal({ open, onOpenChange, course }: ViewCourseModalP
         setLoadingModules(true);
         setErrorModules(null);
         try {
-          const fetchedModules = await moduleService.getModulesByCourseId(course.id);
-          setModules(fetchedModules);
+          const fetchedModules = await moduleService.getModulesByCourse(course.id);
+          // Le backend peut retourner un tableau directement ou dans un objet data
+          const modulesData = Array.isArray(fetchedModules) ? fetchedModules : (fetchedModules?.data || []);
+          setModules(modulesData);
         } catch (err: any) {
           setErrorModules(err.message || "Failed to fetch modules.");
           console.error("Error fetching modules:", err);

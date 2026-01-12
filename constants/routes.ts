@@ -123,47 +123,47 @@ export const adminRoutes: Route[] = [
 
 export const instructorRoutes: Route[] = [
   {
-    label: "Tableau de bord",
+    label: "routes.dashboard",
     icon: LayoutDashboard,
     href: "/instructor",
   },
   {
-    label: "Statistiques",
+    label: "routes.analytics",
     icon: BarChart3,
     href: "/instructor/analytics",
   },
   {
-    label: "Mes Formations",
+    label: "instructor.courses.title",
     icon: BookOpen,
     href: "/instructor/courses",
   },
   {
-    label: "Contenus",
+    label: "instructor.content.title",
     icon: Upload,
     href: "/instructor/content",
   },
   {
-    label: "Validation", // Nouvelle entrée pour la modération
+    label: "instructor.moderation.title",
     icon: Shield,
     href: "/instructor/moderation",
   },
   {
-    label: "Quiz & Exercices",
+    label: "instructor.quizzes.title",
     icon: FileQuestion,
     href: "/instructor/quizzes",
   },
   {
-    label: "Mes Apprenants",
+    label: "instructor.students.title",
     icon: Users,
     href: "/instructor/students",
   },
   {
-    label: "Certificats",
+    label: "instructor.certificates.title",
     icon: Award,
     href: "/instructor/certificates",
   },
   {
-    label: "Paramètres",
+    label: "routes.settings",
     icon: Settings,
     href: "/instructor/settings",
   },

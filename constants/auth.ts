@@ -17,6 +17,8 @@ export const DEMO_USERS: Array<User & { password: string }> = [
 
 export const STORAGE_KEYS = {
   USER: "user",
+  USER_INFO: "userInfo", // Clé pour les informations utilisateur simplifiées
   TOKEN: "token",
+  AUTH_TOKEN: "token", // Alias pour compatibilité avec lib/auth.ts
 } as const
 

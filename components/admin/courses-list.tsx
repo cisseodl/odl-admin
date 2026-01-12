@@ -442,12 +442,26 @@ export function CoursesList() {
       {
         accessorKey: "duration",
         header: t('courses.list.header_duration'),
-        cell: ({ row }) => (
-          <div className="flex items-center gap-1">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            {row.original.duration ? convertSecondsToDurationString(row.original.duration) : t('courses.list.duration_zero')}
-          </div>
-        ),
+        cell: ({ row }) => {
+          const course = row.original;
+          // Le backend retourne duration comme string (ex: "23h 45min") ou comme number (en secondes)
+          let durationDisplay: string;
+          if (typeof course.duration === 'string') {
+            // Si c'est déjà une string, l'utiliser directement
+            durationDisplay = course.duration || t('courses.list.duration_zero');
+          } else if (typeof course.duration === 'number') {
+            // Si c'est un nombre (en secondes), le convertir
+            durationDisplay = course.duration > 0 ? convertSecondsToDurationString(course.duration) : t('courses.list.duration_zero');
+          } else {
+            durationDisplay = t('courses.list.duration_zero');
+          }
+          return (
+            <div className="flex items-center gap-1">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              {durationDisplay}
+            </div>
+          );
+        },
       },
       {
         accessorKey: "rating", // This still needs to be populated from backend

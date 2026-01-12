@@ -1,5 +1,6 @@
 "use client"
 
+import { useLanguage } from "@/contexts/language-context"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Cell } from "recharts"
 import { BookOpen } from "lucide-react"
@@ -17,6 +18,7 @@ const COLORS = [
 ]
 
 export function CoursePerformanceChart() {
+  const { t } = useLanguage()
   const { user } = useAuth()
   const [data, setData] = useState<Array<{ course: string; students: number; label: string }>>([])
   const [loading, setLoading] = useState(true)
@@ -37,11 +39,14 @@ export function CoursePerformanceChart() {
         )
         
         const courseData = response.data || []
-        const mappedData = courseData.map((item: any) => ({
-          course: item.courseTitle || `Cours ${item.courseId}`,
-          students: item.studentsCount || 0,
-          label: (item.courseTitle || `Cours ${item.courseId}`).substring(0, 10),
-        }))
+        // Filtrer uniquement les cours qui ont des étudiants inscrits (studentsCount > 0)
+        const mappedData = courseData
+          .filter((item: any) => (item.studentsCount || 0) > 0)
+          .map((item: any) => ({
+            course: item.courseTitle || `Cours ${item.courseId}`,
+            students: item.studentsCount || 0,
+            label: (item.courseTitle || `Cours ${item.courseId}`).substring(0, 10),
+          }))
         
         setData(mappedData)
       } catch (err) {
@@ -62,7 +67,7 @@ export function CoursePerformanceChart() {
   if (data.length === 0) {
     return (
       <div className="text-center text-muted-foreground p-4">
-        Aucune donnée de performance disponible pour vos formations.
+        {t('instructor.analytics.performance.no_data')}
       </div>
     )
   }
@@ -72,7 +77,7 @@ export function CoursePerformanceChart() {
       <ChartContainer
         config={{
           students: {
-            label: "Étudiants",
+            label: t('instructor.analytics.performance.students_label'),
             color: "hsl(var(--chart-1))",
           },
         }}
@@ -109,7 +114,7 @@ export function CoursePerformanceChart() {
                         <p className="font-semibold">{payload[0].payload.course}</p>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        <span className="font-medium text-foreground">{payload[0].value}</span> apprenants
+                        <span className="font-medium text-foreground">{payload[0].value}</span> {t('instructor.analytics.performance.learners')}
                       </p>
                     </div>
                   )
@@ -143,7 +148,7 @@ export function CoursePerformanceChart() {
             />
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium truncate">{item.label}</p>
-              <p className="text-xs text-muted-foreground">{item.students} apprenants</p>
+              <p className="text-xs text-muted-foreground">{item.students} {t('instructor.analytics.performance.learners')}</p>
             </div>
           </div>
         ))}

@@ -659,7 +659,7 @@
       }
     },
     "courses": {
-      "title": "My Courses Management",
+      "title": "My Courses",
       "description": "Create and manage your courses, modules, chapters and videos"
     },
     "quizzes": {
@@ -668,11 +668,28 @@
     },
     "students": {
       "title": "My Learners",
-      "description": "Track the progress and scores of your learners"
+      "description": "Track the progress and scores of your learners",
+      "search_placeholder": "Search for a learner...",
+      "table": {
+        "header_learner": "Learner",
+        "header_course": "Course",
+        "header_progress": "Progress",
+        "header_score": "Score",
+        "header_last_activity": "Last Activity",
+        "modules_completed": "{{completed}}/{{total}} modules",
+        "no_students": "No learners found."
+      }
     },
     "analytics": {
       "title": "Performance Statistics",
-      "description": "Analyze the performance of your courses and learners"
+      "description": "Analyze the performance of your courses and learners",
+      "performance": {
+        "title": "Course Performance",
+        "description": "Detailed analysis of your courses",
+        "no_data": "No performance data available for your courses.",
+        "students_label": "Students",
+        "learners": "learners"
+      }
     },
     "certificates": {
       "title": "Certificate Management",
@@ -683,12 +700,43 @@
       "description": "Configure your instructor settings"
     },
     "content": {
-      "title": "Content Management",
+      "title": "Content",
       "description": "Upload and organize your educational content"
     },
     "moderation": {
-      "title": "Course Validation",
+      "title": "Validation",
       "description": "Validate, reject or modify your courses pending validation"
+    },
+    "activity": {
+      "title": "Your Recent Activity",
+      "description": "Your latest actions on the platform",
+      "no_activity": "No recent activity.",
+      "actions": {
+        "course_created": "created the course",
+        "course_updated": "updated the course",
+        "quiz_published": "published a quiz for",
+        "review_responded": "responded to a review on",
+        "certificate_issued": "issued a certificate for",
+        "unknown": "performed an action on"
+      },
+      "badges": {
+        "course_created": "Course Created",
+        "course_updated": "Course Updated",
+        "quiz_published": "Quiz Published",
+        "review_responded": "Review Responded",
+        "certificate_issued": "Certificate Issued"
+      },
+      "time": {
+        "seconds": "{{count}} second",
+        "seconds_plural": "{{count}} seconds",
+        "minutes": "{{count}} minute",
+        "minutes_plural": "{{count}} minutes",
+        "hours": "{{count}} hour",
+        "hours_plural": "{{count}} hours",
+        "days": "{{count}} day",
+        "days_plural": "{{count}} days",
+        "ago": "{{time}} ago"
+      }
     }
   },
   "moderation": {

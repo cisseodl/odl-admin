@@ -14,7 +14,9 @@ export class FileUploadService {
     formData.append("file", file);
     formData.append("folderName", folderName);
 
-    const token = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEYS.TOKEN) : null;
+    // Essayer d'abord AUTH_TOKEN (utilisé par lib/auth.ts), puis TOKEN pour compatibilité
+    const token = typeof window !== "undefined" ? 
+      (localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN) || localStorage.getItem(STORAGE_KEYS.TOKEN)) : null;
 
     // Le backend retourne directement l'URL en String dans ResponseEntity.ok(url)
     const response = await fetch(`${FULL_API_URL}/api/files/upload`, {
