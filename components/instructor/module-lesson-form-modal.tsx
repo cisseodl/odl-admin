@@ -35,6 +35,7 @@ export enum LessonType {
   VIDEO = "VIDEO",
   QUIZ = "QUIZ",
   DOCUMENT = "DOCUMENT",
+  LAB = "LAB", // Ajout du type LAB conforme au backend
 }
 
 const lessonSchema = z.object({
@@ -42,13 +43,14 @@ const lessonSchema = z.object({
   lessonOrder: z.number({ required_error: "L'ordre de la leçon est requis." }).min(1, "L'ordre de la leçon doit être au moins 1."),
   type: z.nativeEnum(LessonType, { required_error: "Le type de leçon est requis." }),
   contentUrl: z.string().optional(),
-  duration: z.number().optional(), // in seconds
-  quizId: z.number().optional(), // For QUIZ type lessons
+  duration: z.number().optional(), // en minutes (conforme au DTO backend LessonCreationRequest)
+  quizId: z.number().optional(), // For QUIZ type lessons (non utilisé dans le DTO backend)
 });
 
 const moduleFormSchema = z.object({
   courseId: z.number({ required_error: "Veuillez sélectionner un cours." }),
   title: z.string().min(2, "Le titre du module doit contenir au moins 2 caractères."),
+  description: z.string().optional(), // Conforme au DTO backend ModuleCreationRequest
   moduleOrder: z.number({ required_error: "L'ordre du module est requis." }).min(1, "L'ordre du module doit être au moins 1."),
   lessons: z.array(lessonSchema).min(1, "Au moins une leçon est requise pour le module."),
 });
@@ -196,6 +198,7 @@ export function ModuleLessonFormModal({
                             <SelectItem value={LessonType.VIDEO}>Vidéo</SelectItem>
                             <SelectItem value={LessonType.DOCUMENT}>Document</SelectItem>
                             <SelectItem value={LessonType.QUIZ}>Quiz</SelectItem>
+                            <SelectItem value={LessonType.LAB}>Lab</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -247,6 +250,21 @@ export function ModuleLessonFormModal({
                       )}
                     />
                   )}
+                  {form.watch(`lessons.${index}.type`) === LessonType.DOCUMENT && (
+                    <FormField
+                      control={form.control}
+                      name={`lessons.${index}.duration`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Durée (minutes)</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="10" {...field} onChange={event => field.onChange(Number(event.target.value))} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
                   {form.watch(`lessons.${index}.type`) === LessonType.QUIZ && (
                     <FormField
                       control={form.control}
@@ -262,12 +280,42 @@ export function ModuleLessonFormModal({
                       )}
                     />
                   )}
+                  {form.watch(`lessons.${index}.type`) === LessonType.LAB && (
+                    <>
+                      <FormField
+                        control={form.control}
+                        name={`lessons.${index}.contentUrl`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>URL du contenu (Lab)</FormLabel>
+                            <FormControl>
+                              <Input placeholder="https://example.com/lab" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`lessons.${index}.duration`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Durée (minutes)</FormLabel>
+                            <FormControl>
+                              <Input type="number" placeholder="30" {...field} onChange={event => field.onChange(Number(event.target.value))} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </>
+                  )}
                   <Button type="button" variant="outline" size="sm" onClick={() => remove(index)}>
                     <MinusCircle className="h-4 w-4 mr-2" /> Supprimer la leçon
                   </Button>
                 </div>
               ))}
-              <Button type="button" variant="outline" size="sm" onClick={() => append({ title: "", lessonOrder: fields.length + 1, type: LessonType.VIDEO, contentUrl: "", duration: 0 })}>
+              <Button type="button" variant="outline" size="sm" onClick={() => append({ title: "", lessonOrder: fields.length + 1, type: LessonType.VIDEO })}>
                 <PlusCircle className="h-4 w-4 mr-2" /> Ajouter une leçon
               </Button>
             </div>

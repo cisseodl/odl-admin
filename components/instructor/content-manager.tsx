@@ -51,13 +51,17 @@ export function ContentManager() {
         modules: [
           {
             title: data.title,
+            description: data.description || "", // Conforme au DTO ModuleCreationRequest
             moduleOrder: data.moduleOrder,
             lessons: data.lessons.map(lesson => ({
-              title: lesson.title,
-              lessonOrder: lesson.lessonOrder,
-              type: lesson.type,
-              ...(lesson.contentUrl && { contentUrl: lesson.contentUrl }),
-              ...(lesson.duration && { duration: lesson.duration }),
+              title: lesson.title, // @NotBlank - requis
+              lessonOrder: lesson.lessonOrder, // @NotNull - requis
+              type: lesson.type, // @NotNull - requis (VIDEO, QUIZ, DOCUMENT, LAB conforme à LessonType enum)
+              // contentUrl est optionnel dans LessonCreationRequest
+              ...(lesson.contentUrl && lesson.contentUrl.trim() && { contentUrl: lesson.contentUrl }),
+              // duration est optionnel dans LessonCreationRequest (en minutes)
+              ...(lesson.duration && lesson.duration > 0 && { duration: lesson.duration }),
+              // quizId n'est PAS dans le DTO LessonCreationRequest, donc on ne l'envoie pas
             })),
           },
         ],

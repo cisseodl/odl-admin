@@ -207,7 +207,7 @@ export function StepLessons({ onSubmit, modules, defaultLessons = [] }: StepLess
                             value={lesson.duration || 0}
                             onChange={(e) => {
                               const value = parseInt(e.target.value) || 0
-                              updateLesson(lesson.id || "", "duration", value)
+                              updateLesson(lesson.id || "", "duration", value) // Durée en minutes conforme au DTO
                             }}
                             placeholder="Ex: 15"
                             required

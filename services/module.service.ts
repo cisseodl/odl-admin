@@ -29,10 +29,16 @@ export class ModuleService {
       courseId: payload.courseId,
       courseType: payload.courseType || "DEBUTANT",
       modules: payload.modules.map(m => ({
-        title: m.title,
-        description: m.description || "",
-        moduleOrder: m.moduleOrder,
-        lessons: m.lessons || [],
+        title: m.title, // @NotBlank - requis
+        description: m.description || "", // Optionnel dans ModuleCreationRequest
+        moduleOrder: m.moduleOrder, // @NotNull - requis
+        lessons: (m.lessons || []).map((l: any) => ({
+          title: l.title, // @NotBlank - requis
+          lessonOrder: l.lessonOrder, // @NotNull - requis
+          type: l.type, // @NotNull - requis (VIDEO, QUIZ, DOCUMENT, LAB)
+          ...(l.contentUrl && l.contentUrl.trim() && { contentUrl: l.contentUrl }), // Optionnel
+          ...(l.duration && l.duration > 0 && { duration: l.duration }), // Optionnel, en minutes
+        })),
       })),
     }));
     

@@ -342,26 +342,33 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
         const moduleLessons = lessonsWithFiles
           .filter(l => l.moduleId === m.id)
           .map((l, lidx) => {
+            // Conforme au DTO LessonCreationRequest du backend
             const lesson: any = {
-              title: l.title,
-              lessonOrder: l.lessonOrder || lidx + 1,
-              type: l.type, // Le type est maintenant correctement détecté automatiquement
-              duration: l.duration || 0, // Toujours envoyer la durée, même si 0
+              title: l.title, // @NotBlank - requis
+              lessonOrder: l.lessonOrder || lidx + 1, // @NotNull - requis
+              type: l.type, // @NotNull - requis (VIDEO, QUIZ, DOCUMENT, LAB)
             };
             
+            // contentUrl est optionnel dans le DTO
             if (l.contentUrl && l.contentUrl.trim() !== "") {
               lesson.contentUrl = l.contentUrl;
+            }
+            
+            // duration est optionnel dans le DTO (en minutes)
+            if (l.duration && l.duration > 0) {
+              lesson.duration = l.duration; // Durée en minutes conforme au DTO
             }
             
             return lesson;
           });
 
+        // Conforme au DTO ModuleCreationRequest du backend
         return {
-          id: moduleId, // ID du module existant
-          title: m.title,
-          description: m.description || "",
-          moduleOrder: m.moduleOrder || idx + 1,
-          lessons: moduleLessons,
+          id: moduleId, // ID du module existant (pour update)
+          title: m.title, // @NotBlank - requis
+          description: m.description || "", // Optionnel dans le DTO
+          moduleOrder: m.moduleOrder || idx + 1, // @NotNull - requis
+          lessons: moduleLessons, // List<LessonCreationRequest>
         };
       });
 

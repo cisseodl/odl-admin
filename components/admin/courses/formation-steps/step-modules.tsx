@@ -19,7 +19,7 @@ export function StepModules({ onSubmit, defaultModules = [], courseCreated }: St
   const [modules, setModules] = useState<ModuleFormData[]>(
     defaultModules.length > 0
       ? defaultModules
-      : [{ id: `module-${Date.now()}`, title: "", description: "", moduleOrder: 1 }]
+      : [{ id: `module-${Date.now()}`, title: "", description: "", moduleOrder: 1 }] // description conforme au DTO
   )
 
   const addModule = () => {
