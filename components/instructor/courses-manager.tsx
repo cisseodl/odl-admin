@@ -105,16 +105,21 @@ export function CoursesManager() {
   const fetchCategories = async () => {
     try {
       const response = await categorieService.getAllCategories();
+      // Le service retourne maintenant toujours un tableau (vide en cas d'erreur)
       if (Array.isArray(response)) {
         setCategories(response);
       } else if (response && Array.isArray(response.data)) {
         setCategories(response.data);
       } else {
-        console.error("Unexpected categories response structure:", response);
+        // Si response est null ou une structure inattendue, utiliser un tableau vide
         setCategories([]);
+        if (response !== null && response !== undefined) {
+          console.error("Unexpected categories response structure:", response);
+        }
       }
     } catch (err) {
       console.error("Failed to load categories:", err);
+      setCategories([]); // S'assurer qu'on a toujours un tableau vide en cas d'erreur
     }
   };
 

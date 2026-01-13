@@ -3,17 +3,29 @@ import { fetchApi } from './api.service';
 
 export class CategorieService {
   async getAllCategories(): Promise<any> {
-    const apiResponse = await fetchApi<any>("/api/categories/read", { method: "GET" });
-    // Le backend retourne CResponse avec structure { ok, data, message }
-    if (apiResponse && apiResponse.data) {
-      return apiResponse.data;
+    try {
+      const apiResponse = await fetchApi<any>("/api/categories/read", { method: "GET" });
+      // Le backend retourne CResponse avec structure { ok, data, message }
+      if (apiResponse && apiResponse.data) {
+        return Array.isArray(apiResponse.data) ? apiResponse.data : [];
+      }
+      // Si la réponse est directement un tableau
+      if (Array.isArray(apiResponse)) {
+        return apiResponse;
+      }
+      // Si la réponse est null ou undefined, retourner un tableau vide
+      if (!apiResponse) {
+        console.warn("Categories API returned null or undefined");
+        return [];
+      }
+      // Sinon retourner un tableau vide par défaut pour éviter les erreurs
+      console.warn("Unexpected categories response structure:", apiResponse);
+      return [];
+    } catch (error: any) {
+      console.error("Error fetching categories:", error);
+      // Retourner un tableau vide en cas d'erreur pour éviter les crashes
+      return [];
     }
-    // Si la réponse est directement un tableau
-    if (Array.isArray(apiResponse)) {
-      return apiResponse;
-    }
-    // Sinon retourner la réponse complète
-    return apiResponse;
   }
 
   async getCategorieById(id: number): Promise<Categorie> {

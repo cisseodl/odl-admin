@@ -63,8 +63,11 @@ export function CoursesList() {
         categoriesData = categoriesResponse.data;
         setCategories(categoriesData);
       } else {
-        console.error("Unexpected categories response structure:", categoriesResponse);
+        // Si categoriesResponse est null ou une structure inattendue, utiliser un tableau vide
         setCategories([]);
+        if (categoriesResponse !== null && categoriesResponse !== undefined) {
+          console.error("Unexpected categories response structure:", categoriesResponse);
+        }
       }
 
       // Traiter la réponse des instructeurs
