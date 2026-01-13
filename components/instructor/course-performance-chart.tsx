@@ -33,8 +33,8 @@ export function CoursePerformanceChart() {
       try {
         setLoading(true)
         // Utiliser l'endpoint pour récupérer les performances des cours de l'instructeur
-        const response = await fetchApi<{ data: Array<{ courseId: number; courseTitle: string; averageRating: number }> }>(
-          `/analytics/course-performance/instructor/${user.id}`,
+        const response = await fetchApi<{ data: Array<{ courseId: number; courseTitle: string; averageRating: number; studentsCount: number }> }>(
+          `/api/analytics/instructor-dashboard-performance?instructorId=${user.id}`,
           { method: 'GET' }
         )
         
