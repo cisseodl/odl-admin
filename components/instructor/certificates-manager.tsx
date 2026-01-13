@@ -73,8 +73,10 @@ export function CertificatesManager() {
           return (
             <div className="flex items-center gap-3">
               <Avatar>
-                <AvatarImage src={cert.avatar || "/placeholder.svg"} alt={cert.studentName} />
-                <AvatarFallback>{cert.studentName.slice(0, 2)}</AvatarFallback>
+                {/* Utiliser uniquement AvatarFallback avec initiales, pas de photo */}
+                <AvatarFallback className="bg-primary text-primary-foreground">
+                  {cert.studentName.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <div>
                 <div className="font-medium flex items-center gap-2">

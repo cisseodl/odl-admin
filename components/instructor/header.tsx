@@ -68,8 +68,10 @@ export function InstructorHeader() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="gap-2 pl-2">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="/man.jpg" alt="Instructeur" />
-                <AvatarFallback className="bg-primary text-primary-foreground text-xs">IN</AvatarFallback>
+                {/* Utiliser uniquement AvatarFallback avec initiales, pas de photo */}
+                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                  {user?.name ? user.name.slice(0, 2).toUpperCase() : "IN"}
+                </AvatarFallback>
               </Avatar>
               <span className="hidden md:inline-block text-sm font-medium">{user?.name || "Formateur"}</span>
             </Button>

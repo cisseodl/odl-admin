@@ -94,10 +94,13 @@ const mapInstructorActivityToActivityDisplay = (activity: InstructorActivityData
       break;
   }
 
+  // Générer un avatar avec initiales (pas de photo d'humain)
+  const userInitials = t('instructor.activity.you').slice(0, 2).toUpperCase()
+  
   return {
     id: `${activity.activityType}-${activity.courseId || 'no-course'}-${activity.timestamp}-${index}`,
     user: t('instructor.activity.you'), // Traduit selon la langue
-    avatar: "/placeholder-user.jpg", // Placeholder or fetch instructor's avatar
+    avatar: undefined, // Pas d'image, on utilisera AvatarFallback avec initiales
     actionText: actionText,
     resourceDisplay: activity.courseTitle || `Cours #${activity.courseId}`,
     time: formatTimeAgo(activity.timestamp, t),
@@ -157,8 +160,10 @@ export function InstructorRecentActivity({ instructorId, limit = 4 }: Instructor
                 <div key={activity.id} className="flex items-center gap-4">
                   <div className="relative">
                     <Avatar>
-                      <AvatarImage src={activity.avatar || "/placeholder.svg"} alt={activity.user} />
-                      <AvatarFallback>{activity.user.slice(0, 2)}</AvatarFallback>
+                      {/* Ne pas utiliser d'image, seulement AvatarFallback avec initiales */}
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {activity.user.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
                     </Avatar>
                     <div className={`absolute -bottom-1 -right-1 rounded-full bg-background p-0.5`}>
                       <IconComponent className={`h-3.5 w-3.5 ${activity.iconColor}`} />

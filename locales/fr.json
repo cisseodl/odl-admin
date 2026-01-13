@@ -651,6 +651,10 @@
     "dashboard": {
       "title": "Tableau de bord Formateur",
       "description": "Vue d'overview de vos formations et apprenants",
+      "average_rating_chart": {
+        "title": "Performance des Formations",
+        "description": "Nombre d'apprenants par formation"
+      },
       "stats": {
         "courses_created": "Formations Créées",
         "courses_published": "publiées",
@@ -699,12 +703,22 @@
         "description": "Analyse détaillée de vos formations",
         "no_data": "Aucune donnée de performance disponible pour vos formations.",
         "students_label": "Étudiants",
-        "learners": "apprenants"
+        "learners": "apprenants",
+        "average_rating_label": "Note moyenne",
+        "rating": "Note",
+        "stars": "étoiles"
       }
     },
     "certificates": {
       "title": "Gestion des Certificats",
       "description": "Gérez les certificats délivrés à vos apprenants"
+    },
+    "categories": {
+      "title": "Catégories",
+      "description": "Consultez les catégories disponibles pour vos formations",
+      "no_categories": "Aucune catégorie disponible pour le moment",
+      "courses_count": "{{count}} formation",
+      "courses_count_plural": "{{count}} formations"
     },
     "settings": {
       "title": "Paramètres",

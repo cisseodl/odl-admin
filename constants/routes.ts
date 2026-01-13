@@ -162,5 +162,10 @@ export const instructorRoutes: Route[] = [
     icon: Award,
     href: "/instructor/certificates",
   },
+  {
+    label: "instructor.categories.title",
+    icon: Tag,
+    href: "/instructor/categories",
+  },
 ]
 

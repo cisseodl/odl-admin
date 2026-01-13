@@ -20,7 +20,7 @@ const COLORS = [
 export function CoursePerformanceChart() {
   const { t } = useLanguage()
   const { user } = useAuth()
-  const [data, setData] = useState<Array<{ course: string; students: number; label: string }>>([])
+  const [data, setData] = useState<Array<{ course: string; averageRating: number; label: string }>>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -33,20 +33,20 @@ export function CoursePerformanceChart() {
       try {
         setLoading(true)
         // Utiliser l'endpoint pour récupérer les performances des cours de l'instructeur
-        const response = await fetchApi<{ data: Array<{ courseId: number; courseTitle: string; studentsCount: number }> }>(
-          `/api/analytics/instructor-dashboard-performance?instructorId=${user.id}`,
+        const response = await fetchApi<{ data: Array<{ courseId: number; courseTitle: string; averageRating: number }> }>(
+          `/analytics/course-performance/instructor/${user.id}`,
           { method: 'GET' }
         )
         
         const courseData = response.data || []
-        // Filtrer uniquement les cours qui ont des étudiants inscrits (studentsCount > 0)
+        // Mapper les données pour afficher la note moyenne
         const mappedData = courseData
-          .filter((item: any) => (item.studentsCount || 0) > 0)
           .map((item: any) => ({
             course: item.courseTitle || `Cours ${item.courseId}`,
-            students: item.studentsCount || 0,
-            label: (item.courseTitle || `Cours ${item.courseId}`).substring(0, 10),
+            averageRating: item.averageRating || 0,
+            label: (item.courseTitle || `Cours ${item.courseId}`).substring(0, 15),
           }))
+          .filter((item: any) => item.averageRating > 0) // Filtrer uniquement les cours avec des notes
         
         setData(mappedData)
       } catch (err) {
@@ -76,8 +76,8 @@ export function CoursePerformanceChart() {
     <div className="w-full space-y-4">
       <ChartContainer
         config={{
-          students: {
-            label: t('instructor.analytics.performance.students_label'),
+          averageRating: {
+            label: t('instructor.analytics.performance.average_rating_label'),
             color: "hsl(var(--chart-1))",
           },
         }}
@@ -100,9 +100,11 @@ export function CoursePerformanceChart() {
               height={80}
             />
             <YAxis
+              domain={[0, 5]}
               tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
               tickLine={{ stroke: "hsl(var(--border))" }}
               axisLine={{ stroke: "hsl(var(--border))" }}
+              label={{ value: t('instructor.analytics.performance.rating'), angle: -90, position: 'insideLeft' }}
             />
             <ChartTooltip
               content={({ active, payload }) => {
@@ -114,7 +116,7 @@ export function CoursePerformanceChart() {
                         <p className="font-semibold">{payload[0].payload.course}</p>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        <span className="font-medium text-foreground">{payload[0].value}</span> {t('instructor.analytics.performance.learners')}
+                        <span className="font-medium text-foreground">{Number(payload[0].value).toFixed(1)}</span> / 5 {t('instructor.analytics.performance.stars')}
                       </p>
                     </div>
                   )
@@ -123,7 +125,7 @@ export function CoursePerformanceChart() {
               }}
             />
             <Bar
-              dataKey="students"
+              dataKey="averageRating"
               radius={[8, 8, 0, 0]}
               animationDuration={800}
               animationBegin={0}
@@ -148,7 +150,7 @@ export function CoursePerformanceChart() {
             />
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium truncate">{item.label}</p>
-              <p className="text-xs text-muted-foreground">{item.students} {t('instructor.analytics.performance.learners')}</p>
+              <p className="text-xs text-muted-foreground">{item.averageRating.toFixed(1)} / 5 ⭐</p>
             </div>
           </div>
         ))}

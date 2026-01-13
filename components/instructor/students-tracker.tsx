@@ -177,8 +177,10 @@ export function StudentsTracker() {
           return (
             <div className="flex items-center gap-3">
               <Avatar>
-                <AvatarImage src={student.avatar || "/placeholder.svg"} alt={student.name} />
-                <AvatarFallback>{student.name.slice(0, 2)}</AvatarFallback>
+                {/* Utiliser uniquement AvatarFallback avec initiales, pas de photo */}
+                <AvatarFallback className="bg-primary text-primary-foreground">
+                  {student.name.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <div>
                 <div className="font-medium flex items-center gap-2">

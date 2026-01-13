@@ -651,6 +651,10 @@
     "dashboard": {
       "title": "Instructor Dashboard",
       "description": "Overview of your courses and learners",
+      "average_rating_chart": {
+        "title": "Course Performance",
+        "description": "Number of learners per course"
+      },
       "stats": {
         "courses_created": "Courses Created",
         "courses_published": "published",
@@ -695,12 +699,22 @@
         "description": "Detailed analysis of your courses",
         "no_data": "No performance data available for your courses.",
         "students_label": "Students",
-        "learners": "learners"
+        "learners": "learners",
+        "average_rating_label": "Average Rating",
+        "rating": "Rating",
+        "stars": "stars"
       }
     },
     "certificates": {
       "title": "Certificate Management",
       "description": "Manage certificates issued to your learners"
+    },
+    "categories": {
+      "title": "Categories",
+      "description": "Browse available categories for your courses",
+      "no_categories": "No categories available at the moment",
+      "courses_count": "{{count}} course",
+      "courses_count_plural": "{{count}} courses"
     },
     "settings": {
       "title": "Settings",

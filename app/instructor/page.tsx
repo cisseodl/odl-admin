@@ -4,6 +4,8 @@ import { useAuth } from "@/contexts/auth-context"
 import { useLanguage } from "@/contexts/language-context"
 import { InstructorDashboardStats } from "@/components/instructor/dashboard-stats";
 import { InstructorRecentActivity } from "@/components/instructor/instructor-recent-activity";
+import { CoursePerformanceChart } from "@/components/instructor/course-performance-chart";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function InstructorDashboard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -17,6 +19,19 @@ export default function InstructorDashboard() {
       </div>
 
       <InstructorDashboardStats />
+
+      {/* Graphique de performance des cours (Note moyenne) */}
+      {user && !authLoading && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('instructor.dashboard.average_rating_chart.title')}</CardTitle>
+            <CardDescription>{t('instructor.dashboard.average_rating_chart.description')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CoursePerformanceChart />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Intégration du nouveau composant InstructorRecentActivity */}
       {user && !authLoading && <InstructorRecentActivity instructorId={Number(user.id)} limit={5} />}
