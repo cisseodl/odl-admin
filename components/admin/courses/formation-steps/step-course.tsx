@@ -142,7 +142,7 @@ export function StepCourse({ onSubmit, categories, instructors, loading, default
             </SelectTrigger>
             <SelectContent>
               {instructors.length === 0 ? (
-                <SelectItem value="" disabled>{t('course_form.instructor_no_available')}</SelectItem>
+                <SelectItem value="__no_instructor__" disabled>{t('course_form.instructor_no_available')}</SelectItem>
               ) : (
                 instructors.map((inst) => {
                   // Utiliser userId car c'est l'ID de l'utilisateur qui est requis par le backend

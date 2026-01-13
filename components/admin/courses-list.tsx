@@ -56,11 +56,11 @@ export function CoursesList() {
       ]);
 
       let categoriesData: Categorie[] = [];
-      if (categoriesResponse && Array.isArray(categoriesResponse.data)) {
-        categoriesData = categoriesResponse.data;
-        setCategories(categoriesData);
-      } else if (Array.isArray(categoriesResponse)) {
+      if (Array.isArray(categoriesResponse)) {
         categoriesData = categoriesResponse;
+        setCategories(categoriesData);
+      } else if (categoriesResponse && Array.isArray(categoriesResponse.data)) {
+        categoriesData = categoriesResponse.data;
         setCategories(categoriesData);
       } else {
         console.error("Unexpected categories response structure:", categoriesResponse);

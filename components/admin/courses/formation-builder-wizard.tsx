@@ -120,10 +120,14 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
           instructorService.getAllInstructors(),
         ])
         
-        if (categoriesResponse && Array.isArray(categoriesResponse.data)) {
-          setCategories(categoriesResponse.data)
-        } else if (Array.isArray(categoriesResponse)) {
+        // Le service retourne maintenant directement les données ou un tableau
+        if (Array.isArray(categoriesResponse)) {
           setCategories(categoriesResponse)
+        } else if (categoriesResponse && Array.isArray(categoriesResponse.data)) {
+          setCategories(categoriesResponse.data)
+        } else {
+          setCategories([])
+          console.warn("Unexpected categories response structure:", categoriesResponse)
         }
         
         // Les instructors peuvent être dans response.data ou directement dans response

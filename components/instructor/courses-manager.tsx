@@ -105,7 +105,9 @@ export function CoursesManager() {
   const fetchCategories = async () => {
     try {
       const response = await categorieService.getAllCategories();
-      if (response && Array.isArray(response.data)) {
+      if (Array.isArray(response)) {
+        setCategories(response);
+      } else if (response && Array.isArray(response.data)) {
         setCategories(response.data);
       } else {
         console.error("Unexpected categories response structure:", response);

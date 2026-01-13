@@ -48,7 +48,9 @@ export function ModerationList() {
     try {
       // Récupérer les catégories
       const categoriesResponse = await categorieService.getAllCategories();
-      if (categoriesResponse && Array.isArray(categoriesResponse.data)) {
+      if (Array.isArray(categoriesResponse)) {
+        setCategories(categoriesResponse);
+      } else if (categoriesResponse && Array.isArray(categoriesResponse.data)) {
         setCategories(categoriesResponse.data);
       } else {
         setCategories([]);

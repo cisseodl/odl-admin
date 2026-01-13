@@ -60,8 +60,9 @@ export function CategoriesList() {
       setError(null);
       try {
         const response = await categorieService.getAllCategories();
-        if (response.data && Array.isArray(response.data)) {
-          setCategories(response.data.map(mapCategorieToCategoryDisplay));
+        const categoriesData = Array.isArray(response) ? response : (response?.data || []);
+        if (categoriesData.length > 0) {
+          setCategories(categoriesData.map(mapCategorieToCategoryDisplay));
         } else {
           console.error("Unexpected response structure:", response);
           setCategories([]);

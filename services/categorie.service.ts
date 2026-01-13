@@ -4,6 +4,15 @@ import { fetchApi } from './api.service';
 export class CategorieService {
   async getAllCategories(): Promise<any> {
     const apiResponse = await fetchApi<any>("/api/categories/read", { method: "GET" });
+    // Le backend retourne CResponse avec structure { ok, data, message }
+    if (apiResponse && apiResponse.data) {
+      return apiResponse.data;
+    }
+    // Si la réponse est directement un tableau
+    if (Array.isArray(apiResponse)) {
+      return apiResponse;
+    }
+    // Sinon retourner la réponse complète
     return apiResponse;
   }
 

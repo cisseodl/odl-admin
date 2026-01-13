@@ -171,7 +171,7 @@ export function CourseFormModal({
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="" disabled>Aucune catégorie disponible</SelectItem>
+                        <SelectItem value="__no_category__" disabled>Aucune catégorie disponible</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
