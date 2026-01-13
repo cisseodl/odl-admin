@@ -74,6 +74,23 @@ export async function fetchApi<T>(
   }
 
   if (!response.ok) {
+    // Gestion spéciale pour les erreurs 401/403 - token invalide ou expiré
+    if (response.status === 401 || response.status === 403) {
+      // Si le token est invalide ou expiré, nettoyer le localStorage et rediriger
+      if (typeof window !== "undefined") {
+        console.warn(`[API] Authentication error (${response.status}) for ${endpoint}. Clearing auth data.`);
+        localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USER);
+        localStorage.removeItem(STORAGE_KEYS.USER_INFO);
+        
+        // Rediriger vers la page de connexion si on n'y est pas déjà
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
+      }
+      throw new Error(`Erreur d'authentification (${response.status}): Votre session a expiré. Veuillez vous reconnecter.`);
+    }
     throw new Error(`API Error ${response.status}: ${jsonData?.message || response.statusText || "Something went wrong"}`);
   }
 
