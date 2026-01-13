@@ -63,8 +63,15 @@ export class NotificationsService {
 
   async getNotificationStats(): Promise<{ unreadCount: number; totalCount: number }> {
     try {
-      const response = await fetchApi<any>("/api/notifications/stats", { method: "GET" });
-      return response.data || { unreadCount: 0, totalCount: 0 };
+      const response = await fetchApi<{ data: { total: number; unread: number } }>("/api/notifications/stats", { method: "GET" });
+      // Le backend retourne { data: { total: number; unread: number } }
+      if (response.data) {
+        return {
+          unreadCount: response.data.unread || 0,
+          totalCount: response.data.total || 0
+        };
+      }
+      return { unreadCount: 0, totalCount: 0 };
     } catch (error) {
       console.error("Error fetching notification stats:", error);
       return { unreadCount: 0, totalCount: 0 };

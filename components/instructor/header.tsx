@@ -16,9 +16,31 @@ import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/contexts/auth-context"
 import { LanguageSwitcher } from "@/components/shared/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { useEffect, useState } from "react"
+import { notificationsService } from "@/services/notifications.service"
 
 export function InstructorHeader() {
   const { user, logout } = useAuth()
+  const [unreadCount, setUnreadCount] = useState<number>(0)
+
+  useEffect(() => {
+    const fetchNotificationStats = async () => {
+      try {
+        const stats = await notificationsService.getNotificationStats()
+        setUnreadCount(stats.unreadCount || 0)
+      } catch (error) {
+        console.error("Error fetching notification stats:", error)
+        setUnreadCount(0)
+      }
+    }
+
+    if (user) {
+      fetchNotificationStats()
+      // Rafraîchir les stats toutes les 30 secondes
+      const interval = setInterval(fetchNotificationStats, 30000)
+      return () => clearInterval(interval)
+    }
+  }, [user])
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 px-4 md:px-6">
       <div className="w-10 lg:hidden" />
@@ -41,7 +63,11 @@ export function InstructorHeader() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">2</Badge>
+              {unreadCount > 0 && (
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </Badge>
+              )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80">

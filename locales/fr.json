@@ -668,6 +668,8 @@
         "last_30_days": "30 derniers jours",
         "average_quiz_score": "Score moyen quiz",
         "average_quizzes": "Moyenne des quiz",
+        "certified_by_module": "Certifiés par module",
+        "total_certificates": "certificats délivrés",
         "error_access_denied": "Accès refusé. Vous n'êtes pas autorisé à voir ces statistiques.",
         "error_no_profile": "Vous n'avez pas encore de profil instructeur. Veuillez créer un profil instructeur pour accéder au tableau de bord.",
         "error_load": "Échec de la récupération du résumé du tableau de bord."

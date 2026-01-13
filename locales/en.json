@@ -664,6 +664,12 @@
         "new_comments": "new reviews (30d)",
         "completion_rate": "Completion Rate",
         "active_learners": "active learners",
+        "total_enrollments": "total enrollments",
+        "last_30_days": "last 30 days",
+        "average_quiz_score": "Average Quiz Score",
+        "average_quizzes": "Average quizzes",
+        "certified_by_module": "Certified by Module",
+        "total_certificates": "certificates issued",
         "error_access_denied": "Access denied. You are not authorized to view these statistics.",
         "error_no_profile": "You don't have an instructor profile yet. Please create an instructor profile to access the dashboard.",
         "error_load": "Failed to retrieve dashboard summary."

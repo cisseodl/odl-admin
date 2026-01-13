@@ -62,7 +62,8 @@ export interface InstructorDashboardStats {
   newEnrollmentsLast30Days: number;
   activeLearners: number;
   averageCompletionRate: number;
-  averageQuizScore: number;
+  averageQuizScore: number; // Gardé pour compatibilité
+  totalCertificatesByModule: number; // Nombre de certifiés par module
   newComments: number;
 }
 
@@ -182,6 +183,7 @@ class AnalyticsService {
       activeLearners: instructorStats.activeLearners || 0,
       averageCompletionRate: instructorStats.averageCompletionRate || 0,
       averageQuizScore: instructorStats.averageQuizScore || 0,
+      totalCertificatesByModule: instructorStats.totalCertificatesByModule || 0,
       newComments: instructorStats.newComments || 0,
     };
   }
