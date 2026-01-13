@@ -162,10 +162,5 @@ export const instructorRoutes: Route[] = [
     icon: Award,
     href: "/instructor/certificates",
   },
-  {
-    label: "routes.settings",
-    icon: Settings,
-    href: "/instructor/settings",
-  },
 ]
 
