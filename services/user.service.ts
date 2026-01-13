@@ -110,6 +110,35 @@ export class UserService {
       return { emailNotificationsEnabled: false, smsNotificationsEnabled: false };
     }
   }
+
+  async blacklistUser(userId: number): Promise<void> {
+    await fetchApi<any>(`/users/${userId}/blacklist`, {
+      method: "PUT",
+    });
+  }
+
+  async unblacklistUser(userId: number): Promise<void> {
+    await fetchApi<any>(`/users/${userId}/unblacklist`, {
+      method: "PUT",
+    });
+  }
+
+  async getUserEnrollments(userId: number): Promise<Array<{ courseId: number; courseTitle: string }>> {
+    try {
+      // Récupérer les détails d'inscription pour cet utilisateur
+      const response = await fetchApi<any>(`/details-course/user/${userId}`, { method: "GET" });
+      if (Array.isArray(response.data)) {
+        return response.data.map((enrollment: any) => ({
+          courseId: enrollment.courseId || enrollment.course?.id,
+          courseTitle: enrollment.courseTitle || enrollment.course?.title || `Cours ${enrollment.courseId}`,
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error(`Error fetching enrollments for user ID ${userId}:`, error);
+      return [];
+    }
+  }
 }
 
 export const userService = new UserService();

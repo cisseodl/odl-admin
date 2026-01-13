@@ -160,10 +160,19 @@
         "header_actions": "Actions",
         "action_view_details": "View details",
         "action_edit": "Edit",
+        "action_blacklist": "Blacklist",
+        "action_unblacklist": "Unblacklist",
+        "action_unenroll": "Unenroll from course",
         "action_delete": "Delete"
       },
       "modals": {
         "promote_title": "Promote User to Administrator",
+        "blacklist_title": "Blacklist Administrator",
+        "blacklist_description": "Are you sure you want to blacklist (deactivate) the administrator {{name}}?",
+        "unblacklist_title": "Unblacklist Administrator",
+        "unblacklist_description": "Are you sure you want to unblacklist (reactivate) the administrator {{name}}?",
+        "unenroll_title": "Unenroll Administrator from Course",
+        "unenroll_description": "Select the course from which you want to unenroll {{name}}."
         "promote_description": "Select an existing user to promote.",
         "create_title": "Create a New User",
         "create_description": "Create a basic user account that can then be promoted.",
@@ -208,10 +217,19 @@
         "action_view_details": "View details",
         "action_edit_user": "Edit user details",
         "action_edit_profile": "Edit instructor profile",
+        "action_blacklist": "Blacklist",
+        "action_unblacklist": "Unblacklist",
+        "action_unenroll": "Unenroll from course",
         "action_delete": "Delete"
       },
       "modals": {
         "promote_select_title": "Promote User to Instructor",
+        "blacklist_title": "Blacklist Instructor",
+        "blacklist_description": "Are you sure you want to blacklist (deactivate) the instructor {{name}}?",
+        "unblacklist_title": "Unblacklist Instructor",
+        "unblacklist_description": "Are you sure you want to unblacklist (reactivate) the instructor {{name}}?",
+        "unenroll_title": "Unenroll Instructor from Course",
+        "unenroll_description": "Select the course from which you want to unenroll {{name}}."
         "promote_select_description": "Select an existing user to promote.",
         "promote_form_title": "Create Instructor Profile",
         "promote_form_description": "Add the specific details for the instructor's profile.",
@@ -258,10 +276,19 @@
         "header_actions": "Actions",
         "action_view_details": "View details",
         "action_edit": "Edit",
+        "action_blacklist": "Blacklist",
+        "action_unblacklist": "Unblacklist",
+        "action_unenroll": "Unenroll from course",
         "action_delete": "Delete"
       },
       "modals": {
         "promote_title": "Promote User to Learner",
+        "blacklist_title": "Blacklist Learner",
+        "blacklist_description": "Are you sure you want to blacklist (deactivate) the learner {{name}}?",
+        "unblacklist_title": "Unblacklist Learner",
+        "unblacklist_description": "Are you sure you want to unblacklist (reactivate) the learner {{name}}?",
+        "unenroll_title": "Unenroll Learner from Course",
+        "unenroll_description": "Select the course from which you want to unenroll {{name}}."
         "promote_description": "Select an existing user to promote.",
         "create_user_title": "Create a New User",
         "create_user_description": "Create a basic user account that can then be promoted to a learner.",
@@ -293,7 +320,18 @@
     "phone": "Phone",
     "role": "Role",
     "createdAt": "Created At",
-    "lastLogin": "Last Login"
+    "lastLogin": "Last Login",
+    "enrollments": {
+      "no_courses": "This user is not enrolled in any course.",
+      "no_results": "No course found.",
+      "unenroll": "Unenroll",
+      "success_blacklist": "User blacklisted successfully.",
+      "success_unblacklist": "User unblacklisted successfully.",
+      "success_unenroll": "User unenrolled from course successfully.",
+      "error_blacklist": "Error blacklisting user.",
+      "error_unblacklist": "Error unblacklisting user.",
+      "error_unenroll": "Error unenrolling user."
+    }
   },
   "courses": {
     "title": "Courses",

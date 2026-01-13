@@ -15,21 +15,24 @@ import { UserFormModal } from "@/components/shared/user-form-modal"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { ViewUserModal } from "./modals/view-user-modal"
 import type { ColumnDef } from "@tanstack/react-table"
-import { Eye, Edit, Trash2, User, Mail, Calendar, GraduationCap } from "lucide-react"
+import { Eye, Edit, Trash2, User, Mail, Calendar, GraduationCap, Ban, UserCheck, LogOut } from "lucide-react"
 import type { UserFormData } from "@/lib/validations/user"
 import { Apprenant, Cohorte } from "@/models";
-import { apprenantService, cohorteService } from "@/services";
+import { apprenantService, cohorteService, userService, courseService } from "@/services";
 import { PageLoader } from "@/components/ui/page-loader";
 import { EmptyState } from "@/components/admin/empty-state";
 import { useToast } from "@/hooks/use-toast";
 import { UserSelectModal } from "./modals/user-select-modal";
 import { UserCreationModal } from "./modals/user-creation-modal";
 import { ApprenantFormModal, ApprenantProfileFormData } from "./modals/apprenant-form-modal";
+import { CourseSelectModal } from "./modals/course-select-modal";
 import { UserDb } from "@/models";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Plus, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context"
+import { userService } from "@/services";
+import { courseService } from "@/services";
 
 type ApprenantDisplay = {
   id: number;
@@ -110,6 +113,9 @@ export function ApprenantsList() {
   const editModal = useModal<ApprenantDisplay>()
   const deleteModal = useModal<ApprenantDisplay>()
   const viewModal = useModal<ApprenantDisplay>()
+  const blacklistModal = useModal<ApprenantDisplay>()
+  const unblacklistModal = useModal<ApprenantDisplay>()
+  const unenrollModal = useModal<ApprenantDisplay>()
 
   const [apprenants, setApprenants] = useState<ApprenantDisplay[]>([]);
   const [loading, setLoading] = useState(true);
@@ -146,6 +152,7 @@ export function ApprenantsList() {
       const apprenantsData = Array.isArray(response) ? response : (response?.data || []);
       
       if (Array.isArray(apprenantsData) && apprenantsData.length > 0) {
+        setRawApprenantsData(apprenantsData);
         const apprenantsWithSummary = await Promise.all(
           apprenantsData.map(async (apprenant: Apprenant) => {
             const mapped = mapApprenantToApprenantDisplay(apprenant);
@@ -164,6 +171,7 @@ export function ApprenantsList() {
         );
         setApprenants(apprenantsWithSummary);
       } else {
+        setRawApprenantsData([]);
         setApprenants([]);
       }
     } catch (err: any) {
@@ -370,6 +378,27 @@ export function ApprenantsList() {
                   onClick: () => editModal.open(apprenant),
                 },
                 {
+                  label: apprenant.status === "Actif" 
+                    ? t('users.learners.list.action_blacklist')
+                    : t('users.learners.list.action_unblacklist'),
+                  icon: apprenant.status === "Actif" 
+                    ? <Ban className="h-4 w-4" />
+                    : <UserCheck className="h-4 w-4" />,
+                  onClick: () => {
+                    if (apprenant.status === "Actif") {
+                      blacklistModal.open(apprenant);
+                    } else {
+                      unblacklistModal.open(apprenant);
+                    }
+                  },
+                  variant: apprenant.status === "Actif" ? "destructive" : "default",
+                },
+                {
+                  label: t('users.learners.list.action_unenroll'),
+                  icon: <LogOut className="h-4 w-4" />,
+                  onClick: () => unenrollModal.open(apprenant),
+                },
+                {
                   label: t('users.learners.list.action_delete'),
                   icon: <Trash2 className="h-4 w-4" />,
                   onClick: () => deleteModal.open(apprenant),
@@ -501,6 +530,41 @@ export function ApprenantsList() {
         confirmText={t('common.delete')}
         variant="destructive"
       />
+
+      <ConfirmDialog
+        open={blacklistModal.isOpen}
+        onOpenChange={(open) => !open && blacklistModal.close()}
+        onConfirm={handleBlacklist}
+        title={t('users.learners.modals.blacklist_title')}
+        description={t('users.learners.modals.blacklist_description', { name: blacklistModal.selectedItem?.name })}
+        confirmText={t('users.learners.list.action_blacklist')}
+        variant="destructive"
+      />
+
+      <ConfirmDialog
+        open={unblacklistModal.isOpen}
+        onOpenChange={(open) => !open && unblacklistModal.close()}
+        onConfirm={handleUnblacklist}
+        title={t('users.learners.modals.unblacklist_title')}
+        description={t('users.learners.modals.unblacklist_description', { name: unblacklistModal.selectedItem?.name })}
+        confirmText={t('users.learners.list.action_unblacklist')}
+        variant="default"
+      />
+
+      {unenrollModal.selectedItem && (() => {
+        const apprenantData = rawApprenantsData.find((app: Apprenant) => app.id === unenrollModal.selectedItem?.id);
+        const userId = apprenantData?.user?.id || apprenantData?.id;
+        return userId ? (
+          <CourseSelectModal
+            open={unenrollModal.isOpen}
+            onOpenChange={(open) => !open && unenrollModal.close()}
+            onSelectCourse={handleUnenroll}
+            userId={userId}
+            title={t('users.learners.modals.unenroll_title')}
+            description={t('users.learners.modals.unenroll_description', { name: unenrollModal.selectedItem?.name })}
+          />
+        ) : null;
+      })()}
     </>
   )
 }

@@ -15,9 +15,9 @@ import { UserFormModal } from "@/components/shared/user-form-modal"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { ViewUserModal } from "./modals/view-user-modal"
 import type { ColumnDef } from "@tanstack/react-table"
-import { Eye, Edit, Trash2, User, Mail, Calendar, BookOpen, GraduationCap, ChevronDown, Plus } from "lucide-react"
+import { Eye, Edit, Trash2, User, Mail, Calendar, BookOpen, GraduationCap, ChevronDown, Plus, Ban, UserCheck, LogOut } from "lucide-react"
 import type { UserFormData } from "@/lib/validations/user"
-import { instructorService } from "@/services/instructor.service";
+import { instructorService, userService, courseService } from "@/services";
 import type { ApiInstructor } from "@/services/instructor.service";
 import { UserDb } from "@/models";
 import { PageLoader } from "@/components/ui/page-loader";
@@ -127,6 +127,9 @@ export function InstructeursList() {
   const editUserFormModal = useModal<InstructorDisplay>();
   const deleteModal = useModal<InstructorDisplay>();
   const viewModal = useModal<InstructorDisplay>();
+  const blacklistModal = useModal<InstructorDisplay>();
+  const unblacklistModal = useModal<InstructorDisplay>();
+  const unenrollModal = useModal<InstructorDisplay>();
 
   const [instructors, setInstructors] = useState<InstructorDisplay[]>([]);
   const [loading, setLoading] = useState(true);
@@ -143,6 +146,7 @@ export function InstructeursList() {
       const instructorsData = Array.isArray(response) ? response : (response?.data || []);
       
       if (Array.isArray(instructorsData)) {
+        setRawInstructorsData(instructorsData);
         setInstructors(instructorsData.map(inst => mapApiInstructorToInstructorDisplay(inst, t)));
       } else {
         console.error("Unexpected response structure:", response);
@@ -269,6 +273,111 @@ export function InstructeursList() {
     });
   };
 
+  const handleBlacklist = async () => {
+    if (blacklistModal.selectedItem) {
+      try {
+        // Récupérer le userId depuis les données brutes
+        const instructorData = rawInstructorsData.find((inst: any) => inst.id === blacklistModal.selectedItem?.id);
+        const userId = instructorData?.userId || instructorData?.user?.id || instructorData?.id;
+        
+        if (!userId) {
+          toast({
+            title: t('common.error'),
+            description: "Impossible de trouver l'ID utilisateur.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        await userService.blacklistUser(userId);
+        toast({
+          title: t('common.success'),
+          description: t('users.enrollments.success_blacklist'),
+        });
+        fetchInstructors();
+      } catch (err: any) {
+        toast({
+          title: t('common.error'),
+          description: err.message || t('users.enrollments.error_blacklist'),
+          variant: "destructive",
+        });
+        console.error("Error blacklisting user:", err);
+      } finally {
+        blacklistModal.close();
+      }
+    }
+  };
+
+  const handleUnblacklist = async () => {
+    if (unblacklistModal.selectedItem) {
+      try {
+        // Récupérer le userId depuis les données brutes
+        const instructorData = rawInstructorsData.find((inst: any) => inst.id === unblacklistModal.selectedItem?.id);
+        const userId = instructorData?.userId || instructorData?.user?.id || instructorData?.id;
+        
+        if (!userId) {
+          toast({
+            title: t('common.error'),
+            description: "Impossible de trouver l'ID utilisateur.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        await userService.unblacklistUser(userId);
+        toast({
+          title: t('common.success'),
+          description: t('users.enrollments.success_unblacklist'),
+        });
+        fetchInstructors();
+      } catch (err: any) {
+        toast({
+          title: t('common.error'),
+          description: err.message || t('users.enrollments.error_unblacklist'),
+          variant: "destructive",
+        });
+        console.error("Error unblacklisting user:", err);
+      } finally {
+        unblacklistModal.close();
+      }
+    }
+  };
+
+  const handleUnenroll = async (courseId: number) => {
+    if (unenrollModal.selectedItem) {
+      try {
+        // Récupérer le userId depuis les données brutes
+        const instructorData = rawInstructorsData.find((inst: any) => inst.id === unenrollModal.selectedItem?.id);
+        const userId = instructorData?.userId || instructorData?.user?.id || instructorData?.id;
+        
+        if (!userId) {
+          toast({
+            title: t('common.error'),
+            description: "Impossible de trouver l'ID utilisateur.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        await courseService.unenrollUserFromCourse(courseId, userId);
+        toast({
+          title: t('common.success'),
+          description: t('users.enrollments.success_unenroll'),
+        });
+        fetchInstructors();
+      } catch (err: any) {
+        toast({
+          title: t('common.error'),
+          description: err.message || t('users.enrollments.error_unenroll'),
+          variant: "destructive",
+        });
+        console.error("Error unenrolling user:", err);
+      } finally {
+        unenrollModal.close();
+      }
+    }
+  };
+
   const columns: ColumnDef<InstructorDisplay>[] = useMemo(
     () => [
       {
@@ -369,7 +478,7 @@ export function InstructeursList() {
         },
       },
     ],
-    [viewModal, editUserFormModal, promoteProfileFormModal, deleteModal, t]
+    [viewModal, editUserFormModal, promoteProfileFormModal, deleteModal, blacklistModal, unblacklistModal, unenrollModal, t]
   )
 
   const instructorIds = useMemo(() => instructors.map(inst => inst.id), [instructors]);
@@ -486,6 +595,41 @@ export function InstructeursList() {
         confirmText={t('common.delete')}
         variant="destructive"
       />
+
+      <ConfirmDialog
+        open={blacklistModal.isOpen}
+        onOpenChange={(open) => !open && blacklistModal.close()}
+        onConfirm={handleBlacklist}
+        title={t('users.instructors.modals.blacklist_title')}
+        description={t('users.instructors.modals.blacklist_description', { name: blacklistModal.selectedItem?.name })}
+        confirmText={t('users.instructors.list.action_blacklist')}
+        variant="destructive"
+      />
+
+      <ConfirmDialog
+        open={unblacklistModal.isOpen}
+        onOpenChange={(open) => !open && unblacklistModal.close()}
+        onConfirm={handleUnblacklist}
+        title={t('users.instructors.modals.unblacklist_title')}
+        description={t('users.instructors.modals.unblacklist_description', { name: unblacklistModal.selectedItem?.name })}
+        confirmText={t('users.instructors.list.action_unblacklist')}
+        variant="default"
+      />
+
+      {unenrollModal.selectedItem && (() => {
+        const instructorData = rawInstructorsData.find((inst: any) => inst.id === unenrollModal.selectedItem?.id);
+        const userId = instructorData?.userId || instructorData?.user?.id || instructorData?.id;
+        return userId ? (
+          <CourseSelectModal
+            open={unenrollModal.isOpen}
+            onOpenChange={(open) => !open && unenrollModal.close()}
+            onSelectCourse={handleUnenroll}
+            userId={userId}
+            title={t('users.instructors.modals.unenroll_title')}
+            description={t('users.instructors.modals.unenroll_description', { name: unenrollModal.selectedItem?.name })}
+          />
+        ) : null;
+      })()}
     </>
   )
 }

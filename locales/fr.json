@@ -160,10 +160,19 @@
         "header_actions": "Actions",
         "action_view_details": "Voir détails",
         "action_edit": "Modifier",
+        "action_blacklist": "Blacklister",
+        "action_unblacklist": "Déblacklister",
+        "action_unenroll": "Désinscrire d'un cours",
         "action_delete": "Supprimer"
       },
       "modals": {
         "promote_title": "Promouvoir un utilisateur en administrateur",
+        "blacklist_title": "Blacklister l'administrateur",
+        "blacklist_description": "Êtes-vous sûr de vouloir blacklister (désactiver) l'administrateur {{name}} ?",
+        "unblacklist_title": "Déblacklister l'administrateur",
+        "unblacklist_description": "Êtes-vous sûr de vouloir déblacklister (réactiver) l'administrateur {{name}} ?",
+        "unenroll_title": "Désinscrire l'administrateur d'un cours",
+        "unenroll_description": "Sélectionnez le cours duquel vous souhaitez désinscrire {{name}}."
         "promote_description": "Sélectionnez un utilisateur existant à promouvoir.",
         "create_title": "Créer un nouvel utilisateur",
         "create_description": "Créez un compte utilisateur de base qui pourra ensuite être promu.",
@@ -208,10 +217,19 @@
         "action_view_details": "Voir détails",
         "action_edit_user": "Modifier les détails utilisateur",
         "action_edit_profile": "Modifier le profil formateur",
+        "action_blacklist": "Blacklister",
+        "action_unblacklist": "Déblacklister",
+        "action_unenroll": "Désinscrire d'un cours",
         "action_delete": "Supprimer"
       },
       "modals": {
         "promote_select_title": "Promouvoir un utilisateur en formateur",
+        "blacklist_title": "Blacklister le formateur",
+        "blacklist_description": "Êtes-vous sûr de vouloir blacklister (désactiver) le formateur {{name}} ?",
+        "unblacklist_title": "Déblacklister le formateur",
+        "unblacklist_description": "Êtes-vous sûr de vouloir déblacklister (réactiver) le formateur {{name}} ?",
+        "unenroll_title": "Désinscrire le formateur d'un cours",
+        "unenroll_description": "Sélectionnez le cours duquel vous souhaitez désinscrire {{name}}."
         "promote_select_description": "Sélectionnez un utilisateur existant à promouvoir.",
         "promote_form_title": "Créer le profil formateur",
         "promote_form_description": "Ajoutez les détails spécifiques du profil de formateur.",
@@ -258,10 +276,19 @@
         "header_actions": "Actions",
         "action_view_details": "Voir détails",
         "action_edit": "Modifier",
+        "action_blacklist": "Blacklister",
+        "action_unblacklist": "Déblacklister",
+        "action_unenroll": "Désinscrire d'un cours",
         "action_delete": "Supprimer"
       },
       "modals": {
         "promote_title": "Promouvoir un utilisateur en apprenant",
+        "blacklist_title": "Blacklister l'apprenant",
+        "blacklist_description": "Êtes-vous sûr de vouloir blacklister (désactiver) l'apprenant {{name}} ?",
+        "unblacklist_title": "Déblacklister l'apprenant",
+        "unblacklist_description": "Êtes-vous sûr de vouloir déblacklister (réactiver) l'apprenant {{name}} ?",
+        "unenroll_title": "Désinscrire l'apprenant d'un cours",
+        "unenroll_description": "Sélectionnez le cours duquel vous souhaitez désinscrire {{name}}."
         "promote_description": "Sélectionnez un utilisateur existant à promouvoir.",
         "create_user_title": "Créer un nouvel utilisateur",
         "create_user_description": "Créez un compte utilisateur de base qui pourra ensuite être promu en apprenant.",
@@ -293,7 +320,18 @@
     "phone": "Téléphone",
     "role": "Rôle",
     "createdAt": "Créé le",
-    "lastLogin": "Dernière connexion"
+    "lastLogin": "Dernière connexion",
+    "enrollments": {
+      "no_courses": "Cet utilisateur n'est inscrit à aucun cours.",
+      "no_results": "Aucun cours trouvé.",
+      "unenroll": "Désinscrire",
+      "success_blacklist": "Utilisateur blacklisté avec succès.",
+      "success_unblacklist": "Utilisateur déblacklisté avec succès.",
+      "success_unenroll": "Utilisateur désinscrit du cours avec succès.",
+      "error_blacklist": "Erreur lors du blacklist de l'utilisateur.",
+      "error_unblacklist": "Erreur lors du déblacklist de l'utilisateur.",
+      "error_unenroll": "Erreur lors de la désinscription."
+    }
   },
   "courses": {
     "title": "Formations",

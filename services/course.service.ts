@@ -130,6 +130,12 @@ export class CourseService {
     });
     return response.data || response;
   }
+
+  async unenrollUserFromCourse(courseId: number, userId: number): Promise<void> {
+    await fetchApi<any>(`/courses/unenroll/${courseId}/user/${userId}`, {
+      method: "DELETE",
+    });
+  }
 }
 
 export const courseService = new CourseService();

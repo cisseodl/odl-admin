@@ -15,11 +15,11 @@ import { UserFormModal } from "@/components/shared/user-form-modal"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { ViewUserModal } from "./modals/view-user-modal"
 import type { ColumnDef } from "@tanstack/react-table"
-import { Eye, Edit, Trash2, User, Mail, Calendar, BookOpen, Shield, ChevronDown, Plus } from "lucide-react"
+import { Eye, Edit, Trash2, User, Mail, Calendar, BookOpen, Shield, ChevronDown, Plus, Ban, UserCheck, LogOut } from "lucide-react"
 import type { UserFormData } from "@/lib/validations/user"
 
 import { UserDb } from "@/models";
-import { adminService } from "@/services/admin.service";
+import { adminService, userService, courseService } from "@/services";
 import { FULL_API_URL } from "@/services/api.config";
 import { PageLoader } from "@/components/ui/page-loader";
 import { EmptyState } from "@/components/admin/empty-state";
@@ -120,6 +120,9 @@ export function AdministrateursList() {
   const editModal = useModal<AdministrateurDisplay>();
   const deleteModal = useModal<AdministrateurDisplay>();
   const viewModal = useModal<AdministrateurDisplay>();
+  const blacklistModal = useModal<AdministrateurDisplay>();
+  const unblacklistModal = useModal<AdministrateurDisplay>();
+  const unenrollModal = useModal<AdministrateurDisplay>();
 
   const [administrateurs, setAdministrateurs] = useState<AdministrateurDisplay[]>([]);
   const [loading, setLoading] = useState(true);
@@ -253,6 +256,111 @@ export function AdministrateursList() {
     promoteUserModal.open();
   };
 
+  const handleBlacklist = async () => {
+    if (blacklistModal.selectedItem) {
+      try {
+        // Récupérer le userId depuis les données brutes
+        const adminData = rawAdminsData.find((admin: any) => admin.id === blacklistModal.selectedItem?.id);
+        const userId = adminData?.userId || adminData?.user?.id;
+        
+        if (!userId) {
+          toast({
+            title: t('common.error'),
+            description: "Impossible de trouver l'ID utilisateur.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        await userService.blacklistUser(userId);
+        toast({
+          title: t('common.success'),
+          description: t('users.enrollments.success_blacklist'),
+        });
+        fetchAdministrateurs();
+      } catch (err: any) {
+        toast({
+          title: t('common.error'),
+          description: err.message || t('users.enrollments.error_blacklist'),
+          variant: "destructive",
+        });
+        console.error("Error blacklisting user:", err);
+      } finally {
+        blacklistModal.close();
+      }
+    }
+  };
+
+  const handleUnblacklist = async () => {
+    if (unblacklistModal.selectedItem) {
+      try {
+        // Récupérer le userId depuis les données brutes
+        const adminData = rawAdminsData.find((admin: any) => admin.id === unblacklistModal.selectedItem?.id);
+        const userId = adminData?.userId || adminData?.user?.id;
+        
+        if (!userId) {
+          toast({
+            title: t('common.error'),
+            description: "Impossible de trouver l'ID utilisateur.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        await userService.unblacklistUser(userId);
+        toast({
+          title: t('common.success'),
+          description: t('users.enrollments.success_unblacklist'),
+        });
+        fetchAdministrateurs();
+      } catch (err: any) {
+        toast({
+          title: t('common.error'),
+          description: err.message || t('users.enrollments.error_unblacklist'),
+          variant: "destructive",
+        });
+        console.error("Error unblacklisting user:", err);
+      } finally {
+        unblacklistModal.close();
+      }
+    }
+  };
+
+  const handleUnenroll = async (courseId: number) => {
+    if (unenrollModal.selectedItem) {
+      try {
+        // Récupérer le userId depuis les données brutes
+        const adminData = rawAdminsData.find((admin: any) => admin.id === unenrollModal.selectedItem?.id);
+        const userId = adminData?.userId || adminData?.user?.id;
+        
+        if (!userId) {
+          toast({
+            title: t('common.error'),
+            description: "Impossible de trouver l'ID utilisateur.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        await courseService.unenrollUserFromCourse(courseId, userId);
+        toast({
+          title: t('common.success'),
+          description: t('users.enrollments.success_unenroll'),
+        });
+        fetchAdministrateurs();
+      } catch (err: any) {
+        toast({
+          title: t('common.error'),
+          description: err.message || t('users.enrollments.error_unenroll'),
+          variant: "destructive",
+        });
+        console.error("Error unenrolling user:", err);
+      } finally {
+        unenrollModal.close();
+      }
+    }
+  };
+
   const columns: ColumnDef<AdministrateurDisplay>[] = useMemo(
     () => [
       {
@@ -355,7 +463,7 @@ export function AdministrateursList() {
         },
       },
     ],
-    [viewModal, editModal, deleteModal, t]
+    [viewModal, editModal, deleteModal, blacklistModal, unblacklistModal, unenrollModal, t]
   )
 
   const adminUserIds = useMemo(() => {
@@ -466,6 +574,41 @@ export function AdministrateursList() {
         confirmText={t('common.delete')}
         variant="destructive"
       />
+
+      <ConfirmDialog
+        open={blacklistModal.isOpen}
+        onOpenChange={(open) => !open && blacklistModal.close()}
+        onConfirm={handleBlacklist}
+        title={t('users.admins.modals.blacklist_title')}
+        description={t('users.admins.modals.blacklist_description', { name: blacklistModal.selectedItem?.name })}
+        confirmText={t('users.admins.list.action_blacklist')}
+        variant="destructive"
+      />
+
+      <ConfirmDialog
+        open={unblacklistModal.isOpen}
+        onOpenChange={(open) => !open && unblacklistModal.close()}
+        onConfirm={handleUnblacklist}
+        title={t('users.admins.modals.unblacklist_title')}
+        description={t('users.admins.modals.unblacklist_description', { name: unblacklistModal.selectedItem?.name })}
+        confirmText={t('users.admins.list.action_unblacklist')}
+        variant="default"
+      />
+
+      {unenrollModal.selectedItem && (() => {
+        const adminData = rawAdminsData.find((admin: any) => admin.id === unenrollModal.selectedItem?.id);
+        const userId = adminData?.userId || adminData?.user?.id;
+        return userId ? (
+          <CourseSelectModal
+            open={unenrollModal.isOpen}
+            onOpenChange={(open) => !open && unenrollModal.close()}
+            onSelectCourse={handleUnenroll}
+            userId={userId}
+            title={t('users.admins.modals.unenroll_title')}
+            description={t('users.admins.modals.unenroll_description', { name: unenrollModal.selectedItem?.name })}
+          />
+        ) : null;
+      })()}
     </>
   )
 }
