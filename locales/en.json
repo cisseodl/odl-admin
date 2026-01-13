@@ -76,6 +76,13 @@
         "certificatesDesc": "Your completion certificates",
         "quizzesPassed": "Quizzes Passed",
         "quizzesPassedDesc": "Number of quizzes passed successfully"
+      },
+      "moduleGrades": {
+        "title": "Average Grade per Module",
+        "description": "Your average performance in each module",
+        "grade": "Grade (%)",
+        "averageGrade": "Average Grade",
+        "noData": "No data available at the moment"
       }
     }
   },
@@ -711,6 +718,7 @@
       "title": "Your Recent Activity",
       "description": "Your latest actions on the platform",
       "no_activity": "No recent activity.",
+      "you": "You",
       "actions": {
         "course_created": "created the course",
         "course_updated": "updated the course",

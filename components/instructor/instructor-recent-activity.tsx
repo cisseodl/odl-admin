@@ -96,7 +96,7 @@ const mapInstructorActivityToActivityDisplay = (activity: InstructorActivityData
 
   return {
     id: `${activity.activityType}-${activity.courseId || 'no-course'}-${activity.timestamp}-${index}`,
-    user: "Vous", // Assuming the activity is by the instructor logged in, or can be dynamic
+    user: t('instructor.activity.you'), // Traduit selon la langue
     avatar: "/placeholder-user.jpg", // Placeholder or fetch instructor's avatar
     actionText: actionText,
     resourceDisplay: activity.courseTitle || `Cours #${activity.courseId}`,

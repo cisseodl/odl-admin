@@ -76,6 +76,13 @@
         "certificatesDesc": "Vos certificats d'achèvement",
         "quizzesPassed": "Quiz Réussis",
         "quizzesPassedDesc": "Nombre de quiz passés avec succès"
+      },
+      "moduleGrades": {
+        "title": "Note Moyenne par Module",
+        "description": "Vos performances moyennes dans chaque module",
+        "grade": "Note (%)",
+        "averageGrade": "Note moyenne",
+        "noData": "Aucune donnée disponible pour le moment"
       }
     }
   },
@@ -715,6 +722,7 @@
       "title": "Votre Activité Récente",
       "description": "Vos dernières actions sur la plateforme",
       "no_activity": "Aucune activité récente.",
+      "you": "Vous",
       "actions": {
         "course_created": "a créé la formation",
         "course_updated": "a mis à jour la formation",

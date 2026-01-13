@@ -7,6 +7,7 @@ import { PageLoader } from "@/components/ui/page-loader"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BookOpen, Award, CheckCircle, Lightbulb } from "lucide-react"
 import { analyticsService, StudentDashboardStats } from "@/services/analytics.service"
+import { ModuleAverageGradesChart } from "@/components/apprenant/module-average-grades-chart"
 
 export default function ApprenantDashboard() {
   const { t } = useLanguage()
@@ -98,7 +99,8 @@ export default function ApprenantDashboard() {
         </Card>
       </div>
 
-      {/* Vous pouvez ajouter d'autres sections ici, comme les cours en cours, les dernières activités, etc. */}
+      {/* Graphique des notes moyennes par module */}
+      <ModuleAverageGradesChart />
     </div>
   )
 }
