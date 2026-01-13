@@ -13,6 +13,15 @@ export async function fetchApi<T>(
   // Essayer d'abord AUTH_TOKEN (utilisé par lib/auth.ts), puis TOKEN pour compatibilité
   const token = options?.token || (typeof window !== "undefined" ? 
     (localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN) || localStorage.getItem(STORAGE_KEYS.TOKEN)) : null);
+  
+  // Debug: Log pour vérifier si le token est présent
+  if (typeof window !== "undefined" && !token) {
+    console.warn(`[API] No token found for request to ${endpoint}. Available keys:`, {
+      AUTH_TOKEN: localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN) ? "present" : "missing",
+      TOKEN: localStorage.getItem(STORAGE_KEYS.TOKEN) ? "present" : "missing"
+    });
+  }
+  
   const headers: Record<string, string> = {
     ...options?.headers,
     ...(token && { Authorization: `Bearer ${token}` }),
