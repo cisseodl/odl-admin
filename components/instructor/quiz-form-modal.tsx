@@ -29,8 +29,9 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Badge } from "@/components/ui/badge"
 import { Course } from "@/models"
-import { PlusCircle, MinusCircle } from "lucide-react";
+import { PlusCircle, MinusCircle, CheckCircle2, XCircle } from "lucide-react";
 
 export enum QuestionType {
   SINGLE_CHOICE = "SINGLE_CHOICE",
