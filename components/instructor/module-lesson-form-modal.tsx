@@ -94,6 +94,48 @@ export function ModuleLessonFormModal({
     name: "lessons",
   });
 
+  const { toast } = useToast();
+
+  const handleSubmit = async (data: ModuleFormData) => {
+    try {
+      // Uploader les fichiers pour chaque lesson qui a un fichier
+      const lessonsWithUploadedFiles = await Promise.all(
+        data.lessons.map(async (lesson) => {
+          if (lesson.contentFile && (lesson.type === LessonType.VIDEO || lesson.type === LessonType.DOCUMENT || lesson.type === LessonType.LAB)) {
+            try {
+              const folderName = lesson.type === LessonType.VIDEO ? "videos" : lesson.type === LessonType.DOCUMENT ? "documents" : "labs";
+              const uploadedUrl = await fileUploadService.uploadFile(lesson.contentFile, folderName);
+              return {
+                ...lesson,
+                contentUrl: uploadedUrl,
+                contentFile: undefined, // Retirer le fichier du payload final
+              };
+            } catch (error: any) {
+              toast({
+                title: "Erreur d'upload",
+                description: `Impossible d'uploader le fichier pour la leçon "${lesson.title}": ${error.message}`,
+                variant: "destructive",
+              });
+              throw error;
+            }
+          }
+          return {
+            ...lesson,
+            contentFile: undefined, // Retirer le fichier du payload final
+          };
+        })
+      );
+
+      // Soumettre avec les URLs uploadées
+      onSubmit({
+        ...data,
+        lessons: lessonsWithUploadedFiles,
+      });
+    } catch (error) {
+      console.error("Error uploading files:", error);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-[700px] max-h-[90vh] flex flex-col min-h-0">

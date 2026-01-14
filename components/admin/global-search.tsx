@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Badge } from "@/components/ui/badge"
@@ -43,19 +43,123 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const router = useRouter()
 
-  // Recherche simulée
-  const performSearch = useCallback((query: string) => {
+  // Recherche réelle dans les données
+  const performSearch = useCallback(async (query: string) => {
     if (!query.trim()) {
       setResults([])
       return
     }
 
-    const filtered = mockSearchResults.filter(
-      (item) =>
-        item.title.toLowerCase().includes(query.toLowerCase()) ||
-        item.description?.toLowerCase().includes(query.toLowerCase())
-    )
-    setResults(filtered)
+    const lowerQuery = query.toLowerCase()
+    const searchResults: SearchResult[] = []
+
+    try {
+      // Recherche dans les cours
+      const courses = await courseService.getAllCourses()
+      const coursesArray = Array.isArray(courses) ? courses : []
+      coursesArray.forEach((course: any) => {
+        if (
+          course.title?.toLowerCase().includes(lowerQuery) ||
+          course.description?.toLowerCase().includes(lowerQuery)
+        ) {
+          searchResults.push({
+            id: `course-${course.id}`,
+            type: "course",
+            title: course.title || "Cours sans titre",
+            description: course.description || undefined,
+            href: `/admin/courses`,
+            icon: <BookOpen className="h-4 w-4" />,
+          })
+        }
+      })
+
+      // Recherche dans les administrateurs
+      const admins = await adminService.getAllAdmins()
+      const adminsArray = Array.isArray(admins) ? admins : (admins?.data || [])
+      adminsArray.forEach((admin: any) => {
+        const fullName = admin.fullName || admin.user?.fullName || admin.name || ""
+        const email = admin.email || admin.user?.email || ""
+        if (
+          fullName.toLowerCase().includes(lowerQuery) ||
+          email.toLowerCase().includes(lowerQuery)
+        ) {
+          searchResults.push({
+            id: `admin-${admin.id || admin.userId}`,
+            type: "user",
+            title: fullName || "Administrateur",
+            description: email || undefined,
+            href: `/admin/users/administrateurs`,
+            icon: <Users className="h-4 w-4" />,
+          })
+        }
+      })
+
+      // Recherche dans les instructeurs
+      const instructors = await instructorService.getAllInstructors()
+      const instructorsArray = Array.isArray(instructors) ? instructors : (instructors?.data || [])
+      instructorsArray.forEach((instructor: any) => {
+        const fullName = instructor.fullName || instructor.user?.fullName || instructor.name || ""
+        const email = instructor.email || instructor.user?.email || ""
+        if (
+          fullName.toLowerCase().includes(lowerQuery) ||
+          email.toLowerCase().includes(lowerQuery) ||
+          instructor.specialization?.toLowerCase().includes(lowerQuery)
+        ) {
+          searchResults.push({
+            id: `instructor-${instructor.id || instructor.userId}`,
+            type: "instructor",
+            title: fullName || "Instructeur",
+            description: email || instructor.specialization || undefined,
+            href: `/admin/users/instructeurs`,
+            icon: <GraduationCap className="h-4 w-4" />,
+          })
+        }
+      })
+
+      // Recherche dans les apprenants
+      const apprenants = await apprenantService.getAllApprenants()
+      const apprenantsArray = Array.isArray(apprenants) ? apprenants : (apprenants?.data || [])
+      apprenantsArray.forEach((apprenant: any) => {
+        const fullName = apprenant.fullName || apprenant.user?.fullName || apprenant.name || ""
+        const email = apprenant.email || apprenant.user?.email || ""
+        if (
+          fullName.toLowerCase().includes(lowerQuery) ||
+          email.toLowerCase().includes(lowerQuery)
+        ) {
+          searchResults.push({
+            id: `apprenant-${apprenant.id || apprenant.userId}`,
+            type: "user",
+            title: fullName || "Apprenant",
+            description: email || undefined,
+            href: `/admin/users/apprenants`,
+            icon: <Users className="h-4 w-4" />,
+          })
+        }
+      })
+
+      // Recherche dans les catégories
+      const categories = await categorieService.getAllCategories()
+      const categoriesArray = Array.isArray(categories) ? categories : []
+      categoriesArray.forEach((category: any) => {
+        if (
+          category.title?.toLowerCase().includes(lowerQuery) ||
+          category.description?.toLowerCase().includes(lowerQuery)
+        ) {
+          searchResults.push({
+            id: `category-${category.id}`,
+            type: "category",
+            title: category.title || "Catégorie sans titre",
+            description: category.description || undefined,
+            href: `/admin/categories`,
+            icon: <Tag className="h-4 w-4" />,
+          })
+        }
+      })
+    } catch (error) {
+      console.error("Error performing search:", error)
+    }
+
+    setResults(searchResults)
     setSelectedIndex(0)
   }, [])
 
@@ -83,6 +187,13 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [open, onOpenChange])
 
+  const handleSelectResult = useCallback((result: SearchResult) => {
+    router.push(result.href)
+    onOpenChange(false)
+    setSearchQuery("")
+    setResults([])
+  }, [router, onOpenChange])
+
   // Navigation au clavier
   useEffect(() => {
     if (!open) return
@@ -102,14 +213,8 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [open, results, selectedIndex])
+  }, [open, results, selectedIndex, handleSelectResult])
 
-  const handleSelectResult = (result: SearchResult) => {
-    router.push(result.href)
-    onOpenChange(false)
-    setSearchQuery("")
-    setResults([])
-  }
 
   const groupedResults = results.reduce(
     (acc, result) => {
@@ -125,6 +230,9 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Recherche globale</DialogTitle>
+        </DialogHeader>
         <Command className="rounded-lg border-none">
           <div className="flex items-center border-b px-3">
             <Search className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
