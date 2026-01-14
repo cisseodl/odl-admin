@@ -116,6 +116,7 @@ export function ApprenantsList() {
   const unenrollModal = useModal<ApprenantDisplay>()
 
   const [apprenants, setApprenants] = useState<ApprenantDisplay[]>([]);
+  const [rawApprenantsData, setRawApprenantsData] = useState<Apprenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cohortes, setCohortes] = useState<Cohorte[]>([]);

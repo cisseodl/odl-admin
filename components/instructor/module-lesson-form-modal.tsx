@@ -45,7 +45,18 @@ const lessonSchema = z.object({
   lessonOrder: z.number({ required_error: "L'ordre de la leçon est requis." }).min(1, "L'ordre de la leçon doit être au moins 1."),
   type: z.nativeEnum(LessonType, { required_error: "Le type de leçon est requis." }),
   contentUrl: z.string().optional(),
-  contentFile: z.instanceof(File).optional(), // Fichier à uploader
+  contentFile: z.any().optional().refine(
+    (val) => {
+      if (!val) return true;
+      // Vérifier si c'est un objet File (disponible dans le navigateur)
+      if (typeof window !== 'undefined' && typeof File !== 'undefined') {
+        return val instanceof File;
+      }
+      // Fallback: vérifier les propriétés d'un objet File
+      return val && typeof val === 'object' && 'name' in val && 'size' in val && 'type' in val;
+    },
+    { message: "Le fichier doit être un objet File valide" }
+  ), // Fichier à uploader
   duration: z.number().optional(), // en minutes (conforme au DTO backend LessonCreationRequest)
   quizId: z.number().optional(), // For QUIZ type lessons (non utilisé dans le DTO backend)
 });
