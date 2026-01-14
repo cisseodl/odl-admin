@@ -125,13 +125,14 @@ export function RubriqueFormModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0">
+            <div className="px-6 space-y-4 overflow-y-auto flex-1 pb-4">
             <FormField
               control={form.control}
               name="rubrique"
@@ -243,8 +244,8 @@ export function RubriqueFormModal({
                 </FormItem>
               )}
             />
-
-            <DialogFooter>
+            </div>
+            <DialogFooter className="px-6 pt-4 pb-6 flex-shrink-0 border-t">
               <Button type="submit" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? "Chargement..." : submitLabel}
               </Button>
