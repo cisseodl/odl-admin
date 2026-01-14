@@ -49,28 +49,29 @@ const lessonSchema = z.object({
     (val) => {
       if (!val) return true;
       // Vérifier les propriétés d'un objet File sans utiliser instanceof
-      // Cette approche est plus robuste et fonctionne dans tous les contextes
+      // Cette approche est plus robuste et fonctionne dans tous les contextes (SSR, build, runtime)
       if (typeof val !== 'object' || val === null) return false;
       
       // Vérifier les propriétés essentielles d'un objet File
       const hasName = 'name' in val && typeof val.name === 'string';
       const hasSize = 'size' in val && typeof val.size === 'number';
       const hasType = 'type' in val && typeof val.type === 'string';
-      const hasLastModified = 'lastModified' in val && typeof val.lastModified === 'number';
       
-      // Vérifier si c'est un objet File (disponible dans le navigateur) avec instanceof seulement si File est disponible
-      if (typeof window !== 'undefined' && typeof File !== 'undefined' && File) {
+      // Vérifier si c'est un objet File en utilisant Object.prototype.toString.call
+      // Cette méthode est plus sûre que instanceof
+      if (typeof window !== 'undefined') {
         try {
-          // Vérifier si File est une fonction constructeur avant d'utiliser instanceof
-          if (typeof File === 'function' && File.prototype) {
-            return val instanceof File;
+          const fileType = Object.prototype.toString.call(val);
+          if (fileType === '[object File]') {
+            return true;
           }
         } catch (e) {
-          // Si instanceof échoue, continuer avec la vérification des propriétés
+          // Si Object.prototype.toString.call échoue, continuer avec la vérification des propriétés
         }
       }
       
       // Fallback: vérifier les propriétés d'un objet File
+      // Si l'objet a les propriétés name, size et type, on considère que c'est un File
       return hasName && hasSize && hasType;
     },
     { message: "Le fichier doit être un objet File valide" }
