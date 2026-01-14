@@ -13,7 +13,7 @@ import { useModal } from "@/hooks/use-modal"
 import { useSearch } from "@/hooks/use-search"
 import { UserFormModal } from "@/components/shared/user-form-modal"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
-import { ViewUserModal } from "./modals/view-user-modal"
+import { ViewUserModal, type UserDisplay } from "./modals/view-user-modal"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Eye, Edit, Trash2, User, Mail, Calendar, GraduationCap, Ban, UserCheck, LogOut } from "lucide-react"
 import type { UserFormData } from "@/lib/validations/user"
@@ -31,8 +31,6 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Button } from "@/components/ui/button";
 import { Plus, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context"
-import { userService } from "@/services";
-import { courseService } from "@/services";
 
 type ApprenantDisplay = {
   id: number;

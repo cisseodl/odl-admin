@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { User, Mail, Calendar, BookOpen, Shield, GraduationCap, CheckCircle2, XCircle, Ban, Briefcase, School, Users, Award, Phone, FileText } from "lucide-react"
 import { Cohorte } from "@/models" // Import Cohorte model
 
-type UserDisplay = {
+export type UserDisplay = {
   id: number;
   name: string;
   email: string;

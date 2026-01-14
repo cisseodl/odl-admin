@@ -172,7 +172,7 @@
         "unblacklist_title": "Unblacklist Administrator",
         "unblacklist_description": "Are you sure you want to unblacklist (reactivate) the administrator {{name}}?",
         "unenroll_title": "Unenroll Administrator from Course",
-        "unenroll_description": "Select the course from which you want to unenroll {{name}}."
+        "unenroll_description": "Select the course from which you want to unenroll {{name}}.",
         "promote_description": "Select an existing user to promote.",
         "create_title": "Create a New User",
         "create_description": "Create a basic user account that can then be promoted.",
@@ -229,7 +229,7 @@
         "unblacklist_title": "Unblacklist Instructor",
         "unblacklist_description": "Are you sure you want to unblacklist (reactivate) the instructor {{name}}?",
         "unenroll_title": "Unenroll Instructor from Course",
-        "unenroll_description": "Select the course from which you want to unenroll {{name}}."
+        "unenroll_description": "Select the course from which you want to unenroll {{name}}.",
         "promote_select_description": "Select an existing user to promote.",
         "promote_form_title": "Create Instructor Profile",
         "promote_form_description": "Add the specific details for the instructor's profile.",
@@ -288,7 +288,7 @@
         "unblacklist_title": "Unblacklist Learner",
         "unblacklist_description": "Are you sure you want to unblacklist (reactivate) the learner {{name}}?",
         "unenroll_title": "Unenroll Learner from Course",
-        "unenroll_description": "Select the course from which you want to unenroll {{name}}."
+        "unenroll_description": "Select the course from which you want to unenroll {{name}}.",
         "promote_description": "Select an existing user to promote.",
         "create_user_title": "Create a New User",
         "create_user_description": "Create a basic user account that can then be promoted to a learner.",

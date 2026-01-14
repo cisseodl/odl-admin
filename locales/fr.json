@@ -172,7 +172,8 @@
         "unblacklist_title": "Déblacklister l'administrateur",
         "unblacklist_description": "Êtes-vous sûr de vouloir déblacklister (réactiver) l'administrateur {{name}} ?",
         "unenroll_title": "Désinscrire l'administrateur d'un cours",
-        "unenroll_description": "Sélectionnez le cours duquel vous souhaitez désinscrire {{name}}."
+        "unenroll_description": "Sélectionnez le cours duquel vous souhaitez désinscrire {{name}}.",
+        "promote_title": "Promouvoir un utilisateur en administrateur",
         "promote_description": "Sélectionnez un utilisateur existant à promouvoir.",
         "create_title": "Créer un nouvel utilisateur",
         "create_description": "Créez un compte utilisateur de base qui pourra ensuite être promu.",
@@ -229,7 +230,8 @@
         "unblacklist_title": "Déblacklister le formateur",
         "unblacklist_description": "Êtes-vous sûr de vouloir déblacklister (réactiver) le formateur {{name}} ?",
         "unenroll_title": "Désinscrire le formateur d'un cours",
-        "unenroll_description": "Sélectionnez le cours duquel vous souhaitez désinscrire {{name}}."
+        "unenroll_description": "Sélectionnez le cours duquel vous souhaitez désinscrire {{name}}.",
+        "promote_select_title": "Promouvoir un utilisateur en formateur",
         "promote_select_description": "Sélectionnez un utilisateur existant à promouvoir.",
         "promote_form_title": "Créer le profil formateur",
         "promote_form_description": "Ajoutez les détails spécifiques du profil de formateur.",
@@ -288,7 +290,8 @@
         "unblacklist_title": "Déblacklister l'apprenant",
         "unblacklist_description": "Êtes-vous sûr de vouloir déblacklister (réactiver) l'apprenant {{name}} ?",
         "unenroll_title": "Désinscrire l'apprenant d'un cours",
-        "unenroll_description": "Sélectionnez le cours duquel vous souhaitez désinscrire {{name}}."
+        "unenroll_description": "Sélectionnez le cours duquel vous souhaitez désinscrire {{name}}.",
+        "promote_title": "Promouvoir un utilisateur en apprenant",
         "promote_description": "Sélectionnez un utilisateur existant à promouvoir.",
         "create_user_title": "Créer un nouvel utilisateur",
         "create_user_description": "Créez un compte utilisateur de base qui pourra ensuite être promu en apprenant.",
