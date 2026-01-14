@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { UserSelectModal } from "./modals/user-select-modal";
 import { InstructorPromotionFormModal, InstructorProfileFormData } from "./modals/instructor-promotion-form-modal";
 import { UserCreationModal } from "./modals/user-creation-modal";
+import { CourseSelectModal } from "./modals/course-select-modal";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/language-context";
@@ -468,6 +469,27 @@ export function InstructeursList() {
                       specialization: instructor.specialization,
                     },
                   }),
+                },
+                {
+                  label: instructor.status === "Actif" 
+                    ? t('users.instructors.list.action_blacklist') || t('users.admins.list.action_blacklist')
+                    : t('users.instructors.list.action_unblacklist') || t('users.admins.list.action_unblacklist'),
+                  icon: instructor.status === "Actif" 
+                    ? <Ban className="h-4 w-4" />
+                    : <UserCheck className="h-4 w-4" />,
+                  onClick: () => {
+                    if (instructor.status === "Actif") {
+                      blacklistModal.open(instructor);
+                    } else {
+                      unblacklistModal.open(instructor);
+                    }
+                  },
+                  variant: instructor.status === "Actif" ? "destructive" : "default",
+                },
+                {
+                  label: t('users.instructors.list.action_unenroll') || t('users.admins.list.action_unenroll'),
+                  icon: <LogOut className="h-4 w-4" />,
+                  onClick: () => unenrollModal.open(instructor),
                 },
                 {
                   label: t('users.instructors.list.action_delete'),
