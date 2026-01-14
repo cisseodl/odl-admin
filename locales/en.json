@@ -770,7 +770,42 @@
     },
     "moderation": {
       "title": "Validation",
-      "description": "Validate, reject or modify your courses pending validation"
+      "description": "Validate, reject or modify your courses pending validation",
+      "list": {
+        "header_course": "Course",
+        "header_category": "Category",
+        "header_status": "Current Status",
+        "header_actions": "Actions",
+        "action_approve": "Submit for validation",
+        "action_edit": "Edit",
+        "action_reject": "Remove from validation",
+        "status_review": "In Review",
+        "status_draft": "Draft",
+        "empty_message": "No courses pending validation."
+      },
+      "modals": {
+        "edit_title": "Edit Course",
+        "edit_description": "Modify course information",
+        "edit_submit": "Save Changes",
+        "approve_title": "Submit for validation",
+        "approve_description": "Are you sure you want to submit this course for validation? It will be reviewed by an administrator.",
+        "approve_confirm": "Submit",
+        "reject_title": "Remove from validation",
+        "reject_description": "Please indicate the reason why you are removing this course from validation.",
+        "reject_reason_label": "Reason *",
+        "reject_reason_placeholder": "Ex: Content to complete, modifications needed...",
+        "reject_cancel": "Cancel",
+        "reject_confirm": "Remove",
+        "reject_error": "Please provide a reason."
+      },
+      "toasts": {
+        "error_load": "Failed to load your pending courses.",
+        "error_update": "Failed to update course.",
+        "error_moderation": "An error occurred during validation.",
+        "success_update": "Course updated successfully.",
+        "success_approve": "Course submitted for validation successfully.",
+        "success_reject": "Course removed from validation successfully."
+      }
     },
     "activity": {
       "title": "Your Recent Activity",

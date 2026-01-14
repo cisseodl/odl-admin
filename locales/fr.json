@@ -773,7 +773,42 @@
     },
     "moderation": {
       "title": "Validation",
-      "description": "Validez, rejetez ou modifiez vos formations en attente de validation"
+      "description": "Validez, rejetez ou modifiez vos formations en attente de validation",
+      "list": {
+        "header_course": "Formation",
+        "header_category": "Catégorie",
+        "header_status": "Statut Actuel",
+        "header_actions": "Actions",
+        "action_approve": "Soumettre pour validation",
+        "action_edit": "Modifier",
+        "action_reject": "Retirer de la validation",
+        "status_review": "En révision",
+        "status_draft": "Brouillon",
+        "empty_message": "Aucune formation en attente de validation."
+      },
+      "modals": {
+        "edit_title": "Modifier la formation",
+        "edit_description": "Modifiez les informations de la formation",
+        "edit_submit": "Enregistrer les modifications",
+        "approve_title": "Soumettre pour validation",
+        "approve_description": "Êtes-vous sûr de vouloir soumettre cette formation pour validation ? Elle sera examinée par un administrateur.",
+        "approve_confirm": "Soumettre",
+        "reject_title": "Retirer de la validation",
+        "reject_description": "Veuillez indiquer la raison pour laquelle vous retirez cette formation de la validation.",
+        "reject_reason_label": "Raison *",
+        "reject_reason_placeholder": "Ex: Contenu à compléter, modifications nécessaires...",
+        "reject_cancel": "Annuler",
+        "reject_confirm": "Retirer",
+        "reject_error": "Veuillez indiquer une raison."
+      },
+      "toasts": {
+        "error_load": "Impossible de charger vos formations en attente.",
+        "error_update": "Impossible de mettre à jour la formation.",
+        "error_moderation": "Une erreur est survenue lors de la validation.",
+        "success_update": "La formation a été mise à jour.",
+        "success_approve": "La formation a été soumise pour validation avec succès.",
+        "success_reject": "La formation a été retirée de la validation avec succès."
+      }
     },
     "activity": {
       "title": "Votre Activité Récente",

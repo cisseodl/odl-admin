@@ -95,11 +95,6 @@ export const adminRoutes: Route[] = [
     href: "/admin/cohortes", // New href for Cohortes
   },
   {
-    label: "routes.moderation", // Nouvelle entrée pour la modération
-    icon: Shield,
-    href: "/admin/moderation",
-  },
-  {
     label: "routes.notifications",
     icon: Bell,
     href: "/admin/notifications",
