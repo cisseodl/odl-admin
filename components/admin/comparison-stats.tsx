@@ -4,7 +4,7 @@ import { useLanguage } from "@/contexts/language-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { TrendingUp, TrendingDown, Minus } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useEffect, useState, useMemo } from "react"; // Ajout de useEffect, useState, useMemo
+import { useEffect, useState, useMemo, useCallback } from "react"; // Ajout de useEffect, useState, useMemo, useCallback
 import { analyticsService, OverallComparisonStats } from "@/services/analytics.service"; // Corrected Import service et type
 import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
@@ -60,7 +60,7 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
     }
   }
 
-  const calculateChange = (current: number | string, previous: number | string): { value: number; percentage: number } => {
+  const calculateChange = useCallback((current: number | string, previous: number | string): { value: number; percentage: number } => {
     const curr = typeof current === "string" ? parseFloat(current.replace(/[^\d.-]/g, "")) : current
     const prev = typeof previous === "string" ? parseFloat(previous.replace(/[^\d.-]/g, "")) : previous
 
@@ -72,7 +72,7 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
     const percentage = (change / prev) * 100
 
     return { value: change, percentage }
-  }
+  }, [])
 
   const metrics: ComparisonMetric[] = useMemo(() => {
     if (!statsData) return [];
@@ -105,6 +105,23 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
     ];
   }, [statsData, t]);
 
+  // Préparer les données pour le graphique
+  const chartData = useMemo(() => {
+    if (!metrics || metrics.length === 0) return [];
+    
+    return metrics.map((metric) => {
+      const currentNum = typeof metric.current === "string" ? parseFloat(metric.current.replace(/[^\d.-]/g, "")) : metric.current
+      const previousNum = typeof metric.previous === "string" ? parseFloat(metric.previous.replace(/[^\d.-]/g, "")) : metric.previous
+      const { percentage } = calculateChange(currentNum, previousNum)
+      
+      return {
+        name: metric.label,
+        current: currentNum,
+        previous: previousNum,
+        change: percentage,
+      }
+    })
+  }, [metrics, calculateChange])
 
   // Removed periodLabel as period is no longer a prop
   const periodLabel = t('dashboard.comparison.previous_period'); // Default label
@@ -120,22 +137,6 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
   if (!statsData || metrics.length === 0) {
     return <div className="text-center text-muted-foreground p-4">{t('dashboard.comparison.no_data')}</div>;
   }
-
-  // Préparer les données pour le graphique
-  const chartData = useMemo(() => {
-    return metrics.map((metric) => {
-      const currentNum = typeof metric.current === "string" ? parseFloat(metric.current.replace(/[^\d.-]/g, "")) : metric.current
-      const previousNum = typeof metric.previous === "string" ? parseFloat(metric.previous.replace(/[^\d.-]/g, "")) : metric.previous
-      const { percentage } = calculateChange(currentNum, previousNum)
-      
-      return {
-        name: metric.label,
-        current: currentNum,
-        previous: previousNum,
-        change: percentage,
-      }
-    })
-  }, [metrics])
 
   return (
     <Card>
