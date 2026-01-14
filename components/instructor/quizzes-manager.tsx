@@ -111,7 +111,7 @@ export function QuizzesManager() {
         title: data.title,
         courseId: data.courseId,
         durationMinutes: data.durationMinutes,
-        scoreMinimum: data.scoreMinimum,
+        scoreMinimum: 80, // Fixé à 80% selon la règle métier du backend
         questions: data.questions.map(q => ({
           content: q.content,
           type: q.type,

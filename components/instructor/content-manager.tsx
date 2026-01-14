@@ -46,6 +46,8 @@ export function ContentManager() {
   const handleAddModule = async (data: ModuleFormData) => {
     try {
       // The endpoint POST /modules/save expects a JSON object with courseId and an array of modules
+      // Les fichiers ont déjà été uploadés dans handleSubmit du ModuleLessonFormModal
+      // et les URLs sont dans contentUrl
       const payload = {
         courseId: data.courseId,
         modules: [
@@ -53,16 +55,20 @@ export function ContentManager() {
             title: data.title,
             description: data.description || "", // Conforme au DTO ModuleCreationRequest
             moduleOrder: data.moduleOrder,
-            lessons: data.lessons.map(lesson => ({
-              title: lesson.title, // @NotBlank - requis
-              lessonOrder: lesson.lessonOrder, // @NotNull - requis
-              type: lesson.type, // @NotNull - requis (VIDEO, QUIZ, DOCUMENT, LAB conforme à LessonType enum)
-              // contentUrl est optionnel dans LessonCreationRequest
-              ...(lesson.contentUrl && lesson.contentUrl.trim() && { contentUrl: lesson.contentUrl }),
-              // duration est optionnel dans LessonCreationRequest (en minutes)
-              ...(lesson.duration && lesson.duration > 0 && { duration: lesson.duration }),
-              // quizId n'est PAS dans le DTO LessonCreationRequest, donc on ne l'envoie pas
-            })),
+            lessons: data.lessons.map(lesson => {
+              // Retirer contentFile qui n'est pas dans le DTO backend
+              const { contentFile, quizId, ...lessonPayload } = lesson;
+              return {
+                title: lessonPayload.title, // @NotBlank - requis
+                lessonOrder: lessonPayload.lessonOrder, // @NotNull - requis
+                type: lessonPayload.type, // @NotNull - requis (VIDEO, QUIZ, DOCUMENT, LAB conforme à LessonType enum)
+                // contentUrl est optionnel dans LessonCreationRequest (contient l'URL uploadée)
+                ...(lessonPayload.contentUrl && lessonPayload.contentUrl.trim() && { contentUrl: lessonPayload.contentUrl }),
+                // duration est optionnel dans LessonCreationRequest (en minutes)
+                ...(lessonPayload.duration && lessonPayload.duration > 0 && { duration: lessonPayload.duration }),
+                // quizId n'est PAS dans le DTO LessonCreationRequest, donc on ne l'envoie pas
+              };
+            }),
           },
         ],
       };

@@ -53,7 +53,7 @@ const quizFormSchema = z.object({
   title: z.string().min(2, "Le titre du quiz doit contenir au moins 2 caractères."),
   courseId: z.number({ required_error: "Veuillez sélectionner un cours." }),
   durationMinutes: z.number().min(1, "La durée en minutes est requise."),
-  scoreMinimum: z.number().min(0, "Le score minimum est requis.").max(100, "Le score minimum ne peut excéder 100."),
+  scoreMinimum: z.literal(80), // Fixé à 80% selon la règle métier du backend
   questions: z.array(questionSchema).min(1, "Au moins une question est requise pour le quiz."),
 });
 
@@ -84,6 +84,7 @@ export function QuizFormModal({
     resolver: zodResolver(quizFormSchema),
     defaultValues: {
       ...defaultValues,
+      scoreMinimum: 80, // Fixé à 80% selon la règle métier
       questions: defaultValues?.questions && defaultValues.questions.length > 0
         ? defaultValues.questions
         : [{ content: "", type: QuestionType.SINGLE_CHOICE, points: 1, reponses: [{ text: "", isCorrect: false }, { text: "", isCorrect: false }] }],
@@ -162,8 +163,15 @@ export function QuizFormModal({
                   <FormItem>
                     <FormLabel>Score minimum (%)</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="80" {...field} onChange={event => field.onChange(Number(event.target.value))} />
+                      <Input 
+                        type="number" 
+                        value={80} 
+                        disabled 
+                        className="bg-muted cursor-not-allowed"
+                        {...field} 
+                      />
                     </FormControl>
+                    <p className="text-xs text-muted-foreground">Le score minimum est fixé à 80% selon la règle métier.</p>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -227,7 +235,7 @@ export function QuizFormModal({
 
                   <div className="space-y-2 pl-4 border-l-2">
                     <h5 className="text-base font-medium">Réponses</h5>
-                    <ResponseFields qIndex={qIndex} control={form.control} />
+                    <ResponseFields qIndex={qIndex} control={form.control} watch={form.watch} />
                     <Button
                       type="button"
                       variant="outline"
@@ -265,7 +273,7 @@ export function QuizFormModal({
 }
 
 // Helper component for managing responses within a question
-function ResponseFields({ qIndex, control }: { qIndex: number, control: any }) {
+function ResponseFields({ qIndex, control, watch }: { qIndex: number, control: any, watch: any }) {
   const { fields: responseFields, append: appendResponse, remove: removeResponse } = useFieldArray({
     control,
     name: `questions.${qIndex}.reponses`,
@@ -273,42 +281,68 @@ function ResponseFields({ qIndex, control }: { qIndex: number, control: any }) {
 
   return (
     <div className="space-y-2">
-      {responseFields.map((response, rIndex) => (
-        <div key={response.id} className="flex items-center space-x-2">
-          <FormField
-            control={control}
-            name={`questions.${qIndex}.reponses.${rIndex}.isCorrect`}
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-2">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Correct</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={control}
-            name={`questions.${qIndex}.reponses.${rIndex}.text`}
-            render={({ field }) => (
-              <FormItem className="flex-grow">
-                <FormControl>
-                  <Input placeholder="Texte de la réponse" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button type="button" variant="ghost" size="sm" onClick={() => removeResponse(rIndex)}>
-            <MinusCircle className="h-4 w-4" />
-          </Button>
-        </div>
-      ))}
+      {responseFields.map((response, rIndex) => {
+        const isCorrect = watch(`questions.${qIndex}.reponses.${rIndex}.isCorrect`) || false;
+        return (
+          <div 
+            key={response.id} 
+            className={`flex items-center space-x-2 p-3 rounded-md border-2 transition-colors ${
+              isCorrect 
+                ? "border-green-500 bg-green-50 dark:bg-green-950" 
+                : "border-red-300 bg-red-50 dark:bg-red-950"
+            }`}
+          >
+            <FormField
+              control={control}
+              name={`questions.${qIndex}.reponses.${rIndex}.isCorrect`}
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      {field.value ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      ) : (
+                        <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                      )}
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className="ml-2"
+                      />
+                    </div>
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel className="cursor-pointer">
+                      <Badge variant={field.value ? "default" : "destructive"} className="ml-2">
+                        {field.value ? "Bonne réponse" : "Mauvaise réponse"}
+                      </Badge>
+                    </FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
+              name={`questions.${qIndex}.reponses.${rIndex}.text`}
+              render={({ field }) => (
+                <FormItem className="flex-grow">
+                  <FormControl>
+                    <Input 
+                      placeholder={isCorrect ? "Texte de la bonne réponse" : "Texte de la mauvaise réponse"} 
+                      {...field} 
+                      className={isCorrect ? "border-green-500" : "border-red-300"}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="button" variant="ghost" size="sm" onClick={() => removeResponse(rIndex)}>
+              <MinusCircle className="h-4 w-4" />
+            </Button>
+          </div>
+        );
+      })}
     </div>
   );
 }

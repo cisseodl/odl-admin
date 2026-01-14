@@ -29,7 +29,9 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"
 import { Course } from "@/models"
-import { PlusCircle, MinusCircle } from "lucide-react"; // Import icons
+import { PlusCircle, MinusCircle, Upload, File } from "lucide-react";
+import { fileUploadService } from "@/services/file-upload.service";
+import { useToast } from "@/hooks/use-toast"; // Import icons
 
 export enum LessonType {
   VIDEO = "VIDEO",
@@ -43,6 +45,7 @@ const lessonSchema = z.object({
   lessonOrder: z.number({ required_error: "L'ordre de la leçon est requis." }).min(1, "L'ordre de la leçon doit être au moins 1."),
   type: z.nativeEnum(LessonType, { required_error: "Le type de leçon est requis." }),
   contentUrl: z.string().optional(),
+  contentFile: z.instanceof(File).optional(), // Fichier à uploader
   duration: z.number().optional(), // en minutes (conforme au DTO backend LessonCreationRequest)
   quizId: z.number().optional(), // For QUIZ type lessons (non utilisé dans le DTO backend)
 });
@@ -99,7 +102,7 @@ export function ModuleLessonFormModal({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 overflow-y-auto flex-1 pr-2">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 overflow-y-auto flex-1 pr-2">
             <FormField
               control={form.control}
               name="courseId"
@@ -209,13 +212,34 @@ export function ModuleLessonFormModal({
                     <>
                       <FormField
                         control={form.control}
-                        name={`lessons.${index}.contentUrl`}
-                        render={({ field }) => (
+                        name={`lessons.${index}.contentFile`}
+                        render={({ field: { value, onChange, ...field } }) => (
                           <FormItem>
-                            <FormLabel>URL du contenu (Vidéo)</FormLabel>
+                            <FormLabel>Fichier vidéo</FormLabel>
                             <FormControl>
-                              <Input placeholder="https://example.com/video.mp4" {...field} />
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="file"
+                                  accept="video/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      onChange(file);
+                                      // Mettre à jour aussi contentUrl pour affichage
+                                      form.setValue(`lessons.${index}.contentUrl`, file.name);
+                                    }
+                                  }}
+                                  {...field}
+                                />
+                                {value && (
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <File className="h-4 w-4" />
+                                    {(value as File).name}
+                                  </div>
+                                )}
+                              </div>
                             </FormControl>
+                            <p className="text-xs text-muted-foreground">Téléchargez un fichier vidéo (MP4, AVI, etc.)</p>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -225,9 +249,9 @@ export function ModuleLessonFormModal({
                         name={`lessons.${index}.duration`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Durée (secondes)</FormLabel>
+                            <FormLabel>Durée (minutes)</FormLabel>
                             <FormControl>
-                              <Input type="number" placeholder="300" {...field} onChange={event => field.onChange(Number(event.target.value))} />
+                              <Input type="number" placeholder="10" {...field} onChange={event => field.onChange(Number(event.target.value))} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -236,34 +260,54 @@ export function ModuleLessonFormModal({
                     </>
                   )}
                   {form.watch(`lessons.${index}.type`) === LessonType.DOCUMENT && (
-                    <FormField
-                      control={form.control}
-                      name={`lessons.${index}.contentUrl`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>URL du contenu (Document)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="https://example.com/document.pdf" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                  {form.watch(`lessons.${index}.type`) === LessonType.DOCUMENT && (
-                    <FormField
-                      control={form.control}
-                      name={`lessons.${index}.duration`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Durée (minutes)</FormLabel>
-                          <FormControl>
-                            <Input type="number" placeholder="10" {...field} onChange={event => field.onChange(Number(event.target.value))} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <>
+                      <FormField
+                        control={form.control}
+                        name={`lessons.${index}.contentFile`}
+                        render={({ field: { value, onChange, ...field } }) => (
+                          <FormItem>
+                            <FormLabel>Fichier document</FormLabel>
+                            <FormControl>
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="file"
+                                  accept=".pdf,.doc,.docx,.txt"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      onChange(file);
+                                      form.setValue(`lessons.${index}.contentUrl`, file.name);
+                                    }
+                                  }}
+                                  {...field}
+                                />
+                                {value && (
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <File className="h-4 w-4" />
+                                    {(value as File).name}
+                                  </div>
+                                )}
+                              </div>
+                            </FormControl>
+                            <p className="text-xs text-muted-foreground">Téléchargez un document (PDF, DOC, DOCX, TXT)</p>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`lessons.${index}.duration`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Durée (minutes)</FormLabel>
+                            <FormControl>
+                              <Input type="number" placeholder="10" {...field} onChange={event => field.onChange(Number(event.target.value))} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </>
                   )}
                   {form.watch(`lessons.${index}.type`) === LessonType.QUIZ && (
                     <FormField
@@ -284,13 +328,33 @@ export function ModuleLessonFormModal({
                     <>
                       <FormField
                         control={form.control}
-                        name={`lessons.${index}.contentUrl`}
-                        render={({ field }) => (
+                        name={`lessons.${index}.contentFile`}
+                        render={({ field: { value, onChange, ...field } }) => (
                           <FormItem>
-                            <FormLabel>URL du contenu (Lab)</FormLabel>
+                            <FormLabel>Fichier lab</FormLabel>
                             <FormControl>
-                              <Input placeholder="https://example.com/lab" {...field} />
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="file"
+                                  accept=".zip,.tar,.gz,.json"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      onChange(file);
+                                      form.setValue(`lessons.${index}.contentUrl`, file.name);
+                                    }
+                                  }}
+                                  {...field}
+                                />
+                                {value && (
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <File className="h-4 w-4" />
+                                    {(value as File).name}
+                                  </div>
+                                )}
+                              </div>
                             </FormControl>
+                            <p className="text-xs text-muted-foreground">Téléchargez un fichier lab (ZIP, TAR, GZ, JSON)</p>
                             <FormMessage />
                           </FormItem>
                         )}
