@@ -48,12 +48,30 @@ const lessonSchema = z.object({
   contentFile: z.any().optional().refine(
     (val) => {
       if (!val) return true;
-      // Vérifier si c'est un objet File (disponible dans le navigateur)
-      if (typeof window !== 'undefined' && typeof File !== 'undefined') {
-        return val instanceof File;
+      // Vérifier les propriétés d'un objet File sans utiliser instanceof
+      // Cette approche est plus robuste et fonctionne dans tous les contextes
+      if (typeof val !== 'object' || val === null) return false;
+      
+      // Vérifier les propriétés essentielles d'un objet File
+      const hasName = 'name' in val && typeof val.name === 'string';
+      const hasSize = 'size' in val && typeof val.size === 'number';
+      const hasType = 'type' in val && typeof val.type === 'string';
+      const hasLastModified = 'lastModified' in val && typeof val.lastModified === 'number';
+      
+      // Vérifier si c'est un objet File (disponible dans le navigateur) avec instanceof seulement si File est disponible
+      if (typeof window !== 'undefined' && typeof File !== 'undefined' && File) {
+        try {
+          // Vérifier si File est une fonction constructeur avant d'utiliser instanceof
+          if (typeof File === 'function' && File.prototype) {
+            return val instanceof File;
+          }
+        } catch (e) {
+          // Si instanceof échoue, continuer avec la vérification des propriétés
+        }
       }
+      
       // Fallback: vérifier les propriétés d'un objet File
-      return val && typeof val === 'object' && 'name' in val && 'size' in val && 'type' in val;
+      return hasName && hasSize && hasType;
     },
     { message: "Le fichier doit être un objet File valide" }
   ), // Fichier à uploader
