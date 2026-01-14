@@ -256,7 +256,7 @@ export function AdministrateursList() {
     promoteUserModal.open();
   };
 
-  const handleBlacklist = async () => {
+  const handleBlacklist = useCallback(async () => {
     if (blacklistModal.selectedItem) {
       try {
         // Récupérer le userId depuis les données brutes
@@ -289,9 +289,9 @@ export function AdministrateursList() {
         blacklistModal.close();
       }
     }
-  };
+  }, [blacklistModal, rawAdminsData, toast, t, fetchAdministrateurs]);
 
-  const handleUnblacklist = async () => {
+  const handleUnblacklist = useCallback(async () => {
     if (unblacklistModal.selectedItem) {
       try {
         // Récupérer le userId depuis les données brutes
@@ -324,9 +324,9 @@ export function AdministrateursList() {
         unblacklistModal.close();
       }
     }
-  };
+  }, [unblacklistModal, rawAdminsData, toast, t, fetchAdministrateurs]);
 
-  const handleUnenroll = async (courseId: number) => {
+  const handleUnenroll = useCallback(async (courseId: number) => {
     if (unenrollModal.selectedItem) {
       try {
         // Récupérer le userId depuis les données brutes
@@ -359,7 +359,7 @@ export function AdministrateursList() {
         unenrollModal.close();
       }
     }
-  };
+  }, [unenrollModal, rawAdminsData, toast, t, fetchAdministrateurs]);
 
   const columns: ColumnDef<AdministrateurDisplay>[] = useMemo(
     () => [
@@ -450,6 +450,27 @@ export function AdministrateursList() {
                   label: t('users.admins.list.action_edit'),
                   icon: <Edit className="h-4 w-4" />,
                   onClick: () => editModal.open(administrateur),
+                },
+                {
+                  label: administrateur.status === "Actif" 
+                    ? t('users.admins.list.action_blacklist')
+                    : t('users.admins.list.action_unblacklist'),
+                  icon: administrateur.status === "Actif" 
+                    ? <Ban className="h-4 w-4" />
+                    : <UserCheck className="h-4 w-4" />,
+                  onClick: () => {
+                    if (administrateur.status === "Actif") {
+                      blacklistModal.open(administrateur);
+                    } else {
+                      unblacklistModal.open(administrateur);
+                    }
+                  },
+                  variant: administrateur.status === "Actif" ? "destructive" : "default",
+                },
+                {
+                  label: t('users.admins.list.action_unenroll'),
+                  icon: <LogOut className="h-4 w-4" />,
+                  onClick: () => unenrollModal.open(administrateur),
                 },
                 {
                   label: t('users.admins.list.action_delete'),

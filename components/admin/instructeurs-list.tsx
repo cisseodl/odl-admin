@@ -276,7 +276,7 @@ export function InstructeursList() {
     });
   };
 
-  const handleBlacklist = async () => {
+  const handleBlacklist = useCallback(async () => {
     if (blacklistModal.selectedItem) {
       try {
         // Récupérer le userId depuis les données brutes
@@ -309,9 +309,9 @@ export function InstructeursList() {
         blacklistModal.close();
       }
     }
-  };
+  }, [blacklistModal, rawInstructorsData, toast, t, fetchInstructors]);
 
-  const handleUnblacklist = async () => {
+  const handleUnblacklist = useCallback(async () => {
     if (unblacklistModal.selectedItem) {
       try {
         // Récupérer le userId depuis les données brutes
@@ -344,9 +344,9 @@ export function InstructeursList() {
         unblacklistModal.close();
       }
     }
-  };
+  }, [unblacklistModal, rawInstructorsData, toast, t, fetchInstructors]);
 
-  const handleUnenroll = async (courseId: number) => {
+  const handleUnenroll = useCallback(async (courseId: number) => {
     if (unenrollModal.selectedItem) {
       try {
         // Récupérer le userId depuis les données brutes
@@ -379,7 +379,7 @@ export function InstructeursList() {
         unenrollModal.close();
       }
     }
-  };
+  }, [unenrollModal, rawInstructorsData, toast, t, fetchInstructors]);
 
   const columns: ColumnDef<InstructorDisplay>[] = useMemo(
     () => [

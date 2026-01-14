@@ -293,6 +293,111 @@ export function ApprenantsList() {
     }
   };
 
+  const handleBlacklist = useCallback(async () => {
+    if (blacklistModal.selectedItem) {
+      try {
+        // Récupérer le userId depuis les données brutes
+        const apprenantData = rawApprenantsData.find((app: Apprenant) => app.id === blacklistModal.selectedItem?.id);
+        const userId = apprenantData?.user?.id || apprenantData?.id;
+        
+        if (!userId) {
+          toast({
+            title: t('common.error'),
+            description: "Impossible de trouver l'ID utilisateur.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        await userService.blacklistUser(userId);
+        toast({
+          title: t('common.success'),
+          description: t('users.enrollments.success_blacklist'),
+        });
+        fetchApprenants();
+      } catch (err: any) {
+        toast({
+          title: t('common.error'),
+          description: err.message || t('users.enrollments.error_blacklist'),
+          variant: "destructive",
+        });
+        console.error("Error blacklisting user:", err);
+      } finally {
+        blacklistModal.close();
+      }
+    }
+  }, [blacklistModal, rawApprenantsData, toast, t, fetchApprenants]);
+
+  const handleUnblacklist = useCallback(async () => {
+    if (unblacklistModal.selectedItem) {
+      try {
+        // Récupérer le userId depuis les données brutes
+        const apprenantData = rawApprenantsData.find((app: Apprenant) => app.id === unblacklistModal.selectedItem?.id);
+        const userId = apprenantData?.user?.id || apprenantData?.id;
+        
+        if (!userId) {
+          toast({
+            title: t('common.error'),
+            description: "Impossible de trouver l'ID utilisateur.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        await userService.unblacklistUser(userId);
+        toast({
+          title: t('common.success'),
+          description: t('users.enrollments.success_unblacklist'),
+        });
+        fetchApprenants();
+      } catch (err: any) {
+        toast({
+          title: t('common.error'),
+          description: err.message || t('users.enrollments.error_unblacklist'),
+          variant: "destructive",
+        });
+        console.error("Error unblacklisting user:", err);
+      } finally {
+        unblacklistModal.close();
+      }
+    }
+  }, [unblacklistModal, rawApprenantsData, toast, t, fetchApprenants]);
+
+  const handleUnenroll = useCallback(async (courseId: number) => {
+    if (unenrollModal.selectedItem) {
+      try {
+        // Récupérer le userId depuis les données brutes
+        const apprenantData = rawApprenantsData.find((app: Apprenant) => app.id === unenrollModal.selectedItem?.id);
+        const userId = apprenantData?.user?.id || apprenantData?.id;
+        
+        if (!userId) {
+          toast({
+            title: t('common.error'),
+            description: "Impossible de trouver l'ID utilisateur.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        await courseService.unenrollUserFromCourse(courseId, userId);
+        toast({
+          title: t('common.success'),
+          description: t('users.enrollments.success_unenroll'),
+        });
+        fetchApprenants();
+      } catch (err: any) {
+        toast({
+          title: t('common.error'),
+          description: err.message || t('users.enrollments.error_unenroll'),
+          variant: "destructive",
+        });
+        console.error("Error unenrolling user:", err);
+      } finally {
+        unenrollModal.close();
+      }
+    }
+  }, [unenrollModal, rawApprenantsData, toast, t, fetchApprenants]);
+
   const columns: ColumnDef<ApprenantDisplay>[] = useMemo(
     () => [
       {
