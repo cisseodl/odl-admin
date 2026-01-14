@@ -138,6 +138,11 @@ export const instructorRoutes: Route[] = [
     href: "/instructor/content",
   },
   {
+    label: "instructor.categories.title",
+    icon: Tag,
+    href: "/instructor/categories",
+  },
+  {
     label: "instructor.moderation.title",
     icon: Shield,
     href: "/instructor/moderation",
@@ -156,11 +161,6 @@ export const instructorRoutes: Route[] = [
     label: "instructor.certificates.title",
     icon: Award,
     href: "/instructor/certificates",
-  },
-  {
-    label: "instructor.categories.title",
-    icon: Tag,
-    href: "/instructor/categories",
   },
 ]
 
