@@ -133,6 +133,7 @@ export function InstructeursList() {
 
   const [instructors, setInstructors] = useState<InstructorDisplay[]>([]);
   const [loading, setLoading] = useState(true);
+  const [rawInstructorsData, setRawInstructorsData] = useState<any[]>([]);
   
   const { searchQuery, setSearchQuery, filteredData } = useSearch<InstructorDisplay>({
     data: instructors,
@@ -150,6 +151,7 @@ export function InstructeursList() {
         setInstructors(instructorsData.map(inst => mapApiInstructorToInstructorDisplay(inst, t)));
       } else {
         console.error("Unexpected response structure:", response);
+        setRawInstructorsData([]);
         setInstructors([]);
         toast({
           title: t('common.error'),
@@ -164,6 +166,7 @@ export function InstructeursList() {
         variant: "destructive",
       });
       console.error("Error fetching instructors:", err);
+      setRawInstructorsData([]);
       setInstructors([]);
     } finally {
       setLoading(false);
