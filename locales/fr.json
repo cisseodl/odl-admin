@@ -87,7 +87,7 @@
     }
   },
   "dashboard": {
-    "title": "Tableau de bord",
+    "title": "Tableau de bord admin",
     "overview": "Vue d'ensemble",
     "statistics": "Statistiques",
     "recentActivity": "Activité récente",

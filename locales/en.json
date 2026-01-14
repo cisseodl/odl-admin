@@ -87,7 +87,7 @@
     }
   },
   "dashboard": {
-    "title": "Dashboard",
+    "title": "Admin Dashboard",
     "overview": "Overview",
     "statistics": "Statistics",
     "recentActivity": "Recent Activity",

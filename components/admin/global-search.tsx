@@ -8,6 +8,11 @@ import { Badge } from "@/components/ui/badge"
 import { Search, FileText, Users, BookOpen, GraduationCap, Tag, Award, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { courseService } from "@/services"
+import { adminService } from "@/services"
+import { instructorService } from "@/services"
+import { categorieService } from "@/services"
+import { apprenantService } from "@/services"
 
 type SearchResult = {
   id: string
@@ -22,50 +27,6 @@ type GlobalSearchProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
-
-// Données simulées - à remplacer par des appels API réels
-const mockSearchResults: SearchResult[] = [
-  {
-    id: "1",
-    type: "course",
-    title: "Formation React Avancé",
-    description: "Hooks, Context et Performance",
-    href: "/admin/courses",
-    icon: <BookOpen className="h-4 w-4" />,
-  },
-  {
-    id: "2",
-    type: "user",
-    title: "Marie Dupont",
-    description: "marie.dupont@email.com",
-    href: "/admin/users",
-    icon: <Users className="h-4 w-4" />,
-  },
-  {
-    id: "3",
-    type: "instructor",
-    title: "Thomas Martin",
-    description: "Instructeur - 12 formations",
-    href: "/admin/instructors",
-    icon: <GraduationCap className="h-4 w-4" />,
-  },
-  {
-    id: "4",
-    type: "category",
-    title: "Développement Web",
-    description: "15 formations",
-    href: "/admin/categories",
-    icon: <Tag className="h-4 w-4" />,
-  },
-  {
-    id: "5",
-    type: "certification",
-    title: "Certification React Avancé",
-    description: "145 certificats délivrés",
-    href: "/admin/certifications",
-    icon: <Award className="h-4 w-4" />,
-  },
-]
 
 const typeLabels: Record<SearchResult["type"], string> = {
   user: "Utilisateur",
@@ -99,7 +60,11 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   }, [])
 
   useEffect(() => {
-    performSearch(searchQuery)
+    const timeoutId = setTimeout(() => {
+      performSearch(searchQuery)
+    }, 300) // Debounce de 300ms
+
+    return () => clearTimeout(timeoutId)
   }, [searchQuery, performSearch])
 
   // Raccourci clavier Cmd/Ctrl + K
@@ -181,10 +146,6 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
               <div className="p-6 text-center text-sm text-muted-foreground">
                 <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p>Commencez à taper pour rechercher...</p>
-                <p className="text-xs mt-2">
-                  Utilisez <kbd className="px-1.5 py-0.5 text-xs font-semibold bg-muted rounded">Ctrl</kbd> +{" "}
-                  <kbd className="px-1.5 py-0.5 text-xs font-semibold bg-muted rounded">K</kbd> pour ouvrir cette recherche
-                </p>
               </div>
             )}
             {Object.entries(groupedResults).map(([type, items]) => (
