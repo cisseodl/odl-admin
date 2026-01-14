@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils"
 import { useEffect, useState, useMemo } from "react"; // Ajout de useEffect, useState, useMemo
 import { analyticsService, OverallComparisonStats } from "@/services/analytics.service"; // Corrected Import service et type
 import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from "recharts"
 
 type ComparisonMetric = {
   label: string
@@ -119,6 +121,22 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
     return <div className="text-center text-muted-foreground p-4">{t('dashboard.comparison.no_data')}</div>;
   }
 
+  // Préparer les données pour le graphique
+  const chartData = useMemo(() => {
+    return metrics.map((metric) => {
+      const currentNum = typeof metric.current === "string" ? parseFloat(metric.current.replace(/[^\d.-]/g, "")) : metric.current
+      const previousNum = typeof metric.previous === "string" ? parseFloat(metric.previous.replace(/[^\d.-]/g, "")) : metric.previous
+      const { percentage } = calculateChange(currentNum, previousNum)
+      
+      return {
+        name: metric.label,
+        current: currentNum,
+        previous: previousNum,
+        change: percentage,
+      }
+    })
+  }, [metrics])
+
   return (
     <Card>
       <CardHeader>
@@ -126,54 +144,128 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
         {description && <CardDescription>{description || t('dashboard.comparison.description')}</CardDescription>}
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <ChartContainer
+          config={{
+            current: {
+              label: t('dashboard.comparison.current_period') || "Période actuelle",
+              color: "hsl(var(--chart-1))",
+            },
+            previous: {
+              label: t('dashboard.comparison.previous_period') || "Période précédente",
+              color: "hsl(var(--chart-2))",
+            },
+          }}
+          className="h-[400px] w-full"
+        >
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={chartData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="name" 
+                angle={-45}
+                textAnchor="end"
+                height={100}
+                tick={{ fontSize: 12 }}
+              />
+              <YAxis />
+              <ChartTooltip 
+                content={<ChartTooltipContent 
+                  formatter={(value: any, name: string) => {
+                    const metric = metrics.find(m => {
+                      const label = m.label
+                      return chartData.find(d => d.name === label)?.name === name
+                    })
+                    if (metric) {
+                      return formatValue(value, metric.format, metric.unit)
+                    }
+                    return value
+                  }}
+                />} 
+              />
+              <Legend 
+                formatter={(value) => {
+                  if (value === 'current') {
+                    return t('dashboard.comparison.current_period') || "Période actuelle"
+                  }
+                  if (value === 'previous') {
+                    return t('dashboard.comparison.previous_period') || "Période précédente"
+                  }
+                  return value
+                }}
+              />
+              <Bar 
+                dataKey="current" 
+                fill="var(--color-current)" 
+                name="current"
+                radius={[4, 4, 0, 0]}
+              />
+              <Bar 
+                dataKey="previous" 
+                fill="var(--color-previous)" 
+                name="previous"
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartContainer>
+        
+        {/* Affichage des détails avec indicateurs de changement */}
+        <div className="mt-6 space-y-3">
           {metrics.map((metric, index) => {
             const currentNum = typeof metric.current === "string" ? parseFloat(metric.current.replace(/[^\d.-]/g, "")) : metric.current
-            const previousNum = typeof metric.previous === "string" ? parseFloat(metric.previous.replace(/[^\d.-]/g, "")) : metric.previous // Corrected line
-
+            const previousNum = typeof metric.previous === "string" ? parseFloat(metric.previous.replace(/[^\d.-]/g, "")) : metric.previous
             const { value: changeValue, percentage } = calculateChange(currentNum, previousNum)
             const isPositive = percentage > 0
             const isNeutral = percentage === 0
 
             return (
-              <div key={index} className="flex items-center justify-between p-4 rounded-lg border shadow-sm bg-card">
+              <div key={index} className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-muted-foreground mb-1">{metric.label}</p>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold">{formatValue(currentNum, metric.format, metric.unit)}</span>
-                    <span className="text-sm text-muted-foreground">vs {formatValue(previousNum, metric.format, metric.unit)}</span>
-                  </div>
+                  <p className="text-sm font-medium">{metric.label}</p>
                 </div>
-                <div className="flex flex-col items-end gap-1">
-                  {!isNeutral ? (
-                    <>
-                      <div
-                        className={cn(
-                          "flex items-center gap-1 text-sm font-medium",
-                          isPositive ? "text-[hsl(var(--success))]" : "text-destructive"
-                        )}
-                      >
-                        {isPositive ? (
-                          <TrendingUp className="h-4 w-4" />
-                        ) : (
-                          <TrendingDown className="h-4 w-4" />
-                        )}
-                        {Math.abs(percentage).toFixed(1)}%
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {isPositive ? "+" : ""}
-                        {formatValue(changeValue, metric.format, metric.unit)}
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
-                        <Minus className="h-4 w-4" />
-                        0%
-                      </div>
-                      <p className="text-xs text-muted-foreground">{t('dashboard.comparison.no_change')}</p>
-                    </>
-                  )}
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">{t('dashboard.comparison.current_period') || "Actuel"}</p>
+                    <p className="text-lg font-bold">{formatValue(currentNum, metric.format, metric.unit)}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">{t('dashboard.comparison.previous_period') || "Précédent"}</p>
+                    <p className="text-lg font-bold text-muted-foreground">{formatValue(previousNum, metric.format, metric.unit)}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 min-w-[80px]">
+                    {!isNeutral ? (
+                      <>
+                        <div
+                          className={cn(
+                            "flex items-center gap-1 text-sm font-medium",
+                            isPositive ? "text-[hsl(var(--success))]" : "text-destructive"
+                          )}
+                        >
+                          {isPositive ? (
+                            <TrendingUp className="h-4 w-4" />
+                          ) : (
+                            <TrendingDown className="h-4 w-4" />
+                          )}
+                          {Math.abs(percentage).toFixed(1)}%
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {isPositive ? "+" : ""}
+                          {formatValue(changeValue, metric.format, metric.unit)}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
+                          <Minus className="h-4 w-4" />
+                          0%
+                        </div>
+                        <p className="text-xs text-muted-foreground">{t('dashboard.comparison.no_change')}</p>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             )

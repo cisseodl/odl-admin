@@ -111,6 +111,7 @@
       "title": "Current vs. Previous Month Comparison",
       "description": "Comparative performance analysis",
       "previous_period": "previous period",
+      "current_period": "Current Period",
       "no_data": "No comparison data available for the period.",
       "no_change": "No change",
       "comparison_with": "Comparison with the {{period}}",
