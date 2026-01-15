@@ -4,6 +4,7 @@ import { Quiz } from '@/models/quiz.model';
 
 export interface QuizPayload {
   title: string;
+  description?: string; // Optionnel mais peut être requis par le backend
   courseId: number;
   durationMinutes: number;
   scoreMinimum: number;

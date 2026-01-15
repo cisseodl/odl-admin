@@ -107,14 +107,27 @@ export function QuizzesManager() {
 
   const handleAddQuiz = async (data: QuizFormData) => {
     try {
+      console.log("[QuizzesManager] handleAddQuiz appelé avec:", data);
+      
+      // Mapper les types de questions du frontend vers le backend
+      // SINGLE_CHOICE ou MULTIPLE_CHOICE -> QCM
+      // TEXTE reste TEXTE (mais le frontend n'utilise pas TEXTE actuellement)
+      const mapQuestionType = (type: string): "QCM" | "TEXTE" => {
+        if (type === "SINGLE_CHOICE" || type === "MULTIPLE_CHOICE") {
+          return "QCM";
+        }
+        return "TEXTE";
+      };
+      
       const payload = {
         title: data.title,
+        description: "", // Le backend attend un champ description même s'il est vide
         courseId: data.courseId,
         durationMinutes: data.durationMinutes,
         scoreMinimum: 80, // Fixé à 80% selon la règle métier du backend
         questions: data.questions.map(q => ({
           content: q.content,
-          type: q.type,
+          type: mapQuestionType(q.type), // Mapper le type du frontend vers le backend
           points: q.points,
           reponses: q.reponses.map(r => ({
             text: r.text,
@@ -122,22 +135,31 @@ export function QuizzesManager() {
           }))
         }))
       };
-      await quizService.createQuiz(payload);
+      
+      console.log("[QuizzesManager] Payload préparé:", JSON.stringify(payload, null, 2));
+      
+      const response = await quizService.createQuiz(payload);
+      
+      console.log("[QuizzesManager] Réponse reçue:", response);
+      
       addQuizModal.close();
       toast({
         title: "Succès",
-        description: "Le quiz a été créé avec succès.",
+        description: response?.message || "Le quiz a été créé avec succès.",
       });
       // Re-fetch data after adding
       // This is a simplified approach; for optimization, we could just add the new quiz to the state
       window.location.reload(); 
     } catch (err: any) {
+      console.error("[QuizzesManager] Erreur lors de la création du quiz:", err);
+      console.error("[QuizzesManager] Message d'erreur:", err.message);
+      console.error("[QuizzesManager] Stack:", err.stack);
+      
       toast({
         title: "Erreur",
-        description: "Impossible de créer le quiz.",
+        description: err.message || "Impossible de créer le quiz.",
         variant: "destructive",
       });
-      console.error("Error creating quiz:", err);
     }
   };
 
