@@ -82,14 +82,12 @@ export function ApprenantFormModal({
   useEffect(() => {
     if (!open) {
       form.reset({
-        nom: "", prenom: "", email: "", numero: "", profession: "", niveauEtude: "",
+        username: "", numero: "", profession: "", niveauEtude: "",
         filiere: "", attentes: "", satisfaction: false, cohorteId: undefined
       });
     } else if (defaultValues) {
       form.reset({
-        nom: defaultValues.nom || "",
-        prenom: defaultValues.prenom || "",
-        email: defaultValues.email || "",
+        username: defaultValues.username || "",
         numero: defaultValues.numero || "",
         profession: defaultValues.profession || "",
         niveauEtude: defaultValues.niveauEtude || "",
