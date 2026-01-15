@@ -19,12 +19,20 @@ export function ContentViewer({ open, onOpenChange, contentUrl, title, type }: C
   const [iframeError, setIframeError] = useState(false)
 
   useEffect(() => {
-    if (open) {
+    if (open && contentUrl) {
+      console.log("[ContentViewer] Ouverture du viewer avec:", { contentUrl, title, type })
       setLoading(true)
       setError(false)
       setIframeError(false)
+      
+      // Vérifier que l'URL est valide
+      if (!contentUrl || contentUrl.trim() === "") {
+        console.error("[ContentViewer] URL vide ou invalide")
+        setError(true)
+        setLoading(false)
+      }
     }
-  }, [open, contentUrl])
+  }, [open, contentUrl, title, type])
 
   const handleDownload = () => {
     window.open(contentUrl, "_blank")
