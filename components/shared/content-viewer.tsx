@@ -168,25 +168,28 @@ export function ContentViewer({ open, onOpenChange, contentUrl, title, type }: C
                       allow="fullscreen"
                     />
                   ) : isWord ? (
-                    // Pour les fichiers Word, essayer Google Docs Viewer
-                    <iframe
-                      src={getViewerUrl()}
-                      className="w-full h-full min-h-[600px] border-0 rounded-lg"
-                      onLoad={() => {
-                        setLoading(false)
-                        // Vérifier après un délai si l'iframe a chargé correctement
-                        setTimeout(() => {
-                          setError(false)
-                        }, 3000)
-                      }}
-                      onError={() => {
-                        setLoading(false)
-                        setError(true)
-                        setIframeError(true)
-                      }}
-                      allow="fullscreen"
-                      sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                    />
+                    // Pour les fichiers Word, afficher un message et proposer d'ouvrir/télécharger
+                    <div className="w-full h-full min-h-[600px] flex flex-col items-center justify-center bg-muted rounded-lg p-8">
+                      <FileText className="h-16 w-16 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">Fichier Word détecté</h3>
+                      <p className="text-sm text-muted-foreground text-center mb-6 max-w-md">
+                        Les fichiers Word (.doc, .docx) ne peuvent pas être affichés directement dans le navigateur. 
+                        Veuillez utiliser l'un des boutons ci-dessous pour ouvrir ou télécharger le fichier.
+                      </p>
+                      <div className="flex gap-3">
+                        <Button onClick={handleOpenInNewTab} variant="default" size="lg">
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Ouvrir dans un nouvel onglet
+                        </Button>
+                        <Button onClick={handleDownload} variant="outline" size="lg">
+                          <Download className="h-4 w-4 mr-2" />
+                          Télécharger le fichier
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-4 text-center">
+                        Le fichier s'ouvrira dans Microsoft Word ou votre application par défaut pour les fichiers Word.
+                      </p>
+                    </div>
                   ) : (
                     // Pour les autres types de documents, essayer directement
                     <iframe
