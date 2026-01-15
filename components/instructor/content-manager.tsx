@@ -5,9 +5,26 @@ import { PageHeader } from "@/components/ui/page-header"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { useModal } from "@/hooks/use-modal"
 import { EmptyState } from "@/components/admin/empty-state"
-import { FileText, Upload, ChevronRight, BookOpen, PlayCircle, File, Code, HelpCircle, Loader2 } from "lucide-react"
+import { 
+  FileText, 
+  Upload, 
+  ChevronRight, 
+  BookOpen, 
+  PlayCircle, 
+  File, 
+  Code, 
+  HelpCircle, 
+  Loader2,
+  Video,
+  FlaskConical,
+  FileQuestion,
+  Edit,
+  Trash2,
+  Check,
+  X
+} from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
-import { courseService, moduleService } from "@/services"
+import { courseService, moduleService, quizService } from "@/services"
 import { PageLoader } from "@/components/ui/page-loader"
 import { ModuleLessonFormModal, ModuleFormData } from "@/components/instructor/module-lesson-form-modal"
 import { Course } from "@/models"
@@ -15,14 +32,61 @@ import { Module } from "@/models/module.model"
 import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { 
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from "@/components/ui/accordion"
+import { ContentViewer } from "@/components/shared/content-viewer"
+import { ActionMenu } from "@/components/ui/action-menu"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { useLanguage } from "@/contexts/language-context"
+
+interface Lesson {
+  id?: number
+  title?: string | null
+  lessonOrder?: number | null
+  type?: "VIDEO" | "DOCUMENT" | "QUIZ" | "LAB" | string | null
+  contentUrl?: string | null
+  duration?: number | null
+}
+
+interface ModuleWithLessons extends Module {
+  lessons?: Lesson[]
+}
+
+interface CourseWithContent extends Course {
+  modules?: ModuleWithLessons[]
+  quizzes?: any[]
+}
+
+const lessonTypeIcons = {
+  VIDEO: Video,
+  DOCUMENT: File,
+  QUIZ: HelpCircle,
+  LAB: FlaskConical,
+}
+
+const lessonTypeColors = {
+  VIDEO: "bg-blue-500/10 text-blue-500",
+  DOCUMENT: "bg-green-500/10 text-green-500",
+  QUIZ: "bg-purple-500/10 text-purple-500",
+  LAB: "bg-orange-500/10 text-orange-500",
+}
 
 export function ContentManager() {
   const { user, isLoading: authLoading } = useAuth();
+  const { t } = useLanguage();
   const addModuleModal = useModal();
+  const editModuleModal = useModal<{ module: ModuleWithLessons; courseId: number }>();
+  const deleteModuleModal = useModal<{ moduleId: number; courseId: number }>();
+  const deleteLessonModal = useModal<{ lessonId: number; moduleId: number; courseId: number }>();
+  const contentViewerModal = useModal<{ contentUrl: string; title: string; type: string }>();
+  const validateCourseModal = useModal<{ courseId: number }>();
   const { toast } = useToast();
 
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [modulesByCourse, setModulesByCourse] = useState<Record<number, Module[]>>({});
+  const [courses, setCourses] = useState<CourseWithContent[]>([]);
   const [expandedCourses, setExpandedCourses] = useState<Set<number>>(new Set());
   const [loadingContent, setLoadingContent] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -34,31 +98,37 @@ export function ContentManager() {
       return;
     }
 
-    const fetchCourses = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await courseService.getCoursesByInstructorId(Number(user.id));
-        setCourses(data || []);
-      } catch (err: any) {
-        console.error("Failed to load courses:", err);
-        setError(err.message || "Failed to load courses.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchCourses();
   }, [user, authLoading]);
 
-  const loadCourseModules = async (courseId: number) => {
+  const fetchCourses = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await courseService.getCoursesByInstructorId(Number(user.id));
+      setCourses(data || []);
+    } catch (err: any) {
+      console.error("Failed to load courses:", err);
+      setError(err.message || "Failed to load courses.");
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les formations.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadCourseContent = async (courseId: number) => {
     if (loadingContent.has(courseId)) return;
 
     setLoadingContent(prev => new Set(prev).add(courseId));
 
     try {
+      // Charger les modules et leçons
       const modulesResponse = await moduleService.getModulesByCourse(courseId);
-      let modules: Module[] = [];
+      let modules: ModuleWithLessons[] = [];
       
       if (modulesResponse?.data) {
         modules = Array.isArray(modulesResponse.data) ? modulesResponse.data : [];
@@ -66,24 +136,29 @@ export function ContentManager() {
         modules = modulesResponse;
       }
 
-      // S'assurer que les leçons sont bien présentes dans chaque module
       modules = modules.map((module: any) => ({
         ...module,
         lessons: module.lessons || []
       }));
 
-      setModulesByCourse(prev => ({
-        ...prev,
-        [courseId]: modules
-      }));
+      // Charger les quiz
+      const quizzesResponse = await quizService.getQuizzesByCourseId(courseId);
+      const quizzes = Array.isArray(quizzesResponse) ? quizzesResponse : [];
+
+      // Mettre à jour le cours avec son contenu
+      setCourses(prev => prev.map(course => 
+        course.id === courseId 
+          ? { ...course, modules, quizzes }
+          : course
+      ));
 
       // Ajouter le cours à la liste des cours expansés
       setExpandedCourses(prev => new Set(prev).add(courseId));
     } catch (err: any) {
-      console.error(`Error loading modules for course ${courseId}:`, err);
+      console.error(`Error loading content for course ${courseId}:`, err);
       toast({
         title: "Erreur",
-        description: "Impossible de charger les modules du cours.",
+        description: "Impossible de charger le contenu du cours.",
         variant: "destructive",
       });
     } finally {
@@ -96,17 +171,18 @@ export function ContentManager() {
   };
 
   const toggleCourse = (courseId: number) => {
+    const course = courses.find(c => c.id === courseId);
+    if (!course) return;
+
     if (expandedCourses.has(courseId)) {
-      // Fermer
       setExpandedCourses(prev => {
         const newSet = new Set(prev);
         newSet.delete(courseId);
         return newSet;
       });
     } else {
-      // Ouvrir et charger les modules si nécessaire
-      if (!modulesByCourse[courseId]) {
-        loadCourseModules(courseId);
+      if (!course.modules && !course.quizzes) {
+        loadCourseContent(courseId);
       } else {
         setExpandedCourses(prev => new Set(prev).add(courseId));
       }
@@ -115,9 +191,6 @@ export function ContentManager() {
 
   const handleAddModule = async (data: ModuleFormData) => {
     try {
-      console.log("[ContentManager] handleAddModule appelé avec:", data);
-      
-      // Récupérer le cours pour obtenir son niveau
       const selectedCourse = courses.find(c => c.id === data.courseId);
       const courseLevel = selectedCourse?.level || "DEBUTANT";
       
@@ -143,37 +216,177 @@ export function ContentManager() {
         ],
       };
       
-      console.log("[ContentManager] Payload préparé:", JSON.stringify(payload, null, 2));
-      console.log("[ContentManager] Appel de moduleService.saveModules...");
-      
       const response = await moduleService.saveModules(payload);
       
-      console.log("[ContentManager] Réponse reçue:", response);
-      
-      // Afficher le message de succès
       toast({
         title: "Succès",
         description: response.message || "Le module a été créé avec succès.",
       });
       
-      // Recharger les modules du cours
-      await loadCourseModules(data.courseId);
-      
+      await loadCourseContent(data.courseId);
       addModuleModal.close();
       setError(null);
     } catch (err: any) {
-      console.error("[ContentManager] Erreur lors de l'ajout du module:", err);
-      console.error("[ContentManager] Stack trace:", err.stack);
-      
+      console.error("Error adding module:", err);
       toast({
         title: "Erreur",
         description: err.message || "Impossible de créer le module.",
         variant: "destructive",
       });
-      
       setError(err.message || "Failed to add module.");
     }
   };
+
+  const handleEditModule = async (data: ModuleFormData) => {
+    if (!editModuleModal.selectedItem) return;
+    
+    try {
+      const { module, courseId } = editModuleModal.selectedItem;
+      const selectedCourse = courses.find(c => c.id === courseId);
+      const courseLevel = selectedCourse?.level || "DEBUTANT";
+      
+      // Pour modifier, on doit envoyer tous les modules du cours avec le module modifié
+      const currentModules = courses.find(c => c.id === courseId)?.modules || [];
+      const updatedModules = currentModules.map(m => 
+        m.id === module.id 
+          ? {
+              ...m,
+              title: data.title,
+              description: data.description || "",
+              moduleOrder: data.moduleOrder,
+              lessons: data.lessons.map(lesson => {
+                const { contentFile, quizId, ...lessonPayload } = lesson;
+                return {
+                  id: lessonPayload.id,
+                  title: lessonPayload.title,
+                  lessonOrder: lessonPayload.lessonOrder,
+                  type: lessonPayload.type,
+                  ...(lessonPayload.contentUrl && lessonPayload.contentUrl.trim() && { contentUrl: lessonPayload.contentUrl }),
+                  ...(lessonPayload.duration && lessonPayload.duration > 0 && { duration: lessonPayload.duration }),
+                };
+              }),
+            }
+          : m
+      );
+      
+      const payload = {
+        courseId,
+        courseType: courseLevel.toUpperCase() as "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE",
+        modules: updatedModules,
+      };
+      
+      const response = await moduleService.saveModules(payload);
+      
+      toast({
+        title: "Succès",
+        description: response.message || "Le module a été modifié avec succès.",
+      });
+      
+      await loadCourseContent(courseId);
+      editModuleModal.close();
+    } catch (err: any) {
+      console.error("Error editing module:", err);
+      toast({
+        title: "Erreur",
+        description: err.message || "Impossible de modifier le module.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteModule = async () => {
+    if (!deleteModuleModal.selectedItem) return;
+    
+    try {
+      const { moduleId, courseId } = deleteModuleModal.selectedItem;
+      const selectedCourse = courses.find(c => c.id === courseId);
+      const courseLevel = selectedCourse?.level || "DEBUTANT";
+      
+      // Pour supprimer, on envoie tous les modules sauf celui à supprimer
+      const currentModules = courses.find(c => c.id === courseId)?.modules || [];
+      const updatedModules = currentModules
+        .filter(m => m.id !== moduleId)
+        .map(m => ({
+          ...m,
+          lessons: m.lessons?.map(l => ({
+            id: l.id,
+            title: l.title,
+            lessonOrder: l.lessonOrder,
+            type: l.type,
+            contentUrl: l.contentUrl,
+            duration: l.duration,
+          })) || [],
+        }));
+      
+      const payload = {
+        courseId,
+        courseType: courseLevel.toUpperCase() as "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE",
+        modules: updatedModules,
+      };
+      
+      const response = await moduleService.saveModules(payload);
+      
+      toast({
+        title: "Succès",
+        description: response.message || "Le module a été supprimé avec succès.",
+      });
+      
+      await loadCourseContent(courseId);
+      deleteModuleModal.close();
+    } catch (err: any) {
+      console.error("Error deleting module:", err);
+      toast({
+        title: "Erreur",
+        description: err.message || "Impossible de supprimer le module.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleValidateCourse = async (action: "APPROVE" | "REJECT", reason?: string) => {
+    if (!validateCourseModal.selectedItem) return;
+    
+    try {
+      const { courseId } = validateCourseModal.selectedItem;
+      await courseService.validateCourse(courseId, action, reason);
+      
+      toast({
+        title: "Succès",
+        description: action === "APPROVE" 
+          ? "Le cours a été validé avec succès." 
+          : "Le cours a été rejeté.",
+      });
+      
+      await fetchCourses();
+      validateCourseModal.close();
+    } catch (err: any) {
+      console.error("Error validating course:", err);
+      toast({
+        title: "Erreur",
+        description: err.message || "Impossible de valider le cours.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const lessonTypeLabels = {
+    VIDEO: "Vidéo",
+    DOCUMENT: "Document",
+    QUIZ: "Quiz",
+    LAB: "Lab",
+  };
+
+  if (loading) {
+    return <PageLoader />
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-destructive p-4">
+        {error}
+      </div>
+    )
+  }
 
   return (
     <>
@@ -197,11 +410,7 @@ export function ContentManager() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <PageLoader />
-          ) : error ? (
-            <div className="text-center text-destructive p-4">{error}</div>
-          ) : courses.length === 0 ? (
+          {courses.length === 0 ? (
             <EmptyState
               icon={FileText}
               title="Aucune formation disponible"
@@ -212,7 +421,7 @@ export function ContentManager() {
               {courses.map((course) => {
                 const isExpanded = expandedCourses.has(course.id);
                 const isLoading = loadingContent.has(course.id);
-                const modules = modulesByCourse[course.id] || [];
+                const hasContent = course.modules || course.quizzes;
 
                 return (
                   <Card key={course.id} className="overflow-hidden">
@@ -239,92 +448,234 @@ export function ContentManager() {
                           {isLoading && (
                             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                           )}
-                          {modules.length > 0 && (
+                          {course.modules && (
                             <Badge variant="secondary">
-                              {modules.length === 1
-                                ? `${modules.length} module`
-                                : `${modules.length} modules`}
+                              {course.modules.length === 1
+                                ? `${course.modules.length} module`
+                                : `${course.modules.length} modules`}
+                            </Badge>
+                          )}
+                          {course.quizzes && course.quizzes.length > 0 && (
+                            <Badge variant="secondary">
+                              {course.quizzes.length} quiz
+                            </Badge>
+                          )}
+                          {course.status === "BROUILLON" && (
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                validateCourseModal.open({ courseId: course.id });
+                              }}
+                            >
+                              <Check className="h-4 w-4 mr-1" />
+                              Publier
+                            </Button>
+                          )}
+                          {course.status === "IN_REVIEW" && (
+                            <Badge variant="outline" className="text-orange-600 border-orange-600">
+                              En révision
+                            </Badge>
+                          )}
+                          {course.status === "PUBLIE" && (
+                            <Badge variant="outline" className="text-green-600 border-green-600">
+                              Publié
                             </Badge>
                           )}
                         </div>
                       </div>
                     </CardHeader>
-                    {isExpanded && (
+
+                    {isExpanded && hasContent && (
                       <CardContent className="pt-0">
-                        {isLoading ? (
-                          <div className="flex items-center justify-center py-8">
-                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                          </div>
-                        ) : modules.length === 0 ? (
-                          <div className="text-center py-8 text-muted-foreground">
-                            Aucun module dans ce cours.
-                          </div>
-                        ) : (
-                          <div className="space-y-4">
-                            {modules.map((module) => (
-                              <Card key={module.id} className="border-l-4 border-l-primary">
-                                <CardHeader className="pb-3">
-                                  <div className="flex items-center justify-between">
-                                    <div>
-                                      <CardTitle className="text-base">{module.title}</CardTitle>
-                                      {module.description && (
-                                        <CardDescription className="mt-1">
-                                          {module.description}
-                                        </CardDescription>
-                                      )}
-                                    </div>
-                                    <Badge variant="outline">
-                                      Ordre: {module.moduleOrder}
-                                    </Badge>
-                                  </div>
-                                </CardHeader>
-                                {module.lessons && module.lessons.length > 0 && (
-                                  <CardContent className="pt-0">
-                                    <div className="space-y-2">
-                                      <p className="text-sm font-medium text-muted-foreground mb-2">
-                                        Leçons ({module.lessons.length})
-                                      </p>
-                                      {module.lessons.map((lesson: any, idx: number) => {
-                                        const lessonIcon = {
-                                          VIDEO: PlayCircle,
-                                          DOCUMENT: File,
-                                          QUIZ: HelpCircle,
-                                          LAB: Code,
-                                        }[lesson.type] || FileText;
-
-                                        const Icon = lessonIcon || FileText;
-
-                                        return (
-                                          <div
-                                            key={lesson.id || idx}
-                                            className="flex items-center gap-3 p-2 rounded-md bg-muted/50"
-                                          >
-                                            <Icon className="h-4 w-4 text-muted-foreground" />
-                                            <div className="flex-1">
-                                              <p className="text-sm font-medium">{lesson.title}</p>
-                                              {lesson.duration && (
-                                                <p className="text-xs text-muted-foreground">
-                                                  Durée: {lesson.duration} min
-                                                </p>
-                                              )}
-                                            </div>
-                                            <Badge variant="secondary" className="text-xs">
-                                              {lesson.type}
-                                            </Badge>
+                        <div className="space-y-6">
+                          {/* Modules et Leçons */}
+                          {course.modules && course.modules.length > 0 && (
+                            <div>
+                              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                                <FileText className="h-4 w-4" />
+                                Modules ({course.modules.length})
+                                <span className="text-xs text-muted-foreground font-normal ml-2">
+                                  ({course.modules.reduce((acc, m) => acc + (m.lessons?.length || 0), 0)} leçons)
+                                </span>
+                              </h3>
+                              <Accordion type="multiple" className="space-y-2">
+                                {course.modules
+                                  .sort((a, b) => (a.moduleOrder || 0) - (b.moduleOrder || 0))
+                                  .map((module) => {
+                                    const lessonType = (module.lessons?.[0]?.type || "DOCUMENT") as keyof typeof lessonTypeIcons
+                                    const Icon = lessonTypeIcons[lessonType] || FileText
+                                    const typeColor = lessonTypeColors[lessonType] || lessonTypeColors.DOCUMENT
+                                    
+                                    return (
+                                      <AccordionItem 
+                                        key={module.id} 
+                                        value={`module-${module.id}`}
+                                        className="border rounded-lg px-4"
+                                      >
+                                        <AccordionTrigger className="hover:no-underline">
+                                          <div className="flex items-center gap-2 flex-1 text-left">
+                                            <span className="font-medium">{module.title}</span>
+                                            {module.lessons && module.lessons.length > 0 && (
+                                              <Badge variant="outline" className="ml-2">
+                                                {module.lessons.length} leçon{module.lessons.length > 1 ? "s" : ""}
+                                              </Badge>
+                                            )}
                                           </div>
-                                        );
-                                      })}
+                                        </AccordionTrigger>
+                                        <AccordionContent>
+                                          <div className="flex items-center justify-between mb-3">
+                                            <p className="text-sm text-muted-foreground">
+                                              {module.description || "Aucune description"}
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                              <ActionMenu
+                                                actions={[
+                                                  {
+                                                    label: "Modifier",
+                                                    icon: <Edit className="h-4 w-4" />,
+                                                    onClick: () => editModuleModal.open({ module, courseId: course.id }),
+                                                  },
+                                                  {
+                                                    label: "Supprimer",
+                                                    icon: <Trash2 className="h-4 w-4" />,
+                                                    onClick: () => deleteModuleModal.open({ moduleId: module.id!, courseId: course.id }),
+                                                    variant: "destructive",
+                                                  },
+                                                ]}
+                                              />
+                                            </div>
+                                          </div>
+                                          {module.lessons && module.lessons.length > 0 ? (
+                                            <div className="space-y-2 pt-2">
+                                              {module.lessons
+                                                .sort((a, b) => (a.lessonOrder || 0) - (b.lessonOrder || 0))
+                                                .map((lesson) => {
+                                                  const lessonType = (lesson.type || "DOCUMENT") as keyof typeof lessonTypeIcons
+                                                  const LessonIcon = lessonTypeIcons[lessonType] || FileText
+                                                  const typeColor = lessonTypeColors[lessonType] || lessonTypeColors.DOCUMENT
+                                                  const typeLabel = lessonTypeLabels[lessonType] || "Document"
+                                                  
+                                                  return (
+                                                    <div
+                                                      key={lesson.id}
+                                                      className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30"
+                                                    >
+                                                      <LessonIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                                      <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2">
+                                                          <span className="font-medium text-sm">
+                                                            {lesson.title || "Sans titre"}
+                                                          </span>
+                                                          <Badge 
+                                                            variant="secondary" 
+                                                            className={typeColor}
+                                                          >
+                                                            {typeLabel}
+                                                          </Badge>
+                                                        </div>
+                                                        {lesson.duration && (
+                                                          <p className="text-xs text-muted-foreground mt-1">
+                                                            Durée: {lesson.duration} min
+                                                          </p>
+                                                        )}
+                                                      </div>
+                                                      <div className="flex items-center gap-2">
+                                                        {lesson.contentUrl && (
+                                                          <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => contentViewerModal.open({
+                                                              contentUrl: lesson.contentUrl!,
+                                                              title: lesson.title || "Contenu",
+                                                              type: lesson.type || "DOCUMENT"
+                                                            })}
+                                                          >
+                                                            <PlayCircle className="h-4 w-4 mr-1" />
+                                                            Ouvrir
+                                                          </Button>
+                                                        )}
+                                                        <ActionMenu
+                                                          actions={[
+                                                            {
+                                                              label: "Supprimer",
+                                                              icon: <Trash2 className="h-4 w-4" />,
+                                                              onClick: () => deleteLessonModal.open({
+                                                                lessonId: lesson.id!,
+                                                                moduleId: module.id!,
+                                                                courseId: course.id!
+                                                              }),
+                                                              variant: "destructive",
+                                                            },
+                                                          ]}
+                                                        />
+                                                      </div>
+                                                    </div>
+                                                  )
+                                                })}
+                                            </div>
+                                          ) : (
+                                            <p className="text-sm text-muted-foreground py-2">
+                                              Aucune leçon dans ce module.
+                                            </p>
+                                          )}
+                                        </AccordionContent>
+                                      </AccordionItem>
+                                    )
+                                  })}
+                              </Accordion>
+                            </div>
+                          )}
+
+                          {/* Quiz */}
+                          {course.quizzes && course.quizzes.length > 0 && (
+                            <div>
+                              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                                <FileQuestion className="h-4 w-4" />
+                                Quiz ({course.quizzes.length})
+                              </h3>
+                              <div className="space-y-2">
+                                {course.quizzes.map((quiz) => (
+                                  <Card key={quiz.id} className="p-4">
+                                    <div className="flex items-start justify-between">
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <FileQuestion className="h-4 w-4 text-purple-500" />
+                                          <span className="font-medium">{quiz.title || quiz.titre || "Sans titre"}</span>
+                                        </div>
+                                        {quiz.description && (
+                                          <p className="text-sm text-muted-foreground mb-2">
+                                            {quiz.description}
+                                          </p>
+                                        )}
+                                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                          {(quiz.durationMinutes || quiz.dureeMinutes) && (
+                                            <span>Durée: {quiz.durationMinutes || quiz.dureeMinutes} min</span>
+                                          )}
+                                          {quiz.scoreMinimum && (
+                                            <span>Score minimum: {quiz.scoreMinimum}%</span>
+                                          )}
+                                        </div>
+                                      </div>
                                     </div>
-                                  </CardContent>
-                                )}
-                              </Card>
-                            ))}
-                          </div>
-                        )}
+                                  </Card>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {(!course.modules || course.modules.length === 0) && 
+                           (!course.quizzes || course.quizzes.length === 0) && (
+                            <div className="text-center py-8 text-muted-foreground">
+                              Aucun contenu dans ce cours.
+                            </div>
+                          )}
+                        </div>
                       </CardContent>
                     )}
                   </Card>
-                );
+                )
               })}
             </div>
           )}
@@ -339,6 +690,66 @@ export function ContentManager() {
         onSubmit={handleAddModule}
         submitLabel="Ajouter le module"
         courses={courses}
+      />
+
+      {editModuleModal.selectedItem && (
+        <ModuleLessonFormModal
+          open={editModuleModal.isOpen}
+          onOpenChange={editModuleModal.close}
+          title="Modifier le module"
+          description="Modifiez les informations du module."
+          onSubmit={handleEditModule}
+          submitLabel="Modifier le module"
+          courses={courses}
+          defaultValues={{
+            courseId: editModuleModal.selectedItem.courseId,
+            title: editModuleModal.selectedItem.module.title || "",
+            description: editModuleModal.selectedItem.module.description || "",
+            moduleOrder: editModuleModal.selectedItem.module.moduleOrder || 1,
+            lessons: editModuleModal.selectedItem.module.lessons?.map(l => ({
+              id: l.id,
+              title: l.title || "",
+              lessonOrder: l.lessonOrder || 1,
+              type: l.type as any,
+              contentUrl: l.contentUrl || "",
+              duration: l.duration || undefined,
+            })) || [],
+          }}
+        />
+      )}
+
+      <ConfirmDialog
+        open={deleteModuleModal.isOpen}
+        onOpenChange={deleteModuleModal.close}
+        title="Supprimer le module"
+        description="Êtes-vous sûr de vouloir supprimer ce module ? Cette action est irréversible."
+        onConfirm={handleDeleteModule}
+      />
+
+      {contentViewerModal.selectedItem && (
+        <ContentViewer
+          open={contentViewerModal.isOpen}
+          onOpenChange={contentViewerModal.close}
+          contentUrl={contentViewerModal.selectedItem.contentUrl}
+          title={contentViewerModal.selectedItem.title}
+          type={contentViewerModal.selectedItem.type as any}
+        />
+      )}
+
+      <ConfirmDialog
+        open={deleteLessonModal.isOpen}
+        onOpenChange={deleteLessonModal.close}
+        title="Supprimer la leçon"
+        description="Êtes-vous sûr de vouloir supprimer cette leçon ? Cette action est irréversible."
+        onConfirm={handleDeleteLesson}
+      />
+
+      <ConfirmDialog
+        open={validateCourseModal.isOpen}
+        onOpenChange={validateCourseModal.close}
+        title="Valider le cours"
+        description="Voulez-vous valider ce cours ? Il sera publié et visible par tous les apprenants."
+        onConfirm={() => handleValidateCourse("APPROVE")}
       />
     </>
   )
