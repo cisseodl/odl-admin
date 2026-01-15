@@ -30,16 +30,14 @@ import { apprenantService } from "@/services/apprenant.service"; // Adjust impor
 
 // Define the Zod schema for apprenant profile fields
 export const apprenantProfileSchema = z.object({
-  nom: z.string().min(1, "Le nom est requis."),
-  prenom: z.string().min(1, "Le prénom est requis."),
-  email: z.string().email("L'email doit être valide.").min(1, "L'email est requis."),
+  username: z.string().min(1, "Le nom d'utilisateur est requis."),
   numero: z.string().optional(),
   profession: z.string().optional(),
   niveauEtude: z.string().optional(),
   filiere: z.string().optional(),
   attentes: z.string().optional(),
   satisfaction: z.boolean().optional(),
-  cohorteId: z.coerce.number().min(1, "La cohorte est requise.").optional(), // Changed to coerce.number
+  cohorteId: z.coerce.number().optional(), // Optionnel, pas de validation min
 });
 
 export type ApprenantProfileFormData = z.infer<typeof apprenantProfileSchema>;
@@ -70,9 +68,7 @@ export function ApprenantFormModal({
   const form = useForm<ApprenantProfileFormData>({
     resolver: zodResolver(apprenantProfileSchema),
     defaultValues: {
-      nom: defaultValues?.nom || "",
-      prenom: defaultValues?.prenom || "",
-      email: defaultValues?.email || "",
+      username: defaultValues?.username || "",
       numero: defaultValues?.numero || "",
       profession: defaultValues?.profession || "",
       niveauEtude: defaultValues?.niveauEtude || "",
@@ -118,42 +114,14 @@ export function ApprenantFormModal({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="nom"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nom</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Traoré" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="prenom"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prénom</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Amadou" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
             <FormField
               control={form.control}
-              name="email"
+              name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Nom d'utilisateur</FormLabel>
                   <FormControl>
-                    <Input {...field} type="email" placeholder="amadou.traore@example.ml" />
+                    <Input {...field} placeholder="amadou.traore" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -229,14 +197,15 @@ export function ApprenantFormModal({
               name="cohorteId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Cohorte</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value ? String(field.value) : ""}>
+                  <FormLabel>Cohorte (optionnel)</FormLabel>
+                  <Select onValueChange={(value) => field.onChange(value ? Number(value) : undefined)} value={field.value ? String(field.value) : ""}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner une cohorte" />
+                        <SelectValue placeholder="Sélectionner une cohorte (optionnel)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      <SelectItem value="">Aucune cohorte</SelectItem>
                       {cohortes.map((cohorte) => (
                         <SelectItem key={cohorte.id} value={String(cohorte.id)}>
                           {cohorte.nom}

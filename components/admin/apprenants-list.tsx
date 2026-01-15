@@ -190,16 +190,14 @@ export function ApprenantsList() {
     try {
       const apprenantData = {
         userId: promotionData.userId,
-        nom: promotionData.nom,
-        prenom: promotionData.prenom,
-        email: promotionData.email,
+        username: promotionData.username,
         numero: promotionData.numero,
         profession: promotionData.profession,
         niveauEtude: promotionData.niveauEtude,
         filiere: promotionData.filiere,
         attentes: promotionData.attentes,
         satisfaction: promotionData.satisfaction,
-        cohorteId: promotionData.cohorteId,
+        cohorteId: promotionData.cohorteId, // Optionnel maintenant
         activate: true,
       };
 
@@ -230,7 +228,7 @@ export function ApprenantsList() {
     promoteProfileFormModal.open({ 
       userId: user.id, 
       defaultValues: {
-        email: user.email,
+        username: user.fullName, // Utiliser le fullName comme username par défaut
       }
     });
   };
