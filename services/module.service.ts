@@ -23,30 +23,48 @@ export interface ModulesPayload {
 
 export class ModuleService {
   async saveModules(payload: ModulesPayload): Promise<any> {
-    // Le backend attend un FormData avec "module" comme JSON stringifié
-    const formData = new FormData();
-    formData.append("module", JSON.stringify({
-      courseId: payload.courseId,
-      courseType: payload.courseType || "DEBUTANT",
-      modules: payload.modules.map(m => ({
-        title: m.title, // @NotBlank - requis
-        description: m.description || "", // Optionnel dans ModuleCreationRequest
-        moduleOrder: m.moduleOrder, // @NotNull - requis
-        lessons: (m.lessons || []).map((l: any) => ({
-          title: l.title, // @NotBlank - requis
-          lessonOrder: l.lessonOrder, // @NotNull - requis
-          type: l.type, // @NotNull - requis (VIDEO, QUIZ, DOCUMENT, LAB)
-          ...(l.contentUrl && l.contentUrl.trim() && { contentUrl: l.contentUrl }), // Optionnel
-          ...(l.duration && l.duration > 0 && { duration: l.duration }), // Optionnel, en minutes
+    try {
+      console.log("[ModuleService] saveModules appelé avec payload:", payload);
+      
+      // Le backend attend un FormData avec "module" comme JSON stringifié
+      const modulePayload = {
+        courseId: payload.courseId,
+        courseType: payload.courseType || "DEBUTANT",
+        modules: payload.modules.map(m => ({
+          title: m.title, // @NotBlank - requis
+          description: m.description || "", // Optionnel dans ModuleCreationRequest
+          moduleOrder: m.moduleOrder, // @NotNull - requis
+          lessons: (m.lessons || []).map((l: any) => ({
+            title: l.title, // @NotBlank - requis
+            lessonOrder: l.lessonOrder, // @NotNull - requis
+            type: l.type, // @NotNull - requis (VIDEO, QUIZ, DOCUMENT, LAB)
+            ...(l.contentUrl && l.contentUrl.trim() && { contentUrl: l.contentUrl }), // Optionnel
+            ...(l.duration && l.duration > 0 && { duration: l.duration }), // Optionnel, en minutes
+          })),
         })),
-      })),
-    }));
-    
-    const response = await fetchApi<any>("/modules/save", {
-      method: "POST",
-      body: formData,
-    });
-    return response;
+      };
+      
+      const jsonString = JSON.stringify(modulePayload);
+      console.log("[ModuleService] JSON stringifié:", jsonString);
+      
+      const formData = new FormData();
+      formData.append("module", jsonString);
+      
+      console.log("[ModuleService] FormData créé, appel de fetchApi vers /modules/save");
+      
+      const response = await fetchApi<any>("/modules/save", {
+        method: "POST",
+        body: formData,
+      });
+      
+      console.log("[ModuleService] Réponse reçue du backend:", response);
+      return response;
+    } catch (error: any) {
+      console.error("[ModuleService] Erreur dans saveModules:", error);
+      console.error("[ModuleService] Message d'erreur:", error.message);
+      console.error("[ModuleService] Stack:", error.stack);
+      throw error;
+    }
   }
 
   async getModulesByCourse(courseId: number): Promise<any> {

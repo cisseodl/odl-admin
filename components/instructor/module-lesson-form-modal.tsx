@@ -128,19 +128,29 @@ export function ModuleLessonFormModal({
 
   const handleSubmit = async (data: ModuleFormData) => {
     try {
+      console.log("[ModuleLessonFormModal] handleSubmit appelé avec:", data);
+      
       // Uploader les fichiers pour chaque lesson qui a un fichier
+      console.log("[ModuleLessonFormModal] Début de l'upload des fichiers...");
       const lessonsWithUploadedFiles = await Promise.all(
-        data.lessons.map(async (lesson) => {
+        data.lessons.map(async (lesson, index) => {
+          console.log(`[ModuleLessonFormModal] Traitement de la leçon ${index}:`, lesson);
+          
           if (lesson.contentFile && (lesson.type === LessonType.VIDEO || lesson.type === LessonType.DOCUMENT || lesson.type === LessonType.LAB)) {
             try {
               const folderName = lesson.type === LessonType.VIDEO ? "videos" : lesson.type === LessonType.DOCUMENT ? "documents" : "labs";
+              console.log(`[ModuleLessonFormModal] Upload du fichier pour la leçon ${index} dans le dossier: ${folderName}`);
+              
               const uploadedUrl = await fileUploadService.uploadFile(lesson.contentFile, folderName);
+              console.log(`[ModuleLessonFormModal] Fichier uploadé avec succès, URL: ${uploadedUrl}`);
+              
               return {
                 ...lesson,
                 contentUrl: uploadedUrl,
                 contentFile: undefined, // Retirer le fichier du payload final
               };
             } catch (error: any) {
+              console.error(`[ModuleLessonFormModal] Erreur lors de l'upload du fichier pour la leçon ${index}:`, error);
               toast({
                 title: "Erreur d'upload",
                 description: `Impossible d'uploader le fichier pour la leçon "${lesson.title}": ${error.message}`,
@@ -149,6 +159,7 @@ export function ModuleLessonFormModal({
               throw error;
             }
           }
+          console.log(`[ModuleLessonFormModal] Aucun fichier à uploader pour la leçon ${index}`);
           return {
             ...lesson,
             contentFile: undefined, // Retirer le fichier du payload final
@@ -156,13 +167,27 @@ export function ModuleLessonFormModal({
         })
       );
 
-      // Soumettre avec les URLs uploadées
-      onSubmit({
+      console.log("[ModuleLessonFormModal] Tous les fichiers uploadés, préparation du payload final");
+      const finalData = {
         ...data,
         lessons: lessonsWithUploadedFiles,
+      };
+      console.log("[ModuleLessonFormModal] Appel de onSubmit avec:", finalData);
+      
+      // Soumettre avec les URLs uploadées
+      await onSubmit(finalData);
+      
+      console.log("[ModuleLessonFormModal] onSubmit terminé avec succès");
+    } catch (error: any) {
+      console.error("[ModuleLessonFormModal] Erreur dans handleSubmit:", error);
+      console.error("[ModuleLessonFormModal] Message d'erreur:", error.message);
+      console.error("[ModuleLessonFormModal] Stack:", error.stack);
+      
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue lors de la soumission du formulaire.",
+        variant: "destructive",
       });
-    } catch (error) {
-      console.error("Error uploading files:", error);
     }
   };
 

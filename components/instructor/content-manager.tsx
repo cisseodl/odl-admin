@@ -45,11 +45,18 @@ export function ContentManager() {
 
   const handleAddModule = async (data: ModuleFormData) => {
     try {
+      console.log("[ContentManager] handleAddModule appelé avec:", data);
+      
       // The endpoint POST /modules/save expects a JSON object with courseId and an array of modules
       // Les fichiers ont déjà été uploadés dans handleSubmit du ModuleLessonFormModal
       // et les URLs sont dans contentUrl
+      // Récupérer le cours pour obtenir son niveau
+      const selectedCourse = courses.find(c => c.id === data.courseId);
+      const courseLevel = selectedCourse?.level || "DEBUTANT";
+      
       const payload = {
         courseId: data.courseId,
+        courseType: courseLevel.toUpperCase() as "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE", // Requis par le backend
         modules: [
           {
             title: data.title,
@@ -72,10 +79,19 @@ export function ContentManager() {
           },
         ],
       };
-      await moduleService.saveModules(payload);
+      
+      console.log("[ContentManager] Payload préparé:", JSON.stringify(payload, null, 2));
+      console.log("[ContentManager] Appel de moduleService.saveModules...");
+      
+      const response = await moduleService.saveModules(payload);
+      
+      console.log("[ContentManager] Réponse reçue:", response);
       addModuleModal.close();
+      setError(null); // Clear any previous errors
       // Optionally, refresh a list of modules if displayed here, or redirect
     } catch (err: any) {
+      console.error("[ContentManager] Erreur lors de l'ajout du module:", err);
+      console.error("[ContentManager] Stack trace:", err.stack);
       setError(err.message || "Failed to add module.");
     }
   };
