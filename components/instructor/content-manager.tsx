@@ -21,7 +21,8 @@ import {
   Edit,
   Trash2,
   Check,
-  X
+  X,
+  ExternalLink
 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { courseService, moduleService, quizService } from "@/services"
@@ -644,18 +645,38 @@ export function ContentManager() {
                                                       </div>
                                                       <div className="flex items-center gap-2">
                                                         {lesson.contentUrl && (
-                                                          <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => contentViewerModal.open({
-                                                              contentUrl: lesson.contentUrl!,
-                                                              title: lesson.title || "Contenu",
-                                                              type: lesson.type || "DOCUMENT"
-                                                            })}
-                                                          >
-                                                            <PlayCircle className="h-4 w-4 mr-1" />
-                                                            Ouvrir
-                                                          </Button>
+                                                          <>
+                                                            <Button
+                                                              variant="ghost"
+                                                              size="sm"
+                                                              onClick={() => {
+                                                                // Pour les fichiers Word, ouvrir directement dans un nouvel onglet
+                                                                const lowerUrl = lesson.contentUrl!.toLowerCase()
+                                                                const isWord = lowerUrl.endsWith('.doc') || lowerUrl.endsWith('.docx') || 
+                                                                              lowerUrl.includes('.doc') || lowerUrl.includes('.docx')
+                                                                if (isWord) {
+                                                                  window.open(lesson.contentUrl!, '_blank')
+                                                                } else {
+                                                                  contentViewerModal.open({
+                                                                    contentUrl: lesson.contentUrl!,
+                                                                    title: lesson.title || "Contenu",
+                                                                    type: lesson.type || "DOCUMENT"
+                                                                  })
+                                                                }
+                                                              }}
+                                                            >
+                                                              <PlayCircle className="h-4 w-4 mr-1" />
+                                                              Ouvrir
+                                                            </Button>
+                                                            <Button
+                                                              variant="ghost"
+                                                              size="sm"
+                                                              onClick={() => window.open(lesson.contentUrl!, '_blank')}
+                                                              title="Ouvrir dans un nouvel onglet"
+                                                            >
+                                                              <ExternalLink className="h-4 w-4" />
+                                                            </Button>
+                                                          </>
                                                         )}
                                                         <ActionMenu
                                                           actions={[
