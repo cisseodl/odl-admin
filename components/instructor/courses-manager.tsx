@@ -29,6 +29,7 @@ import { useModal } from "@/hooks/use-modal";
 import { CourseFormModal, CourseFormData } from "@/components/shared/course-form-modal";
 import { ViewCourseModal } from "@/components/admin/modals/view-course-modal";
 import { Categorie } from "@/models";
+import { useToast } from "@/hooks/use-toast";
 
 type Course = {
   id: number;
@@ -45,6 +46,7 @@ type Course = {
 export function CoursesManager() {
   const { t } = useLanguage()
   const { user, isLoading: authLoading } = useAuth(); // Utiliser useAuth
+  const { toast } = useToast();
   const [courses, setCourses] = useState<Course[]>([]);
   const [categories, setCategories] = useState<Categorie[]>([]);
   const [loading, setLoading] = useState(true); // Nouveau state
@@ -131,10 +133,22 @@ export function CoursesManager() {
   const handleAddCourse = async (data: CourseFormData) => {
     try {
       const { categoryId, ...courseData } = data;
-      await courseService.createCourse(categoryId, courseData);
+      const response = await courseService.createCourse(categoryId, courseData);
       addCourseModal.close();
+      
+      toast({
+        title: "Succès",
+        description: response?.message || "La formation a été créée avec succès.",
+      });
+      
       fetchCourses();
     } catch (err: any) {
+      console.error("Error creating course:", err);
+      toast({
+        title: "Erreur",
+        description: err.message || "Impossible de créer la formation.",
+        variant: "destructive",
+      });
       setError(err.message || "Failed to create course.");
     }
   };
