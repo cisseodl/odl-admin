@@ -343,6 +343,67 @@ export function ContentManager() {
     }
   };
 
+  const handleDeleteLesson = async () => {
+    if (!deleteLessonModal.selectedItem) return;
+    
+    try {
+      const { lessonId, moduleId, courseId } = deleteLessonModal.selectedItem;
+      const selectedCourse = courses.find(c => c.id === courseId);
+      const courseLevel = selectedCourse?.level || "DEBUTANT";
+      
+      // Pour supprimer une leçon, on envoie tous les modules avec la leçon supprimée
+      const currentModules = courses.find(c => c.id === courseId)?.modules || [];
+      const updatedModules = currentModules.map(m => 
+        m.id === moduleId
+          ? {
+              ...m,
+              lessons: m.lessons?.filter(l => l.id !== lessonId).map(l => ({
+                id: l.id,
+                title: l.title,
+                lessonOrder: l.lessonOrder,
+                type: l.type,
+                contentUrl: l.contentUrl,
+                duration: l.duration,
+              })) || [],
+            }
+          : {
+              ...m,
+              lessons: m.lessons?.map(l => ({
+                id: l.id,
+                title: l.title,
+                lessonOrder: l.lessonOrder,
+                type: l.type,
+                contentUrl: l.contentUrl,
+                duration: l.duration,
+              })) || [],
+            }
+      );
+      
+      const payload = {
+        courseId,
+        courseType: courseLevel.toUpperCase() as "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE",
+        modules: updatedModules,
+      };
+      
+      const response = await moduleService.saveModules(payload);
+      
+      toast({
+        title: "Succès",
+        description: response.message || "La leçon a été supprimée avec succès.",
+      });
+      
+      await loadCourseContent(courseId);
+      deleteLessonModal.close();
+    } catch (err: any) {
+      console.error("Error deleting lesson:", err);
+      toast({
+        title: "Erreur",
+        description: err.message || "Impossible de supprimer la leçon.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleValidateCourse = async (action: "APPROVE" | "REJECT", reason?: string) => {
     if (!validateCourseModal.selectedItem) return;
     
@@ -353,7 +414,7 @@ export function ContentManager() {
       toast({
         title: "Succès",
         description: action === "APPROVE" 
-          ? "Le cours a été validé avec succès." 
+          ? "Le cours a été publié avec succès." 
           : "Le cours a été rejeté.",
       });
       
