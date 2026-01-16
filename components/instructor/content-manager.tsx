@@ -83,6 +83,8 @@ export function ContentManager() {
   const editModuleModal = useModal<{ module: ModuleWithLessons; courseId: number }>();
   const deleteModuleModal = useModal<{ moduleId: number; courseId: number }>();
   const deleteLessonModal = useModal<{ lessonId: number; moduleId: number; courseId: number }>();
+  const deleteQuizModal = useModal<{ quizId: number; courseId: number }>();
+  const editQuizModal = useModal<{ quiz: any; courseId: number }>();
   const contentViewerModal = useModal<{ contentUrl: string; title: string; type: string }>();
   const validateCourseModal = useModal<{ courseId: number }>();
   const { toast } = useToast();
@@ -740,6 +742,19 @@ export function ContentManager() {
                                           )}
                                         </div>
                                       </div>
+                                      <ActionMenu
+                                        actions={[
+                                          {
+                                            label: "Supprimer",
+                                            icon: <Trash2 className="h-4 w-4" />,
+                                            onClick: () => deleteQuizModal.open({
+                                              quizId: quiz.id,
+                                              courseId: course.id,
+                                            }),
+                                            variant: "destructive",
+                                          },
+                                        ]}
+                                      />
                                     </div>
                                   </Card>
                                 ))}

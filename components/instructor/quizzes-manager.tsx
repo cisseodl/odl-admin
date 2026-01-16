@@ -12,12 +12,13 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { Eye, Edit, Trash2, FileQuestion, BookOpen, FileText, Users, TrendingUp, Calendar } from "lucide-react"
 
 import { useModal } from "@/hooks/use-modal";
-import { QuizFormModal, QuizFormData } from "./quiz-form-modal";
+import { QuizFormModal, QuizFormData, QuestionType } from "./quiz-form-modal";
 import { useAuth } from "@/contexts/auth-context";
 import { courseService, quizService } from "@/services";
 import { Course, Quiz as QuizModel } from "@/models";
 import { PageLoader } from "@/components/ui/page-loader";
 import { useToast } from "@/hooks/use-toast";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 
 type Quiz = {
@@ -36,12 +37,17 @@ type Quiz = {
 export function QuizzesManager() {
   const { user, isLoading: authLoading } = useAuth();
   const addQuizModal = useModal();
+  const editQuizModal = useModal<Quiz>();
+  const deleteQuizModal = useModal<Quiz>();
   const { toast } = useToast();
 
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [quizDetails, setQuizDetails] = useState<Map<number, any>>(new Map());
+  const [editQuizFormData, setEditQuizFormData] = useState<Partial<QuizFormData> | null>(null);
+  const [loadingQuizDetails, setLoadingQuizDetails] = useState(false);
 
   useEffect(() => {
     if (authLoading || !user) {
@@ -105,29 +111,92 @@ export function QuizzesManager() {
   }, [user, authLoading, toast]);
 
 
+  // Mapper les types de questions du frontend vers le backend
+  const mapQuestionType = (type: string): "QCM" | "TEXTE" => {
+    if (type === "SINGLE_CHOICE" || type === "MULTIPLE_CHOICE") {
+      return "QCM";
+    }
+    return "TEXTE";
+  };
+
+  // Mapper les types du backend vers le frontend
+  const mapQuestionTypeFromBackend = (type: string): QuestionType => {
+    if (type === "QCM") {
+      // Par défaut, on considère QCM comme SINGLE_CHOICE
+      // On pourrait améliorer cela en vérifiant le nombre de réponses correctes
+      return QuestionType.SINGLE_CHOICE;
+    }
+    return QuestionType.SINGLE_CHOICE;
+  };
+
+  const fetchQuizDetails = async (quizId: number) => {
+    if (quizDetails.has(quizId)) {
+      return quizDetails.get(quizId);
+    }
+    try {
+      const response = await quizService.getQuizById(quizId);
+      const details = response.data || response;
+      setQuizDetails(prev => new Map(prev).set(quizId, details));
+      return details;
+    } catch (err) {
+      console.error("Error fetching quiz details:", err);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const loadQuizForEdit = async () => {
+      if (editQuizModal.isOpen && editQuizModal.selectedItem) {
+        setLoadingQuizDetails(true);
+        try {
+          const quiz = editQuizModal.selectedItem;
+          const details = await fetchQuizDetails(quiz.id);
+          if (details) {
+            const formData: Partial<QuizFormData> = {
+              title: details.title || quiz.title,
+              courseId: details.courseId || courses.find(c => c.title === quiz.course)?.id,
+              durationMinutes: details.durationMinutes || 30,
+              scoreMinimum: 80,
+              questions: details.questions?.map((q: any) => ({
+                content: q.content || "",
+                type: mapQuestionTypeFromBackend(q.type || "QCM"),
+                points: q.points || 1,
+                reponses: q.reponses?.map((r: any) => ({
+                  text: r.text || "",
+                  isCorrect: r.isCorrect || false,
+                })) || [{ text: "", isCorrect: false }, { text: "", isCorrect: false }],
+              })) || [],
+            };
+            setEditQuizFormData(formData);
+          }
+        } catch (err) {
+          console.error("Error loading quiz for edit:", err);
+          toast({
+            title: "Erreur",
+            description: "Impossible de charger les détails du quiz.",
+            variant: "destructive",
+          });
+        } finally {
+          setLoadingQuizDetails(false);
+        }
+      } else {
+        setEditQuizFormData(null);
+      }
+    };
+    loadQuizForEdit();
+  }, [editQuizModal.isOpen, editQuizModal.selectedItem, courses, toast]);
+
   const handleAddQuiz = async (data: QuizFormData) => {
     try {
-      console.log("[QuizzesManager] handleAddQuiz appelé avec:", data);
-      
-      // Mapper les types de questions du frontend vers le backend
-      // SINGLE_CHOICE ou MULTIPLE_CHOICE -> QCM
-      // TEXTE reste TEXTE (mais le frontend n'utilise pas TEXTE actuellement)
-      const mapQuestionType = (type: string): "QCM" | "TEXTE" => {
-        if (type === "SINGLE_CHOICE" || type === "MULTIPLE_CHOICE") {
-          return "QCM";
-        }
-        return "TEXTE";
-      };
-      
       const payload = {
         title: data.title,
-        description: "", // Le backend attend un champ description même s'il est vide
+        description: "",
         courseId: data.courseId,
         durationMinutes: data.durationMinutes,
-        scoreMinimum: 80, // Fixé à 80% selon la règle métier du backend
+        scoreMinimum: 80,
         questions: data.questions.map(q => ({
           content: q.content,
-          type: mapQuestionType(q.type), // Mapper le type du frontend vers le backend
+          type: mapQuestionType(q.type),
           points: q.points,
           reponses: q.reponses.map(r => ({
             text: r.text,
@@ -136,28 +205,79 @@ export function QuizzesManager() {
         }))
       };
       
-      console.log("[QuizzesManager] Payload préparé:", JSON.stringify(payload, null, 2));
-      
       const response = await quizService.createQuiz(payload);
-      
-      console.log("[QuizzesManager] Réponse reçue:", response);
       
       addQuizModal.close();
       toast({
         title: "Succès",
         description: response?.message || "Le quiz a été créé avec succès.",
       });
-      // Re-fetch data after adding
-      // This is a simplified approach; for optimization, we could just add the new quiz to the state
       window.location.reload(); 
     } catch (err: any) {
-      console.error("[QuizzesManager] Erreur lors de la création du quiz:", err);
-      console.error("[QuizzesManager] Message d'erreur:", err.message);
-      console.error("[QuizzesManager] Stack:", err.stack);
-      
       toast({
         title: "Erreur",
         description: err.message || "Impossible de créer le quiz.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditQuiz = async (data: QuizFormData) => {
+    if (!editQuizModal.selectedItem) return;
+    
+    try {
+      const quizId = editQuizModal.selectedItem.id;
+      const payload = {
+        title: data.title,
+        description: "",
+        courseId: data.courseId,
+        durationMinutes: data.durationMinutes,
+        scoreMinimum: 80,
+        questions: data.questions.map(q => ({
+          content: q.content,
+          type: mapQuestionType(q.type),
+          points: q.points,
+          reponses: q.reponses.map(r => ({
+            text: r.text,
+            isCorrect: r.isCorrect
+          }))
+        }))
+      };
+      
+      const response = await quizService.updateQuiz(quizId, payload);
+      
+      editQuizModal.close();
+      toast({
+        title: "Succès",
+        description: response?.message || "Le quiz a été modifié avec succès.",
+      });
+      window.location.reload();
+    } catch (err: any) {
+      toast({
+        title: "Erreur",
+        description: err.message || "Impossible de modifier le quiz.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteQuiz = async () => {
+    if (!deleteQuizModal.selectedItem) return;
+    
+    try {
+      const quizId = deleteQuizModal.selectedItem.id;
+      await quizService.deleteQuiz(quizId);
+      
+      deleteQuizModal.close();
+      toast({
+        title: "Succès",
+        description: "Le quiz a été supprimé avec succès.",
+      });
+      setQuizzes(prev => prev.filter(q => q.id !== quizId));
+    } catch (err: any) {
+      toast({
+        title: "Erreur",
+        description: err.message || "Impossible de supprimer le quiz.",
         variant: "destructive",
       });
     }
@@ -253,19 +373,25 @@ export function QuizzesManager() {
             <ActionMenu
               actions={[
                 {
-                  label: "Voir",
-                  icon: <Eye className="h-4 w-4" />,
-                  onClick: () => console.log("View", quiz),
-                },
-                {
                   label: "Modifier",
                   icon: <Edit className="h-4 w-4" />,
-                  onClick: () => console.log("Edit", quiz),
+                  onClick: async () => {
+                    const details = await fetchQuizDetails(quiz.id);
+                    if (details) {
+                      editQuizModal.open(quiz);
+                    } else {
+                      toast({
+                        title: "Erreur",
+                        description: "Impossible de charger les détails du quiz.",
+                        variant: "destructive",
+                      });
+                    }
+                  },
                 },
                 {
                   label: "Supprimer",
                   icon: <Trash2 className="h-4 w-4" />,
-                  onClick: () => console.log("Delete", quiz),
+                  onClick: () => deleteQuizModal.open(quiz),
                   variant: "destructive",
                 },
               ]}
@@ -313,6 +439,30 @@ export function QuizzesManager() {
         onSubmit={handleAddQuiz}
         submitLabel="Créer le quiz"
         courses={courses}
+      />
+
+      {editQuizModal.isOpen && editQuizFormData && !loadingQuizDetails && (
+        <QuizFormModal
+          open={editQuizModal.isOpen}
+          onOpenChange={editQuizModal.close}
+          title="Modifier le quiz"
+          description="Modifiez les informations du quiz."
+          onSubmit={handleEditQuiz}
+          submitLabel="Modifier le quiz"
+          courses={courses}
+          defaultValues={editQuizFormData}
+        />
+      )}
+
+      <ConfirmDialog
+        open={deleteQuizModal.isOpen}
+        onOpenChange={deleteQuizModal.close}
+        title="Supprimer le quiz"
+        description={`Êtes-vous sûr de vouloir supprimer le quiz "${deleteQuizModal.selectedItem?.title}" ? Cette action est irréversible.`}
+        confirmLabel="Supprimer"
+        cancelLabel="Annuler"
+        onConfirm={handleDeleteQuiz}
+        variant="destructive"
       />
     </>
   )

@@ -119,7 +119,8 @@
         "registrations": "Registrations",
         "completion_rate": "Completion Rate",
         "courses_created": "Courses Created",
-        "active_users": "Active Users"
+        "active_users": "Active Users",
+        "inactive_users": "Inactive Users"
       }
     },
     "quick_actions": {

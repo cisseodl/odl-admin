@@ -70,7 +70,7 @@ export function AnalyticsDashboard() {
       {
         title: t("analytics.engagementRate"),
         value: `${analyticsMetricsData.engagementRate.toFixed(1)}%`,
-        change: `${analyticsMetricsData.activeUsers.toLocaleString("fr-FR")} ${t("analytics.activeUsers")} / ${analyticsMetricsData.totalUsers.toLocaleString("fr-FR")} ${t("analytics.totalUsers")}`,
+        change: `${analyticsMetricsData.activeUsers.toLocaleString("fr-FR")} ${t("analytics.activeUsers")} / ${analyticsMetricsData.inactiveUsers?.toLocaleString("fr-FR") || 0} ${t("analytics.inactiveUsers") || "Inactifs"} / ${analyticsMetricsData.totalUsers.toLocaleString("fr-FR")} ${t("analytics.totalUsers")}`,
         icon: TrendingUp,
         color: "text-[hsl(var(--warning))]",
       },

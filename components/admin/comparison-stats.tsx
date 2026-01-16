@@ -102,6 +102,12 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
         previous: statsData.activeUsersPreviousPeriod,
         format: "number",
       },
+      {
+        label: t('dashboard.comparison.metrics.inactive_users'),
+        current: statsData.inactiveUsersCurrentPeriod || 0,
+        previous: statsData.inactiveUsersPreviousPeriod || 0,
+        format: "number",
+      },
     ];
   }, [statsData, t]);
 
@@ -149,11 +155,11 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
           config={{
             current: {
               label: t('dashboard.comparison.current_period') || "Période actuelle",
-              color: "hsl(var(--chart-1))",
+              color: "#3b82f6", // Bleu vif pour le mois en cours
             },
             previous: {
               label: t('dashboard.comparison.previous_period') || "Période précédente",
-              color: "hsl(var(--chart-2))",
+              color: "#94a3b8", // Gris clair pour le mois dernier
             },
           }}
           className="h-[400px] w-full"
@@ -230,11 +236,11 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
                 <div className="flex items-center gap-4">
                   <div className="text-right">
                     <p className="text-xs text-muted-foreground">{t('dashboard.comparison.current_period') || "Actuel"}</p>
-                    <p className="text-lg font-bold">{formatValue(currentNum, metric.format, metric.unit)}</p>
+                    <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{formatValue(currentNum, metric.format, metric.unit)}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-muted-foreground">{t('dashboard.comparison.previous_period') || "Précédent"}</p>
-                    <p className="text-lg font-bold text-muted-foreground">{formatValue(previousNum, metric.format, metric.unit)}</p>
+                    <p className="text-lg font-bold text-slate-400 dark:text-slate-500">{formatValue(previousNum, metric.format, metric.unit)}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1 min-w-[80px]">
                     {!isNeutral ? (

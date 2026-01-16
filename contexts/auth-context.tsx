@@ -22,6 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter(); // Initialize useRouter
+  const INACTIVITY_TIMEOUT = 60000; // 1 minute en millisecondes
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -50,6 +51,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     initializeAuth();
   }, [router]); // Add router to dependency array
+
+  // Gestion de la déconnexion automatique après 1 minute d'inactivité
+  useEffect(() => {
+    if (!user) return; // Ne pas surveiller si l'utilisateur n'est pas connecté
+
+    let inactivityTimer: NodeJS.Timeout;
+
+    const resetTimer = () => {
+      // Réinitialiser le timer à chaque activité
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => {
+        console.log("Déconnexion automatique après 1 minute d'inactivité");
+        authService.signOut();
+        setUser(null);
+        router.push('/login');
+      }, INACTIVITY_TIMEOUT);
+    };
+
+    // Événements à surveiller pour détecter l'activité
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    
+    events.forEach(event => {
+      window.addEventListener(event, resetTimer, { passive: true });
+    });
+
+    // Initialiser le timer
+    resetTimer();
+
+    // Nettoyer les event listeners et le timer lors du démontage
+    return () => {
+      clearTimeout(inactivityTimer);
+      events.forEach(event => {
+        window.removeEventListener(event, resetTimer);
+      });
+    };
+  }, [user, router]);
 
   const login = useCallback(async (credentials: { email: string; password: string }) => {
     setIsLoading(true); // Start loading

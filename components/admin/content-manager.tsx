@@ -29,6 +29,12 @@ import { Course } from "@/models"
 import { PageLoader } from "@/components/ui/page-loader"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useModal } from "@/hooks/use-modal"
+import { ModuleLessonFormModal, ModuleFormData } from "@/components/instructor/module-lesson-form-modal"
+import { ActionMenu } from "@/components/ui/action-menu"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { Edit, Trash2 } from "lucide-react"
+import { ContentViewer } from "@/components/shared/content-viewer"
 
 interface Module {
   id: number
@@ -81,12 +87,21 @@ const lessonTypeColors = {
 export function ContentManager() {
   const { t } = useLanguage()
   const { toast } = useToast()
+  const addModuleModal = useModal<{ courseId: number }>()
+  const editModuleModal = useModal<{ module: Module; courseId: number }>()
+  const deleteModuleModal = useModal<{ moduleId: number; courseId: number }>()
+  const deleteLessonModal = useModal<{ lessonId: number; moduleId: number; courseId: number }>()
+  const deleteQuizModal = useModal<{ quizId: number; courseId: number }>()
+  const contentViewerModal = useModal<{ contentUrl: string; title: string; type: string }>()
+  const editQuizModal = useModal<{ quiz: Quiz; courseId: number }>()
+  
   const [courses, setCourses] = useState<CourseWithContent[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null)
   const [expandedCourses, setExpandedCourses] = useState<Set<number>>(new Set())
   const [loadingContent, setLoadingContent] = useState<Set<number>>(new Set())
+  const [modulesByCourse, setModulesByCourse] = useState<Map<number, Module[]>>(new Map())
 
   useEffect(() => {
     fetchCourses()
@@ -192,6 +207,233 @@ export function ContentManager() {
     return selectedCourseId ? courses.find(c => c.id === selectedCourseId) : null
   }, [selectedCourseId, courses])
 
+  const loadCourseModules = async (courseId: number) => {
+    try {
+      const modulesResponse = await moduleService.getModulesByCourse(courseId)
+      let modules = []
+      if (modulesResponse?.data) {
+        modules = Array.isArray(modulesResponse.data) ? modulesResponse.data : []
+      } else if (Array.isArray(modulesResponse)) {
+        modules = modulesResponse
+      }
+      setModulesByCourse(prev => new Map(prev).set(courseId, modules))
+    } catch (err) {
+      console.error("Error loading modules:", err)
+    }
+  }
+
+  const handleAddModule = async (data: ModuleFormData) => {
+    try {
+      const selectedCourse = courses.find(c => c.id === data.courseId)
+      const courseLevel = selectedCourse?.level || "DEBUTANT"
+      
+      const payload = {
+        courseId: data.courseId,
+        courseType: courseLevel.toUpperCase() as "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE",
+        modules: [
+          {
+            title: data.title,
+            description: data.description || "",
+            moduleOrder: data.moduleOrder,
+            lessons: data.lessons.map(lesson => {
+              const { contentFile, quizId, ...lessonPayload } = lesson
+              return {
+                title: lessonPayload.title,
+                lessonOrder: lessonPayload.lessonOrder,
+                type: lessonPayload.type,
+                ...(lessonPayload.contentUrl && lessonPayload.contentUrl.trim() && { contentUrl: lessonPayload.contentUrl }),
+                ...(lessonPayload.duration && lessonPayload.duration > 0 && { duration: lessonPayload.duration }),
+              }
+            }),
+          },
+        ],
+      }
+      
+      const response = await moduleService.saveModules(payload)
+      
+      toast({
+        title: "Succès",
+        description: response.message || "Le module a été créé avec succès.",
+      })
+      
+      await loadCourseContent(data.courseId)
+      addModuleModal.close()
+    } catch (err: any) {
+      toast({
+        title: "Erreur",
+        description: err.message || "Impossible de créer le module.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleEditModule = async (data: ModuleFormData) => {
+    if (!editModuleModal.selectedItem) return
+    
+    try {
+      const { module, courseId } = editModuleModal.selectedItem
+      const selectedCourse = courses.find(c => c.id === courseId)
+      const courseLevel = selectedCourse?.level || "DEBUTANT"
+      
+      const currentModules = courses.find(c => c.id === courseId)?.modules || []
+      const updatedModules = currentModules.map(m => 
+        m.id === module.id 
+          ? {
+              ...m,
+              title: data.title,
+              description: data.description || "",
+              moduleOrder: data.moduleOrder,
+              lessons: data.lessons.map(lesson => {
+                const { contentFile, quizId, ...lessonPayload } = lesson
+                return {
+                  id: lessonPayload.id,
+                  title: lessonPayload.title,
+                  lessonOrder: lessonPayload.lessonOrder,
+                  type: lessonPayload.type,
+                  ...(lessonPayload.contentUrl && lessonPayload.contentUrl.trim() && { contentUrl: lessonPayload.contentUrl }),
+                  ...(lessonPayload.duration && lessonPayload.duration > 0 && { duration: lessonPayload.duration }),
+                }
+              }),
+            }
+          : m
+      )
+      
+      const payload = {
+        courseId,
+        courseType: courseLevel.toUpperCase() as "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE",
+        modules: updatedModules,
+      }
+      
+      const response = await moduleService.saveModules(payload)
+      
+      toast({
+        title: "Succès",
+        description: response.message || "Le module a été modifié avec succès.",
+      })
+      
+      await loadCourseContent(courseId)
+      editModuleModal.close()
+    } catch (err: any) {
+      toast({
+        title: "Erreur",
+        description: err.message || "Impossible de modifier le module.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDeleteModule = async () => {
+    if (!deleteModuleModal.selectedItem) return
+    
+    try {
+      const { moduleId, courseId } = deleteModuleModal.selectedItem
+      const selectedCourse = courses.find(c => c.id === courseId)
+      const courseLevel = selectedCourse?.level || "DEBUTANT"
+      
+      const currentModules = courses.find(c => c.id === courseId)?.modules || []
+      const updatedModules = currentModules
+        .filter(m => m.id !== moduleId)
+        .map(m => ({
+          ...m,
+          lessons: m.lessons?.map(l => ({
+            id: l.id,
+            title: l.title,
+            lessonOrder: l.lessonOrder,
+            type: l.type,
+            contentUrl: l.contentUrl,
+            duration: l.duration,
+          })) || [],
+        }))
+      
+      const payload = {
+        courseId,
+        courseType: courseLevel.toUpperCase() as "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE",
+        modules: updatedModules,
+      }
+      
+      const response = await moduleService.saveModules(payload)
+      
+      toast({
+        title: "Succès",
+        description: response.message || "Le module a été supprimé avec succès.",
+      })
+      
+      await loadCourseContent(courseId)
+      deleteModuleModal.close()
+    } catch (err: any) {
+      toast({
+        title: "Erreur",
+        description: err.message || "Impossible de supprimer le module.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDeleteLesson = async () => {
+    if (!deleteLessonModal.selectedItem) return
+    
+    try {
+      const { lessonId, moduleId, courseId } = deleteLessonModal.selectedItem
+      const selectedCourse = courses.find(c => c.id === courseId)
+      const courseLevel = selectedCourse?.level || "DEBUTANT"
+      
+      const currentModules = courses.find(c => c.id === courseId)?.modules || []
+      const updatedModules = currentModules.map(m => 
+        m.id === moduleId
+          ? {
+              ...m,
+              lessons: m.lessons?.filter(l => l.id !== lessonId) || [],
+            }
+          : m
+      )
+      
+      const payload = {
+        courseId,
+        courseType: courseLevel.toUpperCase() as "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE",
+        modules: updatedModules,
+      }
+      
+      const response = await moduleService.saveModules(payload)
+      
+      toast({
+        title: "Succès",
+        description: response.message || "La leçon a été supprimée avec succès.",
+      })
+      
+      await loadCourseContent(courseId)
+      deleteLessonModal.close()
+    } catch (err: any) {
+      toast({
+        title: "Erreur",
+        description: err.message || "Impossible de supprimer la leçon.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDeleteQuiz = async () => {
+    if (!deleteQuizModal.selectedItem) return
+    
+    try {
+      const { quizId, courseId } = deleteQuizModal.selectedItem
+      await quizService.deleteQuiz(quizId)
+      
+      toast({
+        title: "Succès",
+        description: "Le quiz a été supprimé avec succès.",
+      })
+      
+      await loadCourseContent(courseId)
+      deleteQuizModal.close()
+    } catch (err: any) {
+      toast({
+        title: "Erreur",
+        description: err.message || "Impossible de supprimer le quiz.",
+        variant: "destructive",
+      })
+    }
+  }
+
   if (loading) {
     return <PageLoader />
   }
@@ -216,6 +458,23 @@ export function ContentManager() {
       <PageHeader
         title={t('content.title')}
         description={t('content.description')}
+        action={{
+          label: "Ajouter un module",
+          onClick: () => {
+            const courseToUse = selectedCourseId 
+              ? courses.find(c => c.id === selectedCourseId)
+              : courses[0]
+            if (courseToUse) {
+              addModuleModal.open({ courseId: courseToUse.id })
+            } else {
+              toast({
+                title: "Erreur",
+                description: "Veuillez sélectionner un cours d'abord.",
+                variant: "destructive",
+              })
+            }
+          },
+        }}
       />
 
       <Card>
@@ -336,6 +595,42 @@ export function ContentManager() {
                                             </Badge>
                                           )}
                                         </div>
+                                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                          <ActionMenu
+                                            actions={[
+                                              {
+                                                label: "Modifier",
+                                                icon: <Edit className="h-4 w-4" />,
+                                                onClick: () => {
+                                                  const moduleData: ModuleFormData = {
+                                                    courseId: course.id,
+                                                    title: module.title,
+                                                    description: module.description || "",
+                                                    moduleOrder: module.moduleOrder,
+                                                    lessons: module.lessons?.map(l => ({
+                                                      id: l.id,
+                                                      title: l.title || "",
+                                                      lessonOrder: l.lessonOrder || 1,
+                                                      type: (l.type || "DOCUMENT") as "VIDEO" | "DOCUMENT" | "QUIZ" | "LAB",
+                                                      contentUrl: l.contentUrl || "",
+                                                      duration: l.duration || 0,
+                                                    })) || [],
+                                                  }
+                                                  editModuleModal.open({ module, courseId: course.id })
+                                                },
+                                              },
+                                              {
+                                                label: "Supprimer",
+                                                icon: <Trash2 className="h-4 w-4" />,
+                                                onClick: () => deleteModuleModal.open({
+                                                  moduleId: module.id,
+                                                  courseId: course.id,
+                                                }),
+                                                variant: "destructive",
+                                              },
+                                            ]}
+                                          />
+                                        </div>
                                       </AccordionTrigger>
                                       <AccordionContent>
                                         {module.lessons && module.lessons.length > 0 ? (
@@ -372,16 +667,38 @@ export function ContentManager() {
                                                         </p>
                                                       )}
                                                     </div>
-                                                    {lesson.contentUrl && (
-                                                      <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => window.open(lesson.contentUrl || "", "_blank")}
-                                                      >
-                                                        <PlayCircle className="h-4 w-4 mr-1" />
-                                                        {t('common.open')}
-                                                      </Button>
-                                                    )}
+                                                    <div className="flex items-center gap-2">
+                                                      {lesson.contentUrl && (
+                                                        <Button
+                                                          variant="ghost"
+                                                          size="sm"
+                                                          onClick={() => {
+                                                            contentViewerModal.open({
+                                                              contentUrl: lesson.contentUrl || "",
+                                                              title: lesson.title || "",
+                                                              type: lesson.type || "DOCUMENT",
+                                                            })
+                                                          }}
+                                                        >
+                                                          <PlayCircle className="h-4 w-4 mr-1" />
+                                                          {t('common.open')}
+                                                        </Button>
+                                                      )}
+                                                      <ActionMenu
+                                                        actions={[
+                                                          {
+                                                            label: "Supprimer",
+                                                            icon: <Trash2 className="h-4 w-4" />,
+                                                            onClick: () => deleteLessonModal.open({
+                                                              lessonId: lesson.id!,
+                                                              moduleId: module.id,
+                                                              courseId: course.id,
+                                                            }),
+                                                            variant: "destructive",
+                                                          },
+                                                        ]}
+                                                      />
+                                                    </div>
                                                   </div>
                                                 )
                                               })}
@@ -428,6 +745,19 @@ export function ContentManager() {
                                           )}
                                         </div>
                                       </div>
+                                      <ActionMenu
+                                        actions={[
+                                          {
+                                            label: "Supprimer",
+                                            icon: <Trash2 className="h-4 w-4" />,
+                                            onClick: () => deleteQuizModal.open({
+                                              quizId: quiz.id,
+                                              courseId: course.id,
+                                            }),
+                                            variant: "destructive",
+                                          },
+                                        ]}
+                                      />
                                     </div>
                                   </Card>
                                 ))}
@@ -451,6 +781,95 @@ export function ContentManager() {
           )}
         </CardContent>
       </Card>
+
+      {/* Modals */}
+      {addModuleModal.selectedItem && (
+        <ModuleLessonFormModal
+          open={addModuleModal.isOpen}
+          onOpenChange={addModuleModal.close}
+          title="Ajouter un module"
+          description="Créez un nouveau module avec ses leçons."
+          onSubmit={handleAddModule}
+          submitLabel="Créer le module"
+          courses={courses}
+          defaultValues={{
+            courseId: addModuleModal.selectedItem.courseId,
+            title: "",
+            description: "",
+            moduleOrder: (courses.find(c => c.id === addModuleModal.selectedItem.courseId)?.modules?.length || 0) + 1,
+            lessons: [],
+          }}
+        />
+      )}
+
+      {editModuleModal.selectedItem && (
+        <ModuleLessonFormModal
+          open={editModuleModal.isOpen}
+          onOpenChange={editModuleModal.close}
+          title="Modifier le module"
+          description="Modifiez le module et ses leçons."
+          onSubmit={handleEditModule}
+          submitLabel="Modifier le module"
+          courses={courses}
+          defaultValues={{
+            courseId: editModuleModal.selectedItem.courseId,
+            title: editModuleModal.selectedItem.module.title,
+            description: editModuleModal.selectedItem.module.description || "",
+            moduleOrder: editModuleModal.selectedItem.module.moduleOrder,
+            lessons: editModuleModal.selectedItem.module.lessons?.map(l => ({
+              id: l.id,
+              title: l.title || "",
+              lessonOrder: l.lessonOrder || 1,
+              type: (l.type || "DOCUMENT") as "VIDEO" | "DOCUMENT" | "QUIZ" | "LAB",
+              contentUrl: l.contentUrl || "",
+              duration: l.duration || 0,
+            })) || [],
+          }}
+        />
+      )}
+
+      <ConfirmDialog
+        open={deleteModuleModal.isOpen}
+        onOpenChange={deleteModuleModal.close}
+        title="Supprimer le module"
+        description="Êtes-vous sûr de vouloir supprimer ce module ? Toutes les leçons associées seront également supprimées. Cette action est irréversible."
+        confirmLabel="Supprimer"
+        cancelLabel="Annuler"
+        onConfirm={handleDeleteModule}
+        variant="destructive"
+      />
+
+      <ConfirmDialog
+        open={deleteLessonModal.isOpen}
+        onOpenChange={deleteLessonModal.close}
+        title="Supprimer la leçon"
+        description="Êtes-vous sûr de vouloir supprimer cette leçon ? Cette action est irréversible."
+        confirmLabel="Supprimer"
+        cancelLabel="Annuler"
+        onConfirm={handleDeleteLesson}
+        variant="destructive"
+      />
+
+      <ConfirmDialog
+        open={deleteQuizModal.isOpen}
+        onOpenChange={deleteQuizModal.close}
+        title="Supprimer le quiz"
+        description="Êtes-vous sûr de vouloir supprimer ce quiz ? Cette action est irréversible."
+        confirmLabel="Supprimer"
+        cancelLabel="Annuler"
+        onConfirm={handleDeleteQuiz}
+        variant="destructive"
+      />
+
+      {contentViewerModal.selectedItem && (
+        <ContentViewer
+          open={contentViewerModal.isOpen}
+          onOpenChange={contentViewerModal.close}
+          contentUrl={contentViewerModal.selectedItem.contentUrl}
+          title={contentViewerModal.selectedItem.title}
+          type={contentViewerModal.selectedItem.type}
+        />
+      )}
     </div>
   )
 }

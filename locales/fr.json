@@ -119,7 +119,8 @@
         "registrations": "Inscriptions",
         "completion_rate": "Taux de complétion",
         "courses_created": "Formations créées",
-        "active_users": "Utilisateurs actifs"
+        "active_users": "Utilisateurs actifs",
+        "inactive_users": "Utilisateurs inactifs"
       }
     },
     "quick_actions": {
@@ -477,6 +478,7 @@
     "averageRating": "Note moyenne",
     "engagementRate": "Taux d'engagement",
     "activeUsers": "Utilisateurs actifs",
+    "inactiveUsers": "Utilisateurs inactifs",
     "totalUsers": "Total utilisateurs",
     "averageTimePerCourse": "Temps moyen par cours",
     "activeSessions": "Sessions actives",

@@ -22,12 +22,9 @@ export default function HomePage() {
             priority
           />
           <h1 className="text-5xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Plateforme E-Learning
+            Welcome Orange Digital Center Mali e_-learning plateforme
           </h1>
         </div>
-        <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-          Bienvenue sur votre plateforme de formation en ligne
-        </p>
         <p className="text-lg text-gray-500 dark:text-gray-400">
           Connectez-vous pour accéder à votre espace de travail
         </p>

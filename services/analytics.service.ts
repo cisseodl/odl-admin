@@ -77,6 +77,8 @@ export type OverallComparisonStats = {
   coursesCreatedPreviousPeriod: number;
   activeUsersCurrentPeriod: number;
   activeUsersPreviousPeriod: number;
+  inactiveUsersCurrentPeriod: number;
+  inactiveUsersPreviousPeriod: number;
 };
 
 
@@ -209,6 +211,7 @@ export interface AnalyticsMetrics {
   totalReviews: number;
   engagementRate: number;
   activeUsers: number;
+  inactiveUsers: number;
   totalUsers: number;
   averageSessionTimeMinutes: number;
   activeSessions: number;

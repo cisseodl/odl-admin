@@ -45,6 +45,20 @@ export class QuizService {
     }
   }
 
+  async updateQuiz(quizId: number, payload: QuizPayload): Promise<Quiz> {
+    const response = await fetchApi<any>(`/quiz/update/${quizId}`, {
+      method: "PUT",
+      body: payload,
+    });
+    return response.data || response;
+  }
+
+  async deleteQuiz(quizId: number): Promise<void> {
+    await fetchApi<any>(`/quiz/delete/${quizId}`, {
+      method: "DELETE",
+    });
+  }
+
   async submitQuiz(payload: { quizId: number; answers: Array<{ questionId: number; reponseIds: number[] }> }): Promise<any> {
     const response = await fetchApi<any>("/quiz/submit", {
       method: "POST",
