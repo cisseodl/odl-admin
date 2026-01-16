@@ -511,6 +511,34 @@
         "description": "Consultez la liste des apprenants et leur progression détaillée.",
         "noNameUser": "Utilisateur sans nom"
       }
+    },
+    "export": {
+      "button": "Exporter en CSV",
+      "exporting": "Export en cours...",
+      "success": {
+        "title": "Export réussi",
+        "description": "Les statistiques ont été exportées en CSV"
+      },
+      "error": {
+        "title": "Erreur d'export",
+        "description": "Impossible d'exporter les statistiques"
+      },
+      "sections": {
+        "analytics_metrics": "Métriques Analytics",
+        "comparison_stats": "Statistiques de Comparaison",
+        "learning_time": "Métriques de Temps d'Apprentissage",
+        "user_growth": "Croissance des Utilisateurs",
+        "course_performance": "Performance des Cours"
+      },
+      "totalReviews": "Total avis",
+      "averageSessionTimeMinutes": "Temps moyen de session (min)",
+      "interactionRate": "Taux d'interaction",
+      "date": "Date",
+      "courseTitle": "Titre du cours",
+      "enrollments": "Inscriptions",
+      "completionRate": "Taux de complétion (%)",
+      "averageRating": "Note moyenne",
+      "period": "Période"
     }
   },
   "reports": {

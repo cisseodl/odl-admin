@@ -17,19 +17,24 @@ import {
   BarChart3,
   FileText,
   Printer, // Import Printer icon
+  Download, // Import Download icon
 } from "lucide-react"
 import { Button } from "@/components/ui/button" // Import Button component
 import { useEffect, useState, useMemo } from "react" // Import hooks
-import { analyticsService, type AnalyticsMetrics, type LearningTimeMetrics } from "@/services/analytics.service" // Import service
+import { analyticsService, type AnalyticsMetrics, type LearningTimeMetrics, type OverallComparisonStats, type UserGrowthDataPoint, type CoursePerformanceDataPoint } from "@/services/analytics.service" // Import service
 import { PageLoader } from "@/components/ui/page-loader" // Import PageLoader
 import { useLanguage } from "@/contexts/language-context" // Import useLanguage
+import { downloadCSV, exportStatisticsToCSV } from "@/lib/csv-export" // Import CSV export utilities
+import { useToast } from "@/hooks/use-toast" // Import useToast
 
 export function AnalyticsDashboard() {
   const { t } = useLanguage()
+  const { toast } = useToast()
   const [analyticsMetricsData, setAnalyticsMetricsData] = useState<AnalyticsMetrics | null>(null)
   const [learningTimeMetrics, setLearningTimeMetrics] = useState<LearningTimeMetrics | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     const fetchAnalyticsMetrics = async () => {
@@ -56,6 +61,122 @@ export function AnalyticsDashboard() {
     window.print()
   }
 
+  const handleExportCSV = async () => {
+    setExporting(true)
+    try {
+      // Récupérer toutes les données nécessaires pour l'export
+      const [
+        comparisonStats,
+        userGrowthData,
+        coursePerformanceData,
+      ] = await Promise.all([
+        analyticsService.getComparisonStats(),
+        analyticsService.getUserGrowthData("6-months"),
+        analyticsService.getCoursePerformanceData("30d"),
+      ])
+
+      // Préparer les sections CSV
+      const sections = []
+
+      // Section 1: Métriques Analytics
+      if (analyticsMetricsData) {
+        sections.push({
+          title: t('analytics.export.sections.analytics_metrics') || "Métriques Analytics",
+          data: [
+            {
+              [t('analytics.averageRating') || 'Note moyenne']: `${analyticsMetricsData.averageRating.toFixed(2)}/5`,
+              [t('analytics.export.totalReviews') || 'Total avis']: analyticsMetricsData.totalReviews,
+              [t('analytics.engagementRate') || 'Taux d\'engagement']: `${analyticsMetricsData.engagementRate.toFixed(2)}%`,
+              [t('analytics.activeUsers') || 'Utilisateurs actifs']: analyticsMetricsData.activeUsers,
+              [t('analytics.inactiveUsers') || 'Utilisateurs inactifs']: analyticsMetricsData.inactiveUsers || 0,
+              [t('analytics.totalUsers') || 'Total utilisateurs']: analyticsMetricsData.totalUsers,
+              [t('analytics.export.averageSessionTimeMinutes') || 'Temps moyen de session (min)']: analyticsMetricsData.averageSessionTimeMinutes.toFixed(2),
+              [t('analytics.activeSessions') || 'Sessions actives']: analyticsMetricsData.activeSessions,
+              [t('analytics.export.interactionRate') || 'Taux d\'interaction']: `${analyticsMetricsData.interactionRate.toFixed(2)}%`,
+            },
+          ],
+        })
+      }
+
+      // Section 2: Statistiques de comparaison
+      sections.push({
+        title: t('analytics.export.sections.comparison_stats') || "Statistiques de Comparaison",
+        data: [
+          {
+            [t('dashboard.comparison.metrics.registrations') || 'Inscriptions']: `${comparisonStats.registrationsCurrentPeriod} (${comparisonStats.registrationsPreviousPeriod})`,
+            [t('dashboard.comparison.metrics.completion_rate') || 'Taux de complétion']: `${comparisonStats.completionRateCurrentPeriod.toFixed(2)}% (${comparisonStats.completionRatePreviousPeriod.toFixed(2)}%)`,
+            [t('dashboard.comparison.metrics.courses_created') || 'Cours créés']: `${comparisonStats.coursesCreatedCurrentPeriod} (${comparisonStats.coursesCreatedPreviousPeriod})`,
+            [t('dashboard.comparison.metrics.active_users') || 'Utilisateurs actifs']: `${comparisonStats.activeUsersCurrentPeriod} (${comparisonStats.activeUsersPreviousPeriod})`,
+            [t('dashboard.comparison.metrics.inactive_users') || 'Utilisateurs inactifs']: `${comparisonStats.inactiveUsersCurrentPeriod} (${comparisonStats.inactiveUsersPreviousPeriod})`,
+          },
+        ],
+      })
+
+      // Section 3: Métriques de temps d'apprentissage
+      if (learningTimeMetrics) {
+        sections.push({
+          title: t('analytics.export.sections.learning_time') || "Métriques de Temps d'Apprentissage",
+          data: [
+            {
+              [t('analytics.learning_time.average_time_per_course') || 'Temps moyen par cours (min)']: Math.round(learningTimeMetrics.averageTimePerCourseMinutes),
+              [t('analytics.learning_time.active_sessions') || 'Sessions actives']: learningTimeMetrics.activeSessions,
+              [t('analytics.learning_time.average_time_per_learner') || 'Temps moyen par apprenant (min)']: Math.round(learningTimeMetrics.averageTimePerLearnerMinutes),
+              [t('analytics.learning_time.courses_with_activity') || 'Cours avec activité']: learningTimeMetrics.coursesWithActivity,
+              [t('analytics.learning_time.active_learners') || 'Apprenants actifs']: learningTimeMetrics.learnersWithActivity,
+            },
+          ],
+        })
+      }
+
+      // Section 4: Croissance des utilisateurs
+      if (userGrowthData && userGrowthData.length > 0) {
+        sections.push({
+          title: t('analytics.export.sections.user_growth') || "Croissance des Utilisateurs",
+          data: userGrowthData.map((point) => ({
+            [t('analytics.export.date') || 'Date']: point.date,
+            [t('analytics.charts.user_growth.new_users') || 'Nouveaux utilisateurs']: point.newUsers,
+            [t('analytics.charts.user_growth.total_cumulative') || 'Total utilisateurs']: point.totalUsers,
+          })),
+        })
+      }
+
+      // Section 5: Performance des cours
+      if (coursePerformanceData && coursePerformanceData.length > 0) {
+        sections.push({
+          title: t('analytics.export.sections.course_performance') || "Performance des Cours",
+          data: coursePerformanceData.map((point) => ({
+            [t('analytics.export.courseTitle') || 'Titre du cours']: point.courseTitle,
+            [t('analytics.export.enrollments') || 'Inscriptions']: point.enrollments,
+            [t('analytics.export.completionRate') || 'Taux de complétion (%)']: point.completionRate.toFixed(2),
+            [t('analytics.export.averageRating') || 'Note moyenne']: point.averageRating.toFixed(2),
+            [t('analytics.export.period') || 'Période']: point.period,
+          })),
+        })
+      }
+
+      // Générer le CSV
+      const csvContent = exportStatisticsToCSV(sections)
+
+      // Télécharger le fichier
+      const timestamp = new Date().toISOString().split('T')[0]
+      downloadCSV(csvContent, `statistiques-analytics-${timestamp}`)
+
+      toast({
+        title: t('analytics.export.success.title') || "Export réussi",
+        description: t('analytics.export.success.description') || "Les statistiques ont été exportées en CSV",
+      })
+    } catch (err: any) {
+      console.error("Error exporting CSV:", err)
+      toast({
+        title: t('analytics.export.error.title') || "Erreur d'export",
+        description: err.message || t('analytics.export.error.description') || "Impossible d'exporter les statistiques",
+        variant: "destructive",
+      })
+    } finally {
+      setExporting(false)
+    }
+  }
+
   // Métriques spécifiques à l'analytics (dynamiques depuis le backend)
   const analyticsMetrics = useMemo(() => {
     if (!analyticsMetricsData) return []
@@ -79,7 +200,11 @@ export function AnalyticsDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end mb-4 no-print">
+      <div className="flex justify-end gap-2 mb-4 no-print">
+        <Button onClick={handleExportCSV} disabled={exporting || loading} className="flex items-center gap-2">
+          <Download className="h-4 w-4" />
+          {exporting ? (t('analytics.export.exporting') || "Export en cours...") : (t('analytics.export.button') || "Exporter en CSV")}
+        </Button>
         <Button onClick={handlePrint} className="flex items-center gap-2">
           <Printer className="h-4 w-4" />
           {t('analytics.print_button')}
@@ -119,7 +244,7 @@ export function AnalyticsDashboard() {
       {/* Graphiques principaux */}
       <div className="grid gap-6 lg:grid-cols-2">
         <UserGrowthChart />
-        <CoursePerformance />
+        <CoursePerformance timeFilter="30d" />
       </div>
 
       {/* Onglets pour analyses détaillées */}

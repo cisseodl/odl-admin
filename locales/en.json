@@ -507,6 +507,34 @@
         "description": "Browse the list of learners and their detailed progress.",
         "noNameUser": "Unnamed User"
       }
+    },
+    "export": {
+      "button": "Export to CSV",
+      "exporting": "Exporting...",
+      "success": {
+        "title": "Export successful",
+        "description": "Statistics have been exported to CSV"
+      },
+      "error": {
+        "title": "Export error",
+        "description": "Unable to export statistics"
+      },
+      "sections": {
+        "analytics_metrics": "Analytics Metrics",
+        "comparison_stats": "Comparison Statistics",
+        "learning_time": "Learning Time Metrics",
+        "user_growth": "User Growth",
+        "course_performance": "Course Performance"
+      },
+      "totalReviews": "Total reviews",
+      "averageSessionTimeMinutes": "Average session time (min)",
+      "interactionRate": "Interaction rate",
+      "date": "Date",
+      "courseTitle": "Course title",
+      "enrollments": "Enrollments",
+      "completionRate": "Completion rate (%)",
+      "averageRating": "Average rating",
+      "period": "Period"
     }
   },
   "reports": {
