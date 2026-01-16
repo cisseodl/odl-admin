@@ -97,7 +97,7 @@
     "mainStats": {
       "newUsers": "New Users (30d)",
       "newCourses": "New Courses (30d)",
-      "totalEnrollments": "Total Enrollments",
+      "totalEnrollments": "Total Course Enrollments",
       "lessonsCompleted": "Lessons Completed"
     },
     "globalStats": {
@@ -673,7 +673,14 @@
     "notifications": "Notifications",
     "evaluations": "Evaluations",
     "leaderboard": "Leaderboard",
-    "settings": "Settings"
+    "settings": "Settings",
+    "instructor_courses": "My Courses",
+    "instructor_content": "Content",
+    "instructor_categories": "Categories",
+    "instructor_moderation": "Validation",
+    "instructor_quizzes": "Quizzes & Exercises",
+    "instructor_students": "My Learners",
+    "instructor_certificates": "Certificates"
   },
   "categories": {
     "title": "Category Management",

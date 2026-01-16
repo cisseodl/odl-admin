@@ -62,7 +62,7 @@
     "mainStats": {
       "newUsers": "Nouveaux utilisateurs (30j)",
       "newCourses": "Nouveaux cours (30j)",
-      "totalEnrollments": "Inscriptions totales",
+      "totalEnrollments": "Inscriptions totales des cours",
       "lessonsCompleted": "Leçons terminées"
     },
     "globalStats": {
@@ -373,6 +373,10 @@
     "users": "Utilisateurs",
     "courses": "Formations"
   },
+  "evaluations": {
+    "title": "Gestion des Évaluations",
+    "description": "Gérez toutes les évaluations de la plateforme"
+  },
   "notifications": {
     "title": "Notifications",
     "markAsRead": "Marquer comme lu",
@@ -416,7 +420,14 @@
     "notifications": "Notifications",
     "evaluations": "Évaluations",
     "leaderboard": "Classements",
-    "settings": "Paramètres"
+    "settings": "Paramètres",
+    "instructor_courses": "Mes Formations",
+    "instructor_content": "Contenu",
+    "instructor_categories": "Catégories",
+    "instructor_moderation": "Validation",
+    "instructor_quizzes": "Quiz et Exercices",
+    "instructor_students": "Mes Apprenants",
+    "instructor_certificates": "Certificats"
   },
   "course_form": {
     "title_label": "Titre de la formation *",

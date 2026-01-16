@@ -128,39 +128,44 @@ export const instructorRoutes: Route[] = [
     href: "/instructor/analytics",
   },
   {
-    label: "instructor.courses.title",
+    label: "routes.instructor_courses",
     icon: BookOpen,
     href: "/instructor/courses",
   },
   {
-    label: "instructor.content.title",
+    label: "routes.instructor_content",
     icon: Upload,
     href: "/instructor/content",
   },
   {
-    label: "instructor.categories.title",
+    label: "routes.instructor_categories",
     icon: Tag,
     href: "/instructor/categories",
   },
   {
-    label: "instructor.moderation.title",
+    label: "routes.instructor_moderation",
     icon: Shield,
     href: "/instructor/moderation",
   },
   {
-    label: "instructor.quizzes.title",
+    label: "routes.instructor_quizzes",
     icon: FileQuestion,
     href: "/instructor/quizzes",
   },
   {
-    label: "instructor.students.title",
+    label: "routes.instructor_students",
     icon: Users,
     href: "/instructor/students",
   },
   {
-    label: "instructor.certificates.title",
+    label: "routes.instructor_certificates",
     icon: Award,
     href: "/instructor/certificates",
+  },
+  {
+    label: "routes.evaluations",
+    icon: FileText,
+    href: "/instructor/evaluations",
   },
 ]
 
