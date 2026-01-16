@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Download, FileText, ExternalLink } from "lucide-react"
 import { useState, useEffect } from "react"
+import { useLanguage } from "@/contexts/language-context"
 
 interface ContentViewerProps {
   open: boolean
@@ -35,7 +36,14 @@ export function ContentViewer({ open, onOpenChange, contentUrl, title, type }: C
   }, [open, contentUrl, title, type])
 
   const handleDownload = () => {
-    window.open(contentUrl, "_blank")
+    // Forcer le téléchargement en créant un lien temporaire
+    const link = document.createElement('a')
+    link.href = contentUrl
+    link.download = title || 'document'
+    link.target = '_blank'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   const handleOpenInNewTab = () => {
@@ -55,10 +63,14 @@ export function ContentViewer({ open, onOpenChange, contentUrl, title, type }: C
                   lowerUrl.endsWith('.png') || lowerUrl.endsWith('.gif') ||
                   lowerUrl.endsWith('.webp')
   
-  // Pour les fichiers Word, utiliser Microsoft Office Online Viewer ou Google Docs Viewer
+  // Pour les fichiers Word et PDF, utiliser Google Docs Viewer pour forcer l'affichage
   const getViewerUrl = () => {
     if (isWord) {
       // Utiliser Google Docs Viewer comme alternative (plus fiable)
+      return `https://docs.google.com/viewer?url=${encodeURIComponent(contentUrl)}&embedded=true`
+    }
+    if (isPDF) {
+      // Utiliser Google Docs Viewer pour les PDFs aussi, pour éviter les téléchargements automatiques
       return `https://docs.google.com/viewer?url=${encodeURIComponent(contentUrl)}&embedded=true`
     }
     return contentUrl
@@ -81,7 +93,7 @@ export function ContentViewer({ open, onOpenChange, contentUrl, title, type }: C
                 className="flex items-center gap-2"
               >
                 <ExternalLink className="h-4 w-4" />
-                Ouvrir
+                {t('common.open')}
               </Button>
               <Button
                 variant="ghost"
@@ -90,7 +102,7 @@ export function ContentViewer({ open, onOpenChange, contentUrl, title, type }: C
                 className="flex items-center gap-2"
               >
                 <Download className="h-4 w-4" />
-                Télécharger
+                {t('common.download')}
               </Button>
             </div>
           </div>
@@ -117,7 +129,7 @@ export function ContentViewer({ open, onOpenChange, contentUrl, title, type }: C
                     <div className="absolute inset-0 flex items-center justify-center bg-muted/80 rounded-lg">
                       <div className="text-center">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                        <p className="text-sm text-muted-foreground">Chargement de la vidéo...</p>
+                        <p className="text-sm text-muted-foreground">{t('content.viewer.loading_video') || "Chargement de la vidéo..."}</p>
                       </div>
                     </div>
                   )}
@@ -154,7 +166,7 @@ export function ContentViewer({ open, onOpenChange, contentUrl, title, type }: C
                     />
                   ) : isPDF ? (
                     <iframe
-                      src={`${contentUrl}#toolbar=1`}
+                      src={getViewerUrl()}
                       className="w-full h-full min-h-[600px] border-0 rounded-lg"
                       onLoad={() => {
                         setLoading(false)
@@ -166,28 +178,28 @@ export function ContentViewer({ open, onOpenChange, contentUrl, title, type }: C
                         setIframeError(true)
                       }}
                       allow="fullscreen"
+                      type="application/pdf"
                     />
                   ) : isWord ? (
                     // Pour les fichiers Word, afficher un message et proposer d'ouvrir/télécharger
                     <div className="w-full h-full min-h-[600px] flex flex-col items-center justify-center bg-muted rounded-lg p-8">
                       <FileText className="h-16 w-16 text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">Fichier Word détecté</h3>
+                      <h3 className="text-lg font-semibold mb-2">{t('content.viewer.word_detected') || "Fichier Word détecté"}</h3>
                       <p className="text-sm text-muted-foreground text-center mb-6 max-w-md">
-                        Les fichiers Word (.doc, .docx) ne peuvent pas être affichés directement dans le navigateur. 
-                        Veuillez utiliser l'un des boutons ci-dessous pour ouvrir ou télécharger le fichier.
+                        {t('content.viewer.word_message') || "Les fichiers Word (.doc, .docx) ne peuvent pas être affichés directement dans le navigateur. Veuillez utiliser l'un des boutons ci-dessous pour ouvrir ou télécharger le fichier."}
                       </p>
                       <div className="flex gap-3">
                         <Button onClick={handleOpenInNewTab} variant="default" size="lg">
                           <ExternalLink className="h-4 w-4 mr-2" />
-                          Ouvrir dans un nouvel onglet
+                          {t('content.viewer.word_open') || "Ouvrir dans un nouvel onglet"}
                         </Button>
                         <Button onClick={handleDownload} variant="outline" size="lg">
                           <Download className="h-4 w-4 mr-2" />
-                          Télécharger le fichier
+                          {t('content.viewer.word_download') || "Télécharger le fichier"}
                         </Button>
                       </div>
                       <p className="text-xs text-muted-foreground mt-4 text-center">
-                        Le fichier s'ouvrira dans Microsoft Word ou votre application par défaut pour les fichiers Word.
+                        {t('content.viewer.word_info') || "Le fichier s'ouvrira dans Microsoft Word ou votre application par défaut pour les fichiers Word."}
                       </p>
                     </div>
                   ) : (
@@ -212,7 +224,7 @@ export function ContentViewer({ open, onOpenChange, contentUrl, title, type }: C
                       <div className="text-center">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
                         <p className="text-sm text-muted-foreground">
-                          {isWord ? "Chargement via Google Docs Viewer..." : "Chargement du document..."}
+                          {isWord ? t('content.viewer.loading_word') || "Chargement via Google Docs Viewer..." : t('content.viewer.loading_document') || "Chargement du document..."}
                         </p>
                         {isWord && (
                           <p className="text-xs text-muted-foreground mt-2 max-w-md">
@@ -228,22 +240,22 @@ export function ContentViewer({ open, onOpenChange, contentUrl, title, type }: C
                         <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                         <p className="text-sm text-muted-foreground mb-2">
                           {isWord 
-                            ? "Impossible d'afficher le fichier Word dans le navigateur."
-                            : "Impossible d'afficher le document dans le navigateur."}
+                            ? (t('content.viewer.error_word') || "Impossible d'afficher le fichier Word dans le navigateur.")
+                            : (t('content.viewer.error_document') || "Impossible d'afficher le document dans le navigateur.")}
                         </p>
                         {isWord && (
                           <p className="text-xs text-muted-foreground mb-4">
-                            Les fichiers Word (.doc, .docx) nécessitent Microsoft Word ou un lecteur compatible pour être ouverts.
+                            {t('content.viewer.word_requires') || "Les fichiers Word (.doc, .docx) nécessitent Microsoft Word ou un lecteur compatible pour être ouverts."}
                           </p>
                         )}
                         <div className="flex gap-2 justify-center">
                           <Button onClick={handleOpenInNewTab} variant="default">
                             <ExternalLink className="h-4 w-4 mr-2" />
-                            Ouvrir dans un nouvel onglet
+                            {t('content.viewer.open_new_tab') || "Ouvrir dans un nouvel onglet"}
                           </Button>
                           <Button onClick={handleDownload} variant="outline">
                             <Download className="h-4 w-4 mr-2" />
-                            Télécharger
+                            {t('common.download')}
                           </Button>
                         </div>
                       </div>
@@ -256,11 +268,11 @@ export function ContentViewer({ open, onOpenChange, contentUrl, title, type }: C
             <div className="text-center py-8">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground mb-4">
-                Ce type de contenu ne peut pas être prévisualisé.
+                {t('content.viewer.no_preview') || "Ce type de contenu ne peut pas être prévisualisé."}
               </p>
               <Button onClick={handleDownload}>
                 <Download className="h-4 w-4 mr-2" />
-                Télécharger le fichier
+                {t('content.viewer.download_file') || "Télécharger le fichier"}
               </Button>
             </div>
           )}

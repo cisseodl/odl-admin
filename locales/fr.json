@@ -28,7 +28,9 @@
     "no": "Non",
     "reviews": "avis",
     "notAvailable": "N/A",
-    "none": "Aucun(e)"
+    "none": "Aucun(e)",
+    "open": "Ouvrir",
+    "download": "Télécharger"
   },
   "auth": {
     "login": "Connexion",
@@ -1103,6 +1105,69 @@
     "errors": {
       "load_data_failed": "Impossible de charger les catégories ou les formateurs.",
       "create_quiz_failed": "Impossible de créer le quiz."
+    }
+  },
+  "content": {
+    "title": "Gestion du Contenu",
+    "description": "Visualisez et gérez les modules, leçons et quiz pour toutes les formations",
+    "courses": {
+      "title": "Formations",
+      "available": "{{count}} formation disponible",
+      "available_plural": "{{count}} formations disponibles",
+      "filter_placeholder": "Filtrer par formation",
+      "filter_all": "Toutes les formations",
+      "empty": "Aucune formation disponible."
+    },
+    "modules": {
+      "title": "Modules ({{count}})",
+      "count": "{{count}} module",
+      "count_plural": "{{count}} modules"
+    },
+    "lessons": {
+      "total": "{{count}} leçon au total",
+      "total_plural": "{{count}} leçons au total",
+      "count": "{{count}} leçon",
+      "count_plural": "{{count}} leçons",
+      "no_title": "Leçon sans titre",
+      "duration": "Durée : {{minutes}} min",
+      "empty_module": "Aucune leçon dans ce module."
+    },
+    "quizzes": {
+      "title": "Quiz ({{count}})",
+      "count": "{{count}} quiz",
+      "no_title": "Quiz sans titre",
+      "duration": "Durée : {{minutes}} min",
+      "min_score": "Score minimum : {{score}}%"
+    },
+    "lesson_types": {
+      "video": "Vidéo",
+      "document": "Document",
+      "quiz": "Quiz",
+      "lab": "Lab"
+    },
+    "errors": {
+      "load_failed": "Impossible de charger les formations.",
+      "load_content_failed": "Impossible de charger le contenu de la formation."
+    },
+    "empty": "Aucun contenu disponible pour cette formation.",
+    "viewer": {
+      "loading_document": "Chargement du document...",
+      "loading_word": "Chargement via Google Docs Viewer...",
+      "loading_video": "Chargement de la vidéo...",
+      "error_document": "Impossible d'afficher le document dans le navigateur.",
+      "error_video": "Impossible de charger la vidéo.",
+      "error_word": "Impossible d'afficher le fichier Word dans le navigateur.",
+      "word_detected": "Fichier Word détecté",
+      "word_message": "Les fichiers Word (.doc, .docx) ne peuvent pas être affichés directement dans le navigateur. Veuillez utiliser l'un des boutons ci-dessous pour ouvrir ou télécharger le fichier.",
+      "word_open": "Ouvrir dans un nouvel onglet",
+      "word_download": "Télécharger le fichier",
+      "word_info": "Le fichier s'ouvrira dans Microsoft Word ou votre application par défaut pour les fichiers Word.",
+      "word_requires": "Les fichiers Word (.doc, .docx) nécessitent Microsoft Word ou un lecteur compatible pour être ouverts.",
+      "download_video": "Télécharger la vidéo",
+      "download_file": "Télécharger le fichier",
+      "open_new_tab": "Ouvrir dans un nouvel onglet",
+      "no_preview": "Ce type de contenu ne peut pas être prévisualisé.",
+      "browser_not_supported": "Votre navigateur ne supporte pas la lecture de vidéos."
     }
   },
   "activity": {
