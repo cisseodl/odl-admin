@@ -8,7 +8,7 @@ import { useEffect, useState, useMemo, useCallback } from "react"; // Ajout de u
 import { analyticsService, OverallComparisonStats } from "@/services/analytics.service"; // Corrected Import service et type
 import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend, Cell } from "recharts"
 
 type ComparisonMetric = {
   label: string
@@ -79,22 +79,32 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
     {
       current: "text-blue-600 dark:text-blue-400",
       previous: "text-blue-300 dark:text-blue-600",
+      currentHex: "#3b82f6", // Bleu
+      previousHex: "#93c5fd", // Bleu clair
     },
     {
       current: "text-green-600 dark:text-green-400",
       previous: "text-green-300 dark:text-green-600",
+      currentHex: "#16a34a", // Vert
+      previousHex: "#86efac", // Vert clair
     },
     {
       current: "text-purple-600 dark:text-purple-400",
       previous: "text-purple-300 dark:text-purple-600",
+      currentHex: "#9333ea", // Violet
+      previousHex: "#c084fc", // Violet clair
     },
     {
       current: "text-orange-600 dark:text-orange-400",
       previous: "text-orange-300 dark:text-orange-600",
+      currentHex: "#ea580c", // Orange
+      previousHex: "#fdba74", // Orange clair
     },
     {
       current: "text-pink-600 dark:text-pink-400",
       previous: "text-pink-300 dark:text-pink-600",
+      currentHex: "#db2777", // Rose
+      previousHex: "#f9a8d4", // Rose clair
     },
   ];
 
@@ -135,20 +145,23 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
     ];
   }, [statsData, t]);
 
-  // Préparer les données pour le graphique
+  // Préparer les données pour le graphique avec couleurs par métrique
   const chartData = useMemo(() => {
     if (!metrics || metrics.length === 0) return [];
     
-    return metrics.map((metric) => {
+    return metrics.map((metric, index) => {
       const currentNum = typeof metric.current === "string" ? parseFloat(metric.current.replace(/[^\d.-]/g, "")) : metric.current
       const previousNum = typeof metric.previous === "string" ? parseFloat(metric.previous.replace(/[^\d.-]/g, "")) : metric.previous
       const { percentage } = calculateChange(currentNum, previousNum)
+      const colors = metricColors[index % metricColors.length]
       
       return {
         name: metric.label,
         current: currentNum,
         previous: previousNum,
         change: percentage,
+        currentColor: colors.currentHex,
+        previousColor: colors.previousHex,
       }
     })
   }, [metrics, calculateChange])
@@ -176,16 +189,7 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
       </CardHeader>
       <CardContent>
         <ChartContainer
-          config={{
-            current: {
-              label: t('dashboard.comparison.current_period') || "Période actuelle",
-              color: "#3b82f6", // Bleu vif pour le mois en cours
-            },
-            previous: {
-              label: t('dashboard.comparison.previous_period') || "Période précédente",
-              color: "#94a3b8", // Gris clair pour le mois dernier
-            },
-          }}
+          config={{}}
           className="h-[400px] w-full"
         >
           <ResponsiveContainer width="100%" height="100%">
@@ -204,17 +208,18 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
               <YAxis />
               <ChartTooltip 
                 content={<ChartTooltipContent 
-                  formatter={(value: any, name: string) => {
+                  formatter={(value: any, name: string, props: any) => {
                     const metric = metrics.find(m => {
                       const label = m.label
-                      return chartData.find(d => d.name === label)?.name === name
+                      return chartData.find(d => d.name === label)?.name === props.payload?.name
                     })
                     if (metric) {
                       return formatValue(value, metric.format, metric.unit)
                     }
                     return value
                   }}
-                />} 
+                />}
+                cursor={{ fill: "rgba(0, 0, 0, 0.05)", strokeWidth: 0 }}
               />
               <Legend 
                 formatter={(value) => {
@@ -229,16 +234,28 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
               />
               <Bar 
                 dataKey="current" 
-                fill="var(--color-current)" 
                 name="current"
                 radius={[4, 4, 0, 0]}
-              />
+              >
+                {chartData.map((entry, index) => {
+                  const colors = metricColors[index % metricColors.length]
+                  return (
+                    <Cell key={`cell-current-${index}`} fill={colors.currentHex} />
+                  )
+                })}
+              </Bar>
               <Bar 
                 dataKey="previous" 
-                fill="var(--color-previous)" 
                 name="previous"
                 radius={[4, 4, 0, 0]}
-              />
+              >
+                {chartData.map((entry, index) => {
+                  const colors = metricColors[index % metricColors.length]
+                  return (
+                    <Cell key={`cell-previous-${index}`} fill={colors.previousHex} />
+                  )
+                })}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </ChartContainer>
