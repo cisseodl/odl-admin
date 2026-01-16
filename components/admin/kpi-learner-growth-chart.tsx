@@ -42,15 +42,77 @@ export function KPILearnerGrowthChart() {
     return data
       .filter((point) => {
         if (!dateRange.from || !dateRange.to) return true
-        const pointDate = new Date(point.date)
-        return pointDate >= dateRange.from && pointDate <= dateRange.to
+        try {
+          // Gérer les formats de date différents (yyyy-MM-dd pour jours, yyyy-MM pour mois)
+          let pointDate: Date
+          if (point.date.includes('-') && point.date.length === 10) {
+            // Format yyyy-MM-dd
+            pointDate = new Date(point.date)
+          } else if (point.date.includes('-') && point.date.length === 7) {
+            // Format yyyy-MM (premier jour du mois)
+            pointDate = new Date(point.date + '-01')
+          } else {
+            // Format inconnu, inclure par défaut
+            return true
+          }
+          return pointDate >= dateRange.from && pointDate <= dateRange.to
+        } catch (e) {
+          // En cas d'erreur de parsing, inclure le point par défaut
+          return true
+        }
       })
-      .map((point) => ({
-        date: format(new Date(point.date), "dd/MM/yyyy"),
-        dateRaw: point.date,
-        learners: point.newUsers, // Utiliser newUsers comme apprenants inscrits
-      }))
-      .sort((a, b) => new Date(a.dateRaw).getTime() - new Date(b.dateRaw).getTime())
+      .map((point) => {
+        try {
+          // Formater la date selon son format
+          let formattedDate: string
+          let dateForSort: Date
+          
+          if (point.date.includes('-') && point.date.length === 10) {
+            // Format yyyy-MM-dd
+            dateForSort = new Date(point.date)
+            formattedDate = format(dateForSort, "dd/MM/yyyy")
+          } else if (point.date.includes('-') && point.date.length === 7) {
+            // Format yyyy-MM
+            dateForSort = new Date(point.date + '-01')
+            formattedDate = format(dateForSort, "MM/yyyy")
+          } else {
+            // Format inconnu, utiliser tel quel
+            formattedDate = point.date
+            dateForSort = new Date()
+          }
+          
+          return {
+            date: formattedDate,
+            dateRaw: point.date,
+            learners: point.newUsers || 0, // Utiliser newUsers comme apprenants inscrits
+          }
+        } catch (e) {
+          // En cas d'erreur, retourner un format par défaut
+          return {
+            date: point.date,
+            dateRaw: point.date,
+            learners: point.newUsers || 0,
+          }
+        }
+      })
+      .sort((a, b) => {
+        try {
+          // Trier par date en gérant les différents formats
+          const dateA = a.dateRaw.includes('-') && a.dateRaw.length === 10
+            ? new Date(a.dateRaw)
+            : a.dateRaw.includes('-') && a.dateRaw.length === 7
+            ? new Date(a.dateRaw + '-01')
+            : new Date()
+          const dateB = b.dateRaw.includes('-') && b.dateRaw.length === 10
+            ? new Date(b.dateRaw)
+            : b.dateRaw.includes('-') && b.dateRaw.length === 7
+            ? new Date(b.dateRaw + '-01')
+            : new Date()
+          return dateA.getTime() - dateB.getTime()
+        } catch (e) {
+          return 0
+        }
+      })
   }, [data, dateRange])
 
   useEffect(() => {
@@ -63,11 +125,11 @@ export function KPILearnerGrowthChart() {
           ? Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24))
           : 30
 
-        let timeframe = "30d"
-        if (daysDiff <= 7) timeframe = "7d"
-        else if (daysDiff <= 30) timeframe = "30d"
-        else if (daysDiff <= 90) timeframe = "90d"
-        else timeframe = "6-months"
+        let timeframe = "6-months" // Par défaut pour avoir assez de données
+        if (daysDiff <= 7) timeframe = "7-days"
+        else if (daysDiff <= 90) timeframe = "3-months"
+        else if (daysDiff <= 180) timeframe = "6-months"
+        else timeframe = "1-year"
 
         const result = await analyticsService.getUserGrowthData(timeframe)
         setData(result)
