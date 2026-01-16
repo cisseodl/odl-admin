@@ -674,11 +674,13 @@
     "evaluations": "Evaluations",
     "leaderboard": "Leaderboard",
     "settings": "Settings",
-    "instructor_courses": "My Courses",
+    "instructor_courses": "Courses",
+    "instructor_modules": "Module",
     "instructor_content": "Content",
-    "instructor_categories": "Categories",
+    "instructor_categories": "Category",
     "instructor_moderation": "Validation",
-    "instructor_quizzes": "Quizzes & Exercises",
+    "instructor_quizzes": "Quiz",
+    "instructor_lessons": "Lessons",
     "instructor_students": "My Learners",
     "instructor_certificates": "Certificates"
   },
@@ -758,8 +760,17 @@
       }
     },
     "courses": {
-      "title": "My Courses",
+      "title": "Courses",
       "description": "Create and manage your courses, modules, chapters and videos"
+    },
+    "lessons": {
+      "title": "Lessons",
+      "description": "Manage all your lessons and educational content"
+    },
+    "labs": {
+      "title": "Labs",
+      "description": "Manage your labs and practical environments",
+      "empty": "No labs available at the moment"
     },
     "quizzes": {
       "title": "Quizzes & Exercises",
@@ -811,6 +822,15 @@
     "content": {
       "title": "Content",
       "description": "Upload and organize your educational content"
+    },
+    "lessons": {
+      "title": "Lessons",
+      "description": "Manage all your lessons and educational content"
+    },
+    "labs": {
+      "title": "Labs",
+      "description": "Manage your labs and practical environments",
+      "empty": "No labs available at the moment"
     },
     "moderation": {
       "title": "Validation",

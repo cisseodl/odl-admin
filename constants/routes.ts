@@ -128,29 +128,43 @@ export const instructorRoutes: Route[] = [
     href: "/instructor/analytics",
   },
   {
+    label: "routes.instructor_modules",
+    icon: Upload,
+    href: "/instructor/content",
+    children: [
+      {
+        label: "routes.instructor_categories",
+        icon: Tag,
+        href: "/instructor/categories",
+      },
+    ],
+  },
+  {
     label: "routes.instructor_courses",
     icon: BookOpen,
     href: "/instructor/courses",
-  },
-  {
-    label: "routes.instructor_content",
-    icon: Upload,
-    href: "/instructor/content",
-  },
-  {
-    label: "routes.instructor_categories",
-    icon: Tag,
-    href: "/instructor/categories",
-  },
-  {
-    label: "routes.instructor_moderation",
-    icon: Shield,
-    href: "/instructor/moderation",
-  },
-  {
-    label: "routes.instructor_quizzes",
-    icon: FileQuestion,
-    href: "/instructor/quizzes",
+    children: [
+      {
+        label: "routes.instructor_lessons",
+        icon: FileText,
+        href: "/instructor/lessons",
+      },
+      {
+        label: "routes.evaluations",
+        icon: FileText,
+        href: "/instructor/evaluations",
+      },
+      {
+        label: "routes.labs",
+        icon: HardDrive,
+        href: "/instructor/labs",
+      },
+      {
+        label: "routes.instructor_quizzes",
+        icon: FileQuestion,
+        href: "/instructor/quizzes",
+      },
+    ],
   },
   {
     label: "routes.instructor_students",
@@ -161,11 +175,6 @@ export const instructorRoutes: Route[] = [
     label: "routes.instructor_certificates",
     icon: Award,
     href: "/instructor/certificates",
-  },
-  {
-    label: "routes.evaluations",
-    icon: FileText,
-    href: "/instructor/evaluations",
   },
 ]
 

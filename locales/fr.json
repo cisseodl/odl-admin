@@ -888,11 +888,13 @@
     "evaluations": "Évaluations",
     "leaderboard": "Classements",
     "settings": "Paramètres",
-    "instructor_courses": "Mes Formations",
+    "instructor_courses": "Cours",
+    "instructor_modules": "Module",
     "instructor_content": "Contenu",
-    "instructor_categories": "Catégories",
+    "instructor_categories": "Catégorie",
     "instructor_moderation": "Validation",
-    "instructor_quizzes": "Quiz et Exercices",
+    "instructor_quizzes": "Quiz",
+    "instructor_lessons": "Lessons",
     "instructor_students": "Mes Apprenants",
     "instructor_certificates": "Certificats"
   },
@@ -925,8 +927,17 @@
       }
     },
     "courses": {
-      "title": "Mes Formations",
+      "title": "Cours",
       "description": "Créez et gérez vos formations, modules, chapitres et vidéos"
+    },
+    "lessons": {
+      "title": "Lessons",
+      "description": "Gérez toutes vos leçons et contenus pédagogiques"
+    },
+    "labs": {
+      "title": "Labs",
+      "description": "Gérez vos laboratoires et environnements pratiques",
+      "empty": "Aucun lab disponible pour le moment"
     },
     "quizzes": {
       "title": "Quiz et Exercices",
@@ -978,6 +989,15 @@
     "content": {
       "title": "Contenu",
       "description": "Téléchargez et organisez votre contenu éducatif"
+    },
+    "lessons": {
+      "title": "Lessons",
+      "description": "Gérez toutes vos leçons et contenus pédagogiques"
+    },
+    "labs": {
+      "title": "Labs",
+      "description": "Gérez vos laboratoires et environnements pratiques",
+      "empty": "Aucun lab disponible pour le moment"
     },
     "moderation": {
       "title": "Validation",
