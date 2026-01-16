@@ -74,7 +74,36 @@
     },
     "comparison": {
       "title": "Comparaison Mois Actuel vs Précédent",
-      "description": "Analyse comparative des performances"
+      "description": "Analyse comparative des performances",
+      "previous_period": "période précédente",
+      "current_period": "Période Actuelle",
+      "no_data": "Aucune donnée de comparaison disponible pour la période.",
+      "no_change": "Aucun changement",
+      "comparison_with": "Comparaison avec la {{period}}",
+      "metrics": {
+        "registrations": "Inscriptions",
+        "completion_rate": "Taux de Complétion",
+        "courses_created": "Cours Créés",
+        "active_users": "Utilisateurs Actifs",
+        "inactive_users": "Utilisateurs Inactifs"
+      }
+    },
+    "quick_actions": {
+      "title": "Actions Rapides",
+      "description": "Accès rapide aux actions fréquentes",
+      "add_user": "Ajouter un utilisateur",
+      "create_course": "Créer une formation",
+      "manage_cohorts": "Gérer les Cohortes",
+      "manage_labs": "Gérer les Labs"
+    },
+    "charts": {
+      "users_by_role": {
+        "title": "Répartition des Utilisateurs par Rôle"
+      },
+      "top_courses": {
+        "title": "Top 5 Formations par Inscriptions",
+        "enrollments_key": "Inscriptions"
+      }
     }
   },
   "users": {
@@ -302,6 +331,34 @@
     "kpi": "Indicateurs Clés de Performance",
     "topCourses": "Top Formations",
     "userGrowth": "Croissance des utilisateurs",
+    "page": {
+      "title": "Statistiques et Analyses",
+      "description": "Analysez la performance et l'engagement de votre plateforme"
+    },
+    "print_button": "Imprimer les Statistiques",
+    "inactiveUsers": "Utilisateurs inactifs",
+    "kpi_chart": {
+      "description": "Croissance des inscriptions d'apprenants par période",
+      "select_date": "Sélectionner une période",
+      "date": "Date",
+      "learners_enrolled": "Apprenants inscrits",
+      "no_data": "Aucune donnée disponible pour la période sélectionnée"
+    },
+    "charts": {
+      "user_growth": {
+        "title": "KPI",
+        "description": "Évolution des Inscriptions",
+        "description_6months": "Évolution des inscriptions sur 6 mois",
+        "total_growth": "Croissance totale",
+        "monthly_average": "Moyenne mensuelle",
+        "new_users_label": "Nouveaux utilisateurs",
+        "total_users_label": "Total utilisateurs",
+        "new": "Nouveaux",
+        "total": "Total",
+        "new_users": "Nouveaux utilisateurs",
+        "total_cumulative": "Total cumulé"
+      }
+    },
     "coursePerformance": {
       "loadError": "Impossible de récupérer les données de performance des cours.",
       "notAvailable": "N/A",
@@ -318,7 +375,39 @@
       "mostPopular": "Formation la plus populaire: {{course}}"
     },
     "learningTime": "Temps d'apprentissage",
-    "reports": "Rapports",
+    "tabs": {
+      "learners": "Apprenants",
+      "learning_time": "Temps d'Apprentissage",
+      "reports": "Rapports"
+    },
+    "learning_time": {
+      "title": "Temps d'Apprentissage",
+      "description": "Temps passé, sessions, interactions et activité",
+      "average_time_per_course": "Temps moyen par cours",
+      "courses_with_activity": "{{count}} cours avec activité",
+      "courses_with_activity_plural": "{{count}} cours avec activité",
+      "active_sessions": "Sessions actives",
+      "last_24_hours": "24 dernières heures",
+      "average_time_per_learner": "Temps moyen par apprenant",
+      "active_learners": "{{count}} apprenant actif",
+      "active_learners_plural": "{{count}} apprenants actifs"
+    },
+    "reports": {
+      "title": "Rapports",
+      "description": "Générez et exportez des rapports détaillés sur votre plateforme",
+      "learning_time": {
+        "title": "Temps d'Apprentissage",
+        "description": "Temps passé, sessions actives et progression des apprenants"
+      },
+      "users": {
+        "title": "Rapport Utilisateurs",
+        "description": "Inscriptions, rétention, segmentation et croissance"
+      },
+      "courses": {
+        "title": "Rapport Formations",
+        "description": "Performance, popularité et statistiques par formation"
+      }
+    },
     "averageRating": "Note moyenne",
     "engagementRate": "Taux d'engagement",
     "activeUsers": "Utilisateurs actifs",
@@ -354,6 +443,34 @@
         "description": "Consultez la liste des apprenants et leur progression détaillée.",
         "noNameUser": "Utilisateur sans nom"
       }
+    },
+    "export": {
+      "button": "Exporter en CSV",
+      "exporting": "Export en cours...",
+      "success": {
+        "title": "Export réussi",
+        "description": "Les statistiques ont été exportées en CSV"
+      },
+      "error": {
+        "title": "Erreur d'export",
+        "description": "Impossible d'exporter les statistiques"
+      },
+      "sections": {
+        "analytics_metrics": "Métriques Analytics",
+        "comparison_stats": "Statistiques de Comparaison",
+        "learning_time": "Métriques de Temps d'Apprentissage",
+        "user_growth": "Croissance des Utilisateurs",
+        "course_performance": "Performance des Cours"
+      },
+      "totalReviews": "Total avis",
+      "averageSessionTimeMinutes": "Temps moyen de session (min)",
+      "interactionRate": "Taux d'interaction",
+      "date": "Date",
+      "courseTitle": "Titre du cours",
+      "enrollments": "Inscriptions",
+      "completionRate": "Taux de complétion (%)",
+      "averageRating": "Note moyenne",
+      "period": "Période"
     }
   },
   "reports": {
@@ -379,11 +496,19 @@
   },
   "notifications": {
     "title": "Notifications",
+    "description": "Gérez toutes vos notifications et alertes système",
     "markAsRead": "Marquer comme lu",
     "markAllAsRead": "Tout marquer comme lu",
     "archive": "Archiver",
     "delete": "Supprimer",
-    "noNotifications": "Aucune notification"
+    "noNotifications": "Aucune notification",
+    "allUpToDate": "Vous êtes à jour !",
+    "viewAll": "Voir toutes les notifications",
+    "new": "nouvelle",
+    "new_plural": "nouvelles",
+    "unread": "non lue",
+    "unread_plural": "non lues",
+    "menu_label": "Menu notifications"
   },
   "settings": {
     "title": "Paramètres",
@@ -393,6 +518,15 @@
     "language": "Langue",
     "theme": "Thème",
     "notifications": "Notifications"
+  },
+  "header": {
+    "search_placeholder": "Rechercher utilisateurs, formations...",
+    "search_label": "Rechercher utilisateurs, formations",
+    "shortcuts_help": "Afficher l'aide des raccourcis clavier",
+    "profile": "Mon profil",
+    "settings": "Paramètres",
+    "logout": "Déconnexion",
+    "admin": "Administrateur"
   },
   "sidebar": {
     "closeMenu": "Fermer le menu",
@@ -428,6 +562,165 @@
     "instructor_quizzes": "Quiz et Exercices",
     "instructor_students": "Mes Apprenants",
     "instructor_certificates": "Certificats"
+  },
+  "instructor": {
+    "dashboard": {
+      "title": "Tableau de bord Formateur",
+      "description": "Vue d'ensemble de vos formations et apprenants",
+      "average_rating_chart": {
+        "title": "Performance des Formations",
+        "description": "Nombre d'apprenants par formation"
+      },
+      "stats": {
+        "courses_created": "Formations Créées",
+        "courses_published": "publiées",
+        "total_students": "Total Étudiants",
+        "new_enrollments": "ce mois",
+        "average_rating": "Note Moyenne",
+        "new_comments": "nouveaux avis (30j)",
+        "completion_rate": "Taux de Complétion",
+        "active_learners": "apprenants actifs",
+        "total_enrollments": "inscriptions totales",
+        "last_30_days": "30 derniers jours",
+        "average_quiz_score": "Score Moyen des Quiz",
+        "average_quizzes": "Quiz moyens",
+        "certified_by_module": "Certifiés par Module",
+        "total_certificates": "certificats délivrés",
+        "error_access_denied": "Accès refusé. Vous n'êtes pas autorisé à consulter ces statistiques.",
+        "error_no_profile": "Vous n'avez pas encore de profil formateur. Veuillez créer un profil formateur pour accéder au tableau de bord.",
+        "error_load": "Impossible de récupérer le résumé du tableau de bord."
+      }
+    },
+    "courses": {
+      "title": "Mes Formations",
+      "description": "Créez et gérez vos formations, modules, chapitres et vidéos"
+    },
+    "quizzes": {
+      "title": "Quiz et Exercices",
+      "description": "Créez et gérez des quiz et exercices pour vos formations"
+    },
+    "students": {
+      "title": "Mes Apprenants",
+      "description": "Suivez la progression et les scores de vos apprenants",
+      "search_placeholder": "Rechercher un apprenant...",
+      "table": {
+        "header_learner": "Apprenant",
+        "header_course": "Formation",
+        "header_progress": "Progression",
+        "header_score": "Score",
+        "header_last_activity": "Dernière Activité",
+        "modules_completed": "{{completed}}/{{total}} modules",
+        "no_students": "Aucun apprenant trouvé."
+      }
+    },
+    "analytics": {
+      "title": "Statistiques de Performance",
+      "description": "Analysez la performance de vos formations et apprenants",
+      "performance": {
+        "title": "Performance des Formations",
+        "description": "Analyse détaillée de vos formations",
+        "no_data": "Aucune donnée de performance disponible pour vos formations.",
+        "students_label": "Étudiants",
+        "learners": "apprenants",
+        "average_rating_label": "Note Moyenne",
+        "rating": "Note",
+        "stars": "étoiles"
+      }
+    },
+    "certificates": {
+      "title": "Gestion des Certificats",
+      "description": "Gérez les certificats délivrés à vos apprenants"
+    },
+    "categories": {
+      "title": "Catégories",
+      "description": "Parcourez les catégories disponibles pour vos formations",
+      "no_categories": "Aucune catégorie disponible pour le moment",
+      "courses_count": "{{count}} formation",
+      "courses_count_plural": "{{count}} formations"
+    },
+    "settings": {
+      "title": "Paramètres",
+      "description": "Configurez vos paramètres de formateur"
+    },
+    "content": {
+      "title": "Contenu",
+      "description": "Téléchargez et organisez votre contenu éducatif"
+    },
+    "moderation": {
+      "title": "Validation",
+      "description": "Validez, rejetez ou modifiez vos formations en attente de validation",
+      "list": {
+        "header_course": "Formation",
+        "header_category": "Catégorie",
+        "header_status": "Statut Actuel",
+        "header_actions": "Actions",
+        "action_approve": "Soumettre pour validation",
+        "action_edit": "Modifier",
+        "action_reject": "Retirer de la validation",
+        "status_review": "En Révision",
+        "status_draft": "Brouillon",
+        "empty_message": "Aucune formation en attente de validation."
+      },
+      "modals": {
+        "edit_title": "Modifier la Formation",
+        "edit_description": "Modifiez les informations de la formation",
+        "edit_submit": "Enregistrer les modifications",
+        "approve_title": "Soumettre pour validation",
+        "approve_description": "Êtes-vous sûr de vouloir soumettre cette formation pour validation ? Elle sera examinée par un administrateur.",
+        "approve_confirm": "Soumettre",
+        "reject_title": "Retirer de la validation",
+        "reject_description": "Veuillez indiquer la raison pour laquelle vous retirez cette formation de la validation.",
+        "reject_reason_label": "Raison *",
+        "reject_reason_placeholder": "Ex: Contenu à compléter, modifications nécessaires...",
+        "reject_cancel": "Annuler",
+        "reject_confirm": "Retirer",
+        "reject_error": "Veuillez fournir une raison."
+      },
+      "toasts": {
+        "error_load": "Impossible de charger vos formations en attente.",
+        "error_update": "Impossible de mettre à jour la formation.",
+        "error_moderation": "Une erreur s'est produite lors de la validation.",
+        "success_update": "Formation mise à jour avec succès.",
+        "success_approve": "Formation soumise pour validation avec succès.",
+        "success_reject": "Formation retirée de la validation avec succès."
+      }
+    },
+    "activity": {
+      "title": "Votre Activité Récente",
+      "description": "Vos dernières actions sur la plateforme",
+      "no_activity": "Aucune activité récente.",
+      "you": "Vous",
+      "actions": {
+        "course_created": "a créé la formation",
+        "course_updated": "a mis à jour la formation",
+        "quiz_published": "a publié un quiz pour",
+        "review_responded": "a répondu à un avis sur",
+        "certificate_issued": "a délivré un certificat pour",
+        "unknown": "a effectué une action sur"
+      },
+      "badges": {
+        "course_created": "Formation Créée",
+        "course_updated": "Formation Mise à Jour",
+        "quiz_published": "Quiz Publié",
+        "review_responded": "Avis Répondu",
+        "certificate_issued": "Certificat Délivré"
+      },
+      "time": {
+        "seconds": "{{count}} seconde",
+        "seconds_plural": "{{count}} secondes",
+        "minutes": "{{count}} minute",
+        "minutes_plural": "{{count}} minutes",
+        "hours": "{{count}} heure",
+        "hours_plural": "{{count}} heures",
+        "days": "{{count}} jour",
+        "days_plural": "{{count}} jours",
+        "ago": "il y a {{time}}"
+      }
+    },
+    "evaluations": {
+      "title": "Évaluations",
+      "description": "Gérez les évaluations de vos formations"
+    }
   },
   "course_form": {
     "title_label": "Titre de la formation *",
