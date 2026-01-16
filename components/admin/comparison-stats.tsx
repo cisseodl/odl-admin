@@ -238,8 +238,9 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
                 radius={[4, 4, 0, 0]}
               >
                 {chartData.map((entry, index) => {
+                  // Les deux dernières barres (dernière métrique) doivent être orange et grise
                   if (index === chartData.length - 1) {
-                    return <Cell key={`cell-current-${index}`} fill="orange" />;
+                    return <Cell key={`cell-current-${index}`} fill="#ea580c" />; // Orange pour période actuelle
                   }
                   const colors = metricColors[index % metricColors.length]
                   return (
@@ -253,8 +254,9 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
                 radius={[4, 4, 0, 0]}
               >
                 {chartData.map((entry, index) => {
+                  // Les deux dernières barres (dernière métrique) doivent être orange et grise
                   if (index === chartData.length - 1) {
-                    return <Cell key={`cell-previous-${index}`} fill="gray" />;
+                    return <Cell key={`cell-previous-${index}`} fill="#94a3b8" />; // Gris pour période précédente
                   }
                   const colors = metricColors[index % metricColors.length]
                   return (
