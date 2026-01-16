@@ -190,7 +190,7 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
       <CardContent>
         <ChartContainer
           config={{}}
-          className="h-[400px] w-full"
+          className="h-[400px] w-full [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-transparent [&_.recharts-tooltip-cursor]:fill-transparent"
         >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
@@ -219,7 +219,7 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
                     return value
                   }}
                 />}
-                cursor={{ fill: "rgba(0, 0, 0, 0.05)", strokeWidth: 0 }}
+                cursor={false}
               />
               <Legend 
                 formatter={(value) => {
@@ -238,6 +238,9 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
                 radius={[4, 4, 0, 0]}
               >
                 {chartData.map((entry, index) => {
+                  if (index === chartData.length - 1) {
+                    return <Cell key={`cell-current-${index}`} fill="orange" />;
+                  }
                   const colors = metricColors[index % metricColors.length]
                   return (
                     <Cell key={`cell-current-${index}`} fill={colors.currentHex} />
@@ -250,6 +253,9 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
                 radius={[4, 4, 0, 0]}
               >
                 {chartData.map((entry, index) => {
+                  if (index === chartData.length - 1) {
+                    return <Cell key={`cell-previous-${index}`} fill="gray" />;
+                  }
                   const colors = metricColors[index % metricColors.length]
                   return (
                     <Cell key={`cell-previous-${index}`} fill={colors.previousHex} />
