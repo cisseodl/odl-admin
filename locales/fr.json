@@ -417,5 +417,102 @@
     "evaluations": "Évaluations",
     "leaderboard": "Classements",
     "settings": "Paramètres"
+  },
+  "course_form": {
+    "title_label": "Titre de la formation *",
+    "title_placeholder": "Introduction à AWS",
+    "subtitle_label": "Sous-titre (optionnel)",
+    "subtitle_placeholder": "Maîtrisez les bases du cloud computing",
+    "description_label": "Description *",
+    "description_placeholder": "Décrivez votre formation...",
+    "category_label": "Catégorie *",
+    "category_placeholder": "Sélectionner une catégorie",
+    "instructor_label": "Formateur *",
+    "instructor_placeholder": "Sélectionner un formateur",
+    "instructor_no_available": "Aucun formateur disponible",
+    "instructor_no_available_message": "Aucun formateur disponible. Veuillez créer un formateur d'abord.",
+    "instructor_default": "Formateur #{{id}}",
+    "image_label": "Image de la formation (optionnel)",
+    "continue_to_modules": "Continuer vers les Modules"
+  },
+  "wizard": {
+    "title": "Créer une formation",
+    "progress": {
+      "label": "Progression",
+      "step_info": "Étape {{current}} sur {{total}}"
+    },
+    "steps": {
+      "course": {
+        "label": "Formation",
+        "description": "Informations de base de la formation"
+      },
+      "modules": {
+        "label": "Modules",
+        "description": "Créer les modules de la formation"
+      },
+      "lessons": {
+        "label": "Leçons",
+        "description": "Ajouter les leçons aux modules"
+      },
+      "quiz": {
+        "label": "Quiz",
+        "description": "Créer les quiz de la formation"
+      }
+    },
+    "buttons": {
+      "previous": "Précédent"
+    },
+    "success": {
+      "course_created": "La formation a été créée avec succès !"
+    },
+    "errors": {
+      "load_data_failed": "Impossible de charger les catégories ou les formateurs.",
+      "create_quiz_failed": "Impossible de créer le quiz."
+    }
+  },
+  "activity": {
+    "title": "Activité Récente",
+    "description": "Les dernières actions sur la plateforme",
+    "empty": "Aucune activité récente.",
+    "unknown_user": "Utilisateur inconnu",
+    "errors": {
+      "fetch_failed": "Impossible de charger l'activité récente."
+    },
+    "actions": {
+      "created": "a créé",
+      "created_course": "a créé la formation",
+      "created_account": "a créé le compte",
+      "updated": "a mis à jour",
+      "updated_course": "a mis à jour la formation",
+      "deleted": "a supprimé",
+      "approved": "a approuvé",
+      "approved_course": "a validé la formation",
+      "rejected": "a rejeté",
+      "rejected_course": "a rejeté la formation",
+      "logged_in": "s'est connecté",
+      "other": "a effectué l'action {{action}} sur"
+    },
+    "badges": {
+      "new": "Nouveau",
+      "completed": "Complété",
+      "review": "Avis",
+      "certificate": "Certificat",
+      "approved": "Approuvé",
+      "rejected": "Rejeté",
+      "creation": "Création",
+      "update": "Mise à jour",
+      "login": "Connexion",
+      "deletion": "Suppression"
+    },
+    "time": {
+      "seconds_ago": "Il y a {{count}} seconde",
+      "seconds_ago_plural": "Il y a {{count}} secondes",
+      "minutes_ago": "Il y a {{count}} minute",
+      "minutes_ago_plural": "Il y a {{count}} minutes",
+      "hours_ago": "Il y a {{count}} heure",
+      "hours_ago_plural": "Il y a {{count}} heures",
+      "days_ago": "Il y a {{count}} jour",
+      "days_ago_plural": "Il y a {{count}} jours"
+    }
   }
 }
