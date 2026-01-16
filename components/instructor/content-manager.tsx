@@ -28,6 +28,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { courseService, moduleService, quizService } from "@/services"
 import { PageLoader } from "@/components/ui/page-loader"
 import { ModuleLessonFormModal, ModuleFormData } from "@/components/instructor/module-lesson-form-modal"
+import { LessonFormModal, LessonFormData, LessonType } from "@/components/instructor/lesson-form-modal"
 import { Course } from "@/models"
 import { Module } from "@/models/module.model"
 import { useToast } from "@/hooks/use-toast"
@@ -82,6 +83,7 @@ export function ContentManager() {
   const addModuleModal = useModal();
   const editModuleModal = useModal<{ module: ModuleWithLessons; courseId: number }>();
   const deleteModuleModal = useModal<{ moduleId: number; courseId: number }>();
+  const editLessonModal = useModal<{ lesson: Lesson; moduleId: number; courseId: number }>();
   const deleteLessonModal = useModal<{ lessonId: number; moduleId: number; courseId: number }>();
   const deleteQuizModal = useModal<{ quizId: number; courseId: number }>();
   const editQuizModal = useModal<{ quiz: any; courseId: number }>();
@@ -683,7 +685,16 @@ export function ContentManager() {
                                                         <ActionMenu
                                                           actions={[
                                                             {
-                                                              label: "Supprimer",
+                                                              label: t('common.edit') || "Modifier",
+                                                              icon: <Edit className="h-4 w-4" />,
+                                                              onClick: () => editLessonModal.open({
+                                                                lesson: lesson,
+                                                                moduleId: module.id!,
+                                                                courseId: course.id!
+                                                              }),
+                                                            },
+                                                            {
+                                                              label: t('common.delete') || "Supprimer",
                                                               icon: <Trash2 className="h-4 w-4" />,
                                                               onClick: () => deleteLessonModal.open({
                                                                 lessonId: lesson.id!,
@@ -833,12 +844,32 @@ export function ContentManager() {
         />
       )}
 
+      {editLessonModal.selectedItem && (
+        <LessonFormModal
+          open={editLessonModal.isOpen}
+          onOpenChange={editLessonModal.close}
+          title={t('instructor.lessons.modals.edit_title') || "Modifier la leçon"}
+          description={t('instructor.lessons.modals.edit_description') || "Modifiez les informations de la leçon"}
+          submitLabel={t('instructor.lessons.modals.edit_submit') || "Enregistrer"}
+          defaultValues={{
+            title: editLessonModal.selectedItem.lesson.title || "",
+            lessonOrder: editLessonModal.selectedItem.lesson.lessonOrder || 1,
+            type: (editLessonModal.selectedItem.lesson.type as LessonType) || LessonType.DOCUMENT,
+            contentUrl: editLessonModal.selectedItem.lesson.contentUrl || "",
+            duration: editLessonModal.selectedItem.lesson.duration || undefined,
+          }}
+          onSubmit={handleUpdateLesson}
+        />
+      )}
+
       <ConfirmDialog
         open={deleteLessonModal.isOpen}
         onOpenChange={deleteLessonModal.close}
-        title="Supprimer la leçon"
-        description="Êtes-vous sûr de vouloir supprimer cette leçon ? Cette action est irréversible."
+        title={t('instructor.lessons.modals.delete_title') || "Supprimer la leçon"}
+        description={t('instructor.lessons.modals.delete_description') || "Êtes-vous sûr de vouloir supprimer cette leçon ? Cette action est irréversible."}
+        confirmText={t('instructor.lessons.modals.delete_confirm') || "Supprimer"}
         onConfirm={handleDeleteLesson}
+        variant="destructive"
       />
 
       <ConfirmDialog
