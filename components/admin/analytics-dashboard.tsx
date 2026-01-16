@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CoursePerformance } from "./course-performance"
 import { UserGrowthChart } from "./user-growth-chart"
+import { KPILearnerGrowthChart } from "./kpi-learner-growth-chart"
 import { StatCard } from "@/components/shared/stat-card"
 import { ReportCard } from "@/components/admin/reports/report-card"
 import { LearnerProgressList } from "./learner-progress-list" // Import the new component
@@ -240,6 +241,9 @@ export function AnalyticsDashboard() {
           </CardContent>
         </Card>
       )}
+
+      {/* Graphique KPI - Croissance des apprenants */}
+      <KPILearnerGrowthChart />
 
       {/* Graphiques principaux */}
       <div className="grid gap-6 lg:grid-cols-2">

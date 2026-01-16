@@ -44,18 +44,19 @@ export function QuickActions() {
         <CardDescription className="text-sm leading-relaxed">{t('dashboard.quick_actions.description')}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {actions.map((action) => {
             const Icon = action.icon
             return (
               <Button
                 key={action.label}
                 variant="outline"
-                className="h-auto flex-col gap-2 py-4"
+                size="sm"
+                className="h-auto flex-col gap-1.5 py-2.5"
                 onClick={() => router.push(action.href)}
               >
-                <Icon className={`h-6 w-6 ${action.color}`} />
-                <span className="text-sm">{action.label}</span>
+                <Icon className={`h-4 w-4 ${action.color}`} />
+                <span className="text-xs">{action.label}</span>
               </Button>
             )
           })}

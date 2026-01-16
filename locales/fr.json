@@ -411,6 +411,13 @@
     "activeUsers": "Utilisateurs Actifs",
     "totalUsers": "Total Utilisateurs",
     "compared_to_last_month": "par rapport au mois dernier",
+    "kpi_chart": {
+      "description": "Croissance des apprenants inscrits par période",
+      "select_date": "Sélectionner une période",
+      "date": "Date",
+      "learners_enrolled": "Apprenants inscrits",
+      "no_data": "Aucune donnée disponible pour la période sélectionnée"
+    },
     "charts": {
       "user_growth": {
         "title": "KPI",

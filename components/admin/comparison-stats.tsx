@@ -74,6 +74,30 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
     return { value: change, percentage }
   }, [])
 
+  // Couleurs différentes pour chaque métrique (période actuelle vs précédente)
+  const metricColors = [
+    {
+      current: "text-blue-600 dark:text-blue-400",
+      previous: "text-blue-300 dark:text-blue-600",
+    },
+    {
+      current: "text-green-600 dark:text-green-400",
+      previous: "text-green-300 dark:text-green-600",
+    },
+    {
+      current: "text-purple-600 dark:text-purple-400",
+      previous: "text-purple-300 dark:text-purple-600",
+    },
+    {
+      current: "text-orange-600 dark:text-orange-400",
+      previous: "text-orange-300 dark:text-orange-600",
+    },
+    {
+      current: "text-pink-600 dark:text-pink-400",
+      previous: "text-pink-300 dark:text-pink-600",
+    },
+  ];
+
   const metrics: ComparisonMetric[] = useMemo(() => {
     if (!statsData) return [];
 
@@ -236,11 +260,15 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
                 <div className="flex items-center gap-4">
                   <div className="text-right">
                     <p className="text-xs text-muted-foreground">{t('dashboard.comparison.current_period') || "Actuel"}</p>
-                    <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{formatValue(currentNum, metric.format, metric.unit)}</p>
+                    <p className={cn("text-lg font-bold", metricColors[index % metricColors.length].current)}>
+                      {formatValue(currentNum, metric.format, metric.unit)}
+                    </p>
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-muted-foreground">{t('dashboard.comparison.previous_period') || "Précédent"}</p>
-                    <p className="text-lg font-bold text-slate-400 dark:text-slate-500">{formatValue(previousNum, metric.format, metric.unit)}</p>
+                    <p className={cn("text-lg font-bold", metricColors[index % metricColors.length].previous)}>
+                      {formatValue(previousNum, metric.format, metric.unit)}
+                    </p>
                   </div>
                   <div className="flex flex-col items-end gap-1 min-w-[80px]">
                     {!isNeutral ? (

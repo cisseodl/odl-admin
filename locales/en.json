@@ -408,6 +408,13 @@
     "activeUsers": "Active Users",
     "totalUsers": "Total Users",
     "compared_to_last_month": "compared to last month",
+    "kpi_chart": {
+      "description": "Learner enrollment growth by period",
+      "select_date": "Select a period",
+      "date": "Date",
+      "learners_enrolled": "Learners enrolled",
+      "no_data": "No data available for the selected period"
+    },
     "charts": {
       "user_growth": {
         "title": "KPI",

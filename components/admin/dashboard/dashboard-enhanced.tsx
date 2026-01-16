@@ -112,6 +112,9 @@ export function DashboardEnhanced() {
         </div>
       </div>
 
+      {/* Actions rapides */}
+      <QuickActions />
+
       {/* Stats principales */}
       <DashboardStats stats={mainStats} loading={isLoading} />
 
@@ -128,9 +131,6 @@ export function DashboardEnhanced() {
         {overviewData?.usersByRole ? <UsersByRoleChart data={overviewData.usersByRole} /> : null}
         {overviewData?.top5CoursesByEnrollment ? <TopCoursesChart data={overviewData.top5CoursesByEnrollment} /> : null}
       </div>
-      
-      {/* Actions rapides */}
-      <QuickActions />
 
       {/* Comparaisons (pourrait être alimenté par un autre service plus tard) */}
       <ComparisonStats
