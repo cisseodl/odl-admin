@@ -15,6 +15,7 @@ interface ContentViewerProps {
 }
 
 export function ContentViewer({ open, onOpenChange, contentUrl, title, type }: ContentViewerProps) {
+  const { t } = useLanguage()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [iframeError, setIframeError] = useState(false)
