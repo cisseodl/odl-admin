@@ -150,31 +150,26 @@ export const instructorRoutes: Route[] = [
         href: "/instructor/lessons",
       },
       {
-        label: "routes.evaluations",
-        icon: FileText,
-        href: "/instructor/evaluations",
-      },
-      {
         label: "routes.labs",
         icon: HardDrive,
         href: "/instructor/labs",
       },
-      {
-        label: "routes.instructor_quizzes",
-        icon: FileQuestion,
-        href: "/instructor/quizzes",
-      },
     ],
   },
   {
-    label: "routes.instructor_students",
-    icon: Users,
-    href: "/instructor/students",
+    label: "routes.instructor_moderation",
+    icon: Shield,
+    href: "/instructor/moderation",
   },
   {
     label: "routes.instructor_certificates",
     icon: Award,
     href: "/instructor/certificates",
+  },
+  {
+    label: "routes.instructor_students",
+    icon: Users,
+    href: "/instructor/students",
   },
 ]
 
