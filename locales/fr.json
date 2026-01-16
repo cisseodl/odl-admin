@@ -931,8 +931,35 @@
       "description": "Créez et gérez vos formations, modules, chapitres et vidéos"
     },
     "lessons": {
-      "title": "Lessons",
-      "description": "Gérez toutes vos leçons et contenus pédagogiques"
+      "title": "Leçon",
+      "description": "Gérez toutes vos leçons et contenus pédagogiques",
+      "form": {
+        "title": "Titre de la leçon",
+        "title_placeholder": "Ex: Introduction à...",
+        "order": "Ordre",
+        "type": "Type",
+        "type_placeholder": "Sélectionner un type",
+        "type_video": "Vidéo",
+        "type_document": "Document",
+        "type_lab": "Lab",
+        "type_quiz": "Quiz",
+        "file": "Fichier",
+        "duration": "Durée (minutes)"
+      },
+      "modals": {
+        "edit_title": "Modifier la leçon",
+        "edit_description": "Modifiez les informations de la leçon",
+        "edit_submit": "Enregistrer",
+        "delete_title": "Supprimer la leçon",
+        "delete_description": "Êtes-vous sûr de vouloir supprimer cette leçon ? Cette action est irréversible.",
+        "delete_confirm": "Supprimer"
+      },
+      "toasts": {
+        "success_update": "La leçon a été modifiée avec succès.",
+        "error_update": "Impossible de modifier la leçon.",
+        "success_delete": "La leçon a été supprimée avec succès.",
+        "error_delete": "Impossible de supprimer la leçon."
+      }
     },
     "labs": {
       "title": "Labs",
@@ -991,8 +1018,35 @@
       "description": "Téléchargez et organisez votre contenu éducatif"
     },
     "lessons": {
-      "title": "Lessons",
-      "description": "Gérez toutes vos leçons et contenus pédagogiques"
+      "title": "Leçon",
+      "description": "Gérez toutes vos leçons et contenus pédagogiques",
+      "form": {
+        "title": "Titre de la leçon",
+        "title_placeholder": "Ex: Introduction à...",
+        "order": "Ordre",
+        "type": "Type",
+        "type_placeholder": "Sélectionner un type",
+        "type_video": "Vidéo",
+        "type_document": "Document",
+        "type_lab": "Lab",
+        "type_quiz": "Quiz",
+        "file": "Fichier",
+        "duration": "Durée (minutes)"
+      },
+      "modals": {
+        "edit_title": "Modifier la leçon",
+        "edit_description": "Modifiez les informations de la leçon",
+        "edit_submit": "Enregistrer",
+        "delete_title": "Supprimer la leçon",
+        "delete_description": "Êtes-vous sûr de vouloir supprimer cette leçon ? Cette action est irréversible.",
+        "delete_confirm": "Supprimer"
+      },
+      "toasts": {
+        "success_update": "La leçon a été modifiée avec succès.",
+        "error_update": "Impossible de modifier la leçon.",
+        "success_delete": "La leçon a été supprimée avec succès.",
+        "error_delete": "Impossible de supprimer la leçon."
+      }
     },
     "labs": {
       "title": "Labs",
