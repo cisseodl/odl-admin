@@ -35,16 +35,31 @@ export class FileUploadService {
 
       console.log(`[FileUploadService] Réponse reçue - Status: ${response.status}, OK: ${response.ok}`);
 
+      // Le backend retourne maintenant CResponse<String> au format JSON
+      const contentType = response.headers.get('content-type');
+      let jsonData: any;
+      
+      if (contentType && contentType.includes('application/json')) {
+        jsonData = await response.json();
+      } else {
+        // Fallback pour les anciennes réponses en texte
+        const textResponse = await response.text();
+        if (!response.ok) {
+          throw new Error(textResponse || `Erreur ${response.status}: ${response.statusText}`);
+        }
+        return textResponse.trim();
+      }
+
+      // Vérifier si la réponse contient une erreur (CResponse avec ok: false)
+      if (jsonData && jsonData.ok === false) {
+        const errorMessage = jsonData.message || `Erreur ${response.status}: Upload échoué`;
+        console.error(`[FileUploadService] Erreur CResponse: ${errorMessage}`);
+        throw new Error(errorMessage);
+      }
+
       if (!response.ok) {
         let errorMessage = `Erreur ${response.status}: `;
-        try {
-          const errorText = await response.text();
-          console.error(`[FileUploadService] Texte d'erreur: ${errorText}`);
-          errorMessage += errorText || response.statusText;
-        } catch (e) {
-          console.error(`[FileUploadService] Erreur lors de la lecture du texte d'erreur:`, e);
-          errorMessage += response.statusText || "Erreur inconnue";
-        }
+        errorMessage += jsonData?.message || jsonData?.error || response.statusText;
         
         // Messages d'erreur plus explicites selon le code de statut
         if (response.status === 500) {
@@ -56,16 +71,18 @@ export class FileUploadService {
         throw new Error(errorMessage);
       }
 
-      // Le backend retourne directement l'URL en String
-      const url = await response.text();
-      console.log(`[FileUploadService] URL reçue: ${url}`);
+      // Extraire l'URL depuis CResponse.data
+      const url = jsonData?.data || jsonData;
+      console.log(`[FileUploadService] Réponse JSON complète:`, jsonData);
+      console.log(`[FileUploadService] URL extraite: ${url}`);
       
-      if (!url || url.trim() === "") {
+      if (!url || (typeof url === 'string' && url.trim() === "")) {
         throw new Error("Le serveur a retourné une URL vide. Vérifiez la configuration du serveur.");
       }
       
-      console.log(`[FileUploadService] Upload réussi, URL finale: ${url.trim()}`);
-      return url.trim();
+      const finalUrl = typeof url === 'string' ? url.trim() : String(url);
+      console.log(`[FileUploadService] Upload réussi, URL finale: ${finalUrl}`);
+      return finalUrl;
     } catch (error: any) {
       console.error(`[FileUploadService] Erreur dans uploadFile:`, error);
       console.error(`[FileUploadService] Message:`, error.message);
