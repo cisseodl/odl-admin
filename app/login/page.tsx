@@ -52,7 +52,7 @@ export default function LoginPage() {
       // or can be added here if needed, but context handles it.
       // For now, the AuthProvider's login will set the user, and useRedirectIfAuthenticated will redirect.
     } catch (err: any) {
-      setError(err.message || t('auth.loginPage.error'));
+      setError(err.message || t('login.error'));
       console.error("Login page error:", err);
     } finally {
       setIsLoading(false); // End local loading
@@ -99,7 +99,7 @@ export default function LoginPage() {
               {/* Champ Email */}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
-                  {t('auth.loginPage.emailLabel')}
+                  {t('login.emailLabel')}
                 </Label>
                 <div className="relative group">
                   <div
@@ -117,7 +117,7 @@ export default function LoginPage() {
                       <Input
                         id="email"
                         type="email"
-                        placeholder={t('auth.loginPage.emailPlaceholder')}
+                        placeholder={t('login.emailPlaceholder')}
                         className={cn(
                           "pl-10 h-11 transition-all duration-200",
                           errors.email
@@ -192,7 +192,7 @@ export default function LoginPage() {
                     className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={finalLoading}
-                    aria-label={showPassword ? t('auth.loginPage.hidePassword') : t('auth.loginPage.showPassword')}
+                    aria-label={showPassword ? t('login.hidePassword') : t('login.showPassword')}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -226,12 +226,12 @@ export default function LoginPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    {t('auth.loginPage.submitting')}
+                    {t('login.submitting')}
                   </>
                 ) : (
                   <>
                     <LogIn className="mr-2 h-5 w-5" />
-                    {t('auth.loginPage.submit')}
+                    {t('login.submit')}
                   </>
                 )}
               </Button>

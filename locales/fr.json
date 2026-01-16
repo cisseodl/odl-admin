@@ -38,6 +38,19 @@
     "forgotPassword": "Mot de passe oublié",
     "rememberMe": "Se souvenir de moi"
   },
+  "login": {
+    "title": "Connexion",
+    "description": "Connectez-vous pour accéder à votre espace",
+    "emailLabel": "Adresse email",
+    "emailPlaceholder": "votre@email.com",
+    "passwordLabel": "Mot de passe",
+    "passwordPlaceholder": "••••••••",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
+    "submit": "Se connecter",
+    "submitting": "Connexion en cours...",
+    "error": "Email ou mot de passe incorrect."
+  },
   "dashboard": {
     "title": "Tableau de bord",
     "overview": "Vue d'ensemble",

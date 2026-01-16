@@ -48,20 +48,20 @@
     "email": "Email",
     "password": "Password",
     "forgotPassword": "Forgot Password",
-    "rememberMe": "Remember me",
-    "loginPage": {
-      "title": "Login",
-      "description": "Sign in to access your space",
-      "emailLabel": "Email Address",
-      "emailPlaceholder": "your@email.com",
-      "passwordLabel": "Password",
-      "passwordPlaceholder": "••••••••",
-      "showPassword": "Show password",
-      "hidePassword": "Hide password",
-      "submit": "Sign In",
-      "submitting": "Signing in...",
-      "error": "Incorrect email or password."
-    }
+    "rememberMe": "Remember me"
+  },
+  "login": {
+    "title": "Login",
+    "description": "Sign in to access your space",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "your@email.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "••••••••",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "submit": "Sign In",
+    "submitting": "Signing in...",
+    "error": "Incorrect email or password."
   },
   "apprenant": {
     "dashboard": {
