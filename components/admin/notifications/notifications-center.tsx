@@ -60,10 +60,27 @@ export function NotificationsCenter() {
   }
 
   useEffect(() => {
+    // Chargement initial uniquement
     loadNotifications()
-    // Polling toutes les 30 secondes
-    const interval = setInterval(loadNotifications, 30000)
+    // Polling toutes les 60 secondes (réduit de 30s à 60s pour moins de charge)
+    const interval = setInterval(() => {
+      // Ne recharger que si la page est visible
+      if (document.visibilityState === 'visible') {
+        loadNotifications()
+      }
+    }, 60000)
     return () => clearInterval(interval)
+  }, [])
+
+  // Écouter les événements de visibilité pour recharger quand l'utilisateur revient sur la page
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadNotifications()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [])
 
   const { searchQuery, setSearchQuery, filteredData: searchFiltered } = useSearch<Notification>({
@@ -267,7 +284,8 @@ export function NotificationsCenter() {
 
   const hasActiveFilters = filter !== "all" || statusFilter !== "all" || searchQuery.length > 0
 
-  if (isLoading) {
+  // Chargement initial uniquement - ne pas bloquer toute la page
+  if (isLoading && notifications.length === 0) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">

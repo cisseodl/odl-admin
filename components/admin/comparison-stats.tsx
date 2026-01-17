@@ -223,31 +223,15 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
               />
               <Legend 
                 formatter={(value) => {
-                  if (value === 'current') {
-                    return t('dashboard.comparison.current_period') || "Période actuelle"
-                  }
                   if (value === 'previous') {
                     return t('dashboard.comparison.previous_period') || "Période précédente"
+                  }
+                  if (value === 'current') {
+                    return t('dashboard.comparison.current_period') || "Période actuelle"
                   }
                   return value
                 }}
               />
-              <Bar 
-                dataKey="current" 
-                name="current"
-                radius={[4, 4, 0, 0]}
-              >
-                {chartData.map((entry, index) => {
-                  // Les deux dernières barres (dernière métrique) doivent être orange et grise
-                  if (index === chartData.length - 1) {
-                    return <Cell key={`cell-current-${index}`} fill="#ea580c" />; // Orange pour période actuelle
-                  }
-                  const colors = metricColors[index % metricColors.length]
-                  return (
-                    <Cell key={`cell-current-${index}`} fill={colors.currentHex} />
-                  )
-                })}
-              </Bar>
               <Bar 
                 dataKey="previous" 
                 name="previous"
@@ -261,6 +245,22 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
                   const colors = metricColors[index % metricColors.length]
                   return (
                     <Cell key={`cell-previous-${index}`} fill={colors.previousHex} />
+                  )
+                })}
+              </Bar>
+              <Bar 
+                dataKey="current" 
+                name="current"
+                radius={[4, 4, 0, 0]}
+              >
+                {chartData.map((entry, index) => {
+                  // Les deux dernières barres (dernière métrique) doivent être orange et grise
+                  if (index === chartData.length - 1) {
+                    return <Cell key={`cell-current-${index}`} fill="#ea580c" />; // Orange pour période actuelle
+                  }
+                  const colors = metricColors[index % metricColors.length]
+                  return (
+                    <Cell key={`cell-current-${index}`} fill={colors.currentHex} />
                   )
                 })}
               </Bar>
@@ -284,15 +284,15 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-right">
-                    <p className="text-xs text-muted-foreground">{t('dashboard.comparison.current_period') || "Actuel"}</p>
-                    <p className={cn("text-lg font-bold", metricColors[index % metricColors.length].current)}>
-                      {formatValue(currentNum, metric.format, metric.unit)}
-                    </p>
-                  </div>
-                  <div className="text-right">
                     <p className="text-xs text-muted-foreground">{t('dashboard.comparison.previous_period') || "Précédent"}</p>
                     <p className={cn("text-lg font-bold", metricColors[index % metricColors.length].previous)}>
                       {formatValue(previousNum, metric.format, metric.unit)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">{t('dashboard.comparison.current_period') || "Actuel"}</p>
+                    <p className={cn("text-lg font-bold", metricColors[index % metricColors.length].current)}>
+                      {formatValue(currentNum, metric.format, metric.unit)}
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-1 min-w-[80px]">
