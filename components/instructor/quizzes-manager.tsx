@@ -19,6 +19,7 @@ import { Course, Quiz as QuizModel } from "@/models";
 import { PageLoader } from "@/components/ui/page-loader";
 import { useToast } from "@/hooks/use-toast";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useLanguage } from "@/contexts/language-context";
 
 
 type Quiz = {
@@ -35,6 +36,7 @@ type Quiz = {
 }
 
 export function QuizzesManager() {
+  const { t } = useLanguage();
   const { user, isLoading: authLoading } = useAuth();
   const addQuizModal = useModal();
   const editQuizModal = useModal<Quiz>();
@@ -417,7 +419,7 @@ export function QuizzesManager() {
         <CardContent>
           <div className="mb-4">
             <SearchBar
-              placeholder="Rechercher un quiz..."
+              placeholder={t('instructor.quizzes.list.search_placeholder') || "Rechercher un quiz..."}
               value={searchQuery}
               onChange={setSearchQuery}
             />
@@ -434,10 +436,10 @@ export function QuizzesManager() {
       <QuizFormModal
         open={addQuizModal.isOpen}
         onOpenChange={addQuizModal.close}
-        title="Créer un nouveau quiz"
-        description="Remplissez les informations pour créer un nouveau quiz."
+        title={t('instructor.quizzes.modals.create_title') || "Créer un nouveau quiz"}
+        description={t('instructor.quizzes.modals.create_description') || "Remplissez les informations pour créer un nouveau quiz."}
         onSubmit={handleAddQuiz}
-        submitLabel="Créer le quiz"
+        submitLabel={t('instructor.quizzes.modals.create_submit') || "Créer le quiz"}
         courses={courses}
       />
 
@@ -445,10 +447,10 @@ export function QuizzesManager() {
         <QuizFormModal
           open={editQuizModal.isOpen}
           onOpenChange={editQuizModal.close}
-          title="Modifier le quiz"
-          description="Modifiez les informations du quiz."
+          title={t('instructor.quizzes.modals.edit_title') || "Modifier le quiz"}
+          description={t('instructor.quizzes.modals.edit_description') || "Modifiez les informations du quiz."}
           onSubmit={handleEditQuiz}
-          submitLabel="Modifier le quiz"
+          submitLabel={t('instructor.quizzes.modals.edit_submit') || "Modifier le quiz"}
           courses={courses}
           defaultValues={editQuizFormData}
         />
@@ -457,10 +459,10 @@ export function QuizzesManager() {
       <ConfirmDialog
         open={deleteQuizModal.isOpen}
         onOpenChange={deleteQuizModal.close}
-        title="Supprimer le quiz"
-        description={`Êtes-vous sûr de vouloir supprimer le quiz "${deleteQuizModal.selectedItem?.title}" ? Cette action est irréversible.`}
-        confirmLabel="Supprimer"
-        cancelLabel="Annuler"
+        title={t('instructor.quizzes.modals.delete_title') || "Supprimer le quiz"}
+        description={t('instructor.quizzes.modals.delete_description', { title: deleteQuizModal.selectedItem?.title }) || `Êtes-vous sûr de vouloir supprimer le quiz "${deleteQuizModal.selectedItem?.title}" ? Cette action est irréversible.`}
+        confirmLabel={t('common.delete') || "Supprimer"}
+        cancelLabel={t('common.cancel') || "Annuler"}
         onConfirm={handleDeleteQuiz}
         variant="destructive"
       />

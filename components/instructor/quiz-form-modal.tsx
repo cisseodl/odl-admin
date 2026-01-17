@@ -32,6 +32,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Course } from "@/models"
 import { PlusCircle, MinusCircle, CheckCircle2, XCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/language-context";
 
 export enum QuestionType {
   SINGLE_CHOICE = "SINGLE_CHOICE",
@@ -111,9 +112,9 @@ export function QuizFormModal({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Titre du quiz</FormLabel>
+                  <FormLabel>{t('instructor.quizzes.form.title') || "Titre du quiz"}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Quiz : Notions Fondamentales" {...field} />
+                    <Input placeholder={t('instructor.quizzes.form.title_placeholder') || "Quiz : Notions Fondamentales"} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -124,11 +125,11 @@ export function QuizFormModal({
               name="courseId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Cours associé</FormLabel>
+                  <FormLabel>{t('instructor.quizzes.form.course') || "Cours associé"}</FormLabel>
                   <Select onValueChange={(value) => field.onChange(Number(value))} defaultValue={String(field.value)}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez un cours" />
+                        <SelectValue placeholder={t('instructor.quizzes.form.course_placeholder') || "Sélectionnez un cours"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -161,37 +162,37 @@ export function QuizFormModal({
                 control={form.control}
                 name="scoreMinimum"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Score minimum (%)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        value={80} 
-                        disabled 
-                        className="bg-muted cursor-not-allowed"
-                        {...field} 
-                      />
-                    </FormControl>
-                    <p className="text-xs text-muted-foreground">Le score minimum est fixé à 80% selon la règle métier.</p>
-                    <FormMessage />
-                  </FormItem>
+                <FormItem>
+                  <FormLabel>{t('instructor.quizzes.form.score_minimum') || "Score minimum (%)"}</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      value={80} 
+                      disabled 
+                      className="bg-muted cursor-not-allowed"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">{t('instructor.quizzes.form.score_minimum_info') || "Le score minimum est fixé à 80% selon la règle métier."}</p>
+                  <FormMessage />
+                </FormItem>
                 )}
               />
             </div>
 
             <div className="space-y-8">
-              <h3 className="text-lg font-semibold">Questions du quiz</h3>
+              <h3 className="text-lg font-semibold">{t('instructor.quizzes.form.questions_title') || "Questions du quiz"}</h3>
               {questionFields.map((question, qIndex) => (
                 <div key={question.id} className="space-y-4 border p-4 rounded-md relative">
-                  <h4 className="text-md font-medium">Question #{qIndex + 1}</h4>
+                  <h4 className="text-md font-medium">{t('instructor.quizzes.form.question_number', { number: qIndex + 1 }) || `Question #${qIndex + 1}`}</h4>
                   <FormField
                     control={form.control}
                     name={`questions.${qIndex}.content`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Contenu de la question</FormLabel>
+                        <FormLabel>{t('instructor.quizzes.form.question_content') || "Contenu de la question"}</FormLabel>
                         <FormControl>
-                          <Input placeholder="Quelle est la capitale de la France ?" {...field} />
+                          <Input placeholder={t('instructor.quizzes.form.question_content_placeholder') || "Quelle est la capitale de la France ?"} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -203,16 +204,16 @@ export function QuizFormModal({
                       name={`questions.${qIndex}.type`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Type de question</FormLabel>
+                          <FormLabel>{t('instructor.quizzes.form.question_type') || "Type de question"}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Sélectionnez un type" />
+                                <SelectValue placeholder={t('instructor.quizzes.form.question_type_placeholder') || "Sélectionnez un type"} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value={QuestionType.SINGLE_CHOICE}>Choix unique</SelectItem>
-                              <SelectItem value={QuestionType.MULTIPLE_CHOICE}>Choix multiples</SelectItem>
+                              <SelectItem value={QuestionType.SINGLE_CHOICE}>{t('instructor.quizzes.form.type_single_choice') || "Choix unique"}</SelectItem>
+                              <SelectItem value={QuestionType.MULTIPLE_CHOICE}>{t('instructor.quizzes.form.type_multiple_choice') || "Choix multiples"}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -224,9 +225,9 @@ export function QuizFormModal({
                       name={`questions.${qIndex}.points`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Points</FormLabel>
+                          <FormLabel>{t('instructor.quizzes.form.points') || "Points"}</FormLabel>
                           <FormControl>
-                            <Input type="number" placeholder="10" {...field} onChange={event => field.onChange(Number(event.target.value))} />
+                            <Input type="number" placeholder={t('instructor.quizzes.form.points_placeholder') || "10"} {...field} onChange={event => field.onChange(Number(event.target.value))} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -235,7 +236,7 @@ export function QuizFormModal({
                   </div>
 
                   <div className="space-y-2 pl-4 border-l-2">
-                    <h5 className="text-base font-medium">Réponses</h5>
+                    <h5 className="text-base font-medium">{t('instructor.quizzes.form.responses_title') || "Réponses"}</h5>
                     <ResponseFields qIndex={qIndex} control={form.control} watch={form.watch} />
                     <Button
                       type="button"
@@ -246,7 +247,7 @@ export function QuizFormModal({
                         form.setValue(`questions.${qIndex}.reponses`, [...currentResponses, { text: "", isCorrect: false }]);
                       }}
                     >
-                      <PlusCircle className="h-4 w-4 mr-2" /> Ajouter une réponse
+                      <PlusCircle className="h-4 w-4 mr-2" /> {t('instructor.quizzes.form.add_response') || "Ajouter une réponse"}
                     </Button>
                   </div>
                   <Button
@@ -275,6 +276,7 @@ export function QuizFormModal({
 
 // Helper component for managing responses within a question
 function ResponseFields({ qIndex, control, watch }: { qIndex: number, control: any, watch: any }) {
+  const { t } = useLanguage();
   const { fields: responseFields, append: appendResponse, remove: removeResponse } = useFieldArray({
     control,
     name: `questions.${qIndex}.reponses`,
@@ -329,7 +331,7 @@ function ResponseFields({ qIndex, control, watch }: { qIndex: number, control: a
                 <FormItem className="flex-grow">
                   <FormControl>
                     <Input 
-                      placeholder={isCorrect ? "Texte de la bonne réponse" : "Texte de la mauvaise réponse"} 
+                      placeholder={isCorrect ? (t('instructor.quizzes.form.response_correct_placeholder') || "Texte de la bonne réponse") : (t('instructor.quizzes.form.response_wrong_placeholder') || "Texte de la mauvaise réponse")} 
                       {...field} 
                       className={isCorrect ? "border-green-500" : "border-red-300"}
                     />

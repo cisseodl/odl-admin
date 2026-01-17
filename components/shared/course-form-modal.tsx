@@ -30,6 +30,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"
 import { Categorie } from "@/models"
+import { useLanguage } from "@/contexts/language-context"
 
 const courseFormSchema = z.object({
   title: z.string().min(2, "Le titre doit contenir au moins 2 caractères."),
@@ -63,6 +64,7 @@ export function CourseFormModal({
   defaultValues,
   categories,
 }: CourseFormModalProps) {
+  const { t } = useLanguage()
   const form = useForm<CourseFormData>({
     resolver: zodResolver(courseFormSchema),
     defaultValues,
@@ -95,9 +97,9 @@ export function CourseFormModal({
               name="subtitle"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Sous-titre</FormLabel>
+                  <FormLabel>{t('course_form.subtitle_label') || "Sous-titre"}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Apprenez les bases de..." {...field} />
+                    <Input placeholder={t('course_form.subtitle_placeholder') || "Apprenez les bases de..."} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -121,17 +123,17 @@ export function CourseFormModal({
               name="level"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Niveau</FormLabel>
+                  <FormLabel>{t('courses.level') || "Niveau"}</FormLabel>
                   <Select onValueChange={(value) => field.onChange(value)} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez un niveau" />
+                        <SelectValue placeholder={t('course_form.level_placeholder') || "Sélectionnez un niveau"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="BEGINNER">Débutant</SelectItem>
-                      <SelectItem value="INTERMEDIATE">Intermédiaire</SelectItem>
-                      <SelectItem value="ADVANCED">Avancé</SelectItem>
+                      <SelectItem value="BEGINNER">{t('courses.level_beginner') || "Débutant"}</SelectItem>
+                      <SelectItem value="INTERMEDIATE">{t('courses.level_intermediate') || "Intermédiaire"}</SelectItem>
+                      <SelectItem value="ADVANCED">{t('courses.level_advanced') || "Avancé"}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -143,9 +145,9 @@ export function CourseFormModal({
               name="language"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Langue</FormLabel>
+                  <FormLabel>{t('courses.language') || "Langue"}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Français" {...field} />
+                    <Input placeholder={t('course_form.language_placeholder') || "Français"} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -156,11 +158,11 @@ export function CourseFormModal({
               name="categoryId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Catégorie</FormLabel>
+                  <FormLabel>{t('course_form.category_label') || "Catégorie"}</FormLabel>
                   <Select onValueChange={(value) => field.onChange(Number(value))} defaultValue={String(field.value)}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez une catégorie" />
+                        <SelectValue placeholder={t('course_form.category_placeholder') || "Sélectionnez une catégorie"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -171,7 +173,7 @@ export function CourseFormModal({
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="__no_category__" disabled>Aucune catégorie disponible</SelectItem>
+                        <SelectItem value="__no_category__" disabled>{t('course_form.category_no_available') || "Aucune catégorie disponible"}</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
