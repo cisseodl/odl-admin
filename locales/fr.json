@@ -1013,6 +1013,7 @@
     "instructor_moderation": "Validation",
     "instructor_quizzes": "Quiz",
     "instructor_lessons": "Leçon",
+    "instructor_formations": "Formations",
     "instructor_students": "Mes Apprenants",
     "instructor_certificates": "Certificats"
   },
