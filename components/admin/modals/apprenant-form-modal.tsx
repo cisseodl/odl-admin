@@ -27,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Cohorte } from "@/models/cohorte.model"; // Assuming Cohorte model exists
 import { apprenantService } from "@/services/apprenant.service"; // Adjust import as needed
+import { useLanguage } from "@/contexts/language-context";
 
 // Define the Zod schema for apprenant profile fields
 export const apprenantProfileSchema = z.object({
@@ -117,9 +118,9 @@ export function ApprenantFormModal({
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nom d'utilisateur</FormLabel>
+                  <FormLabel>{t('users.learners.modals.form.username') || "Nom d'utilisateur"}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="amadou.traore" />
+                    <Input {...field} placeholder={t('users.learners.modals.form.username_placeholder') || "amadou.traore"} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -143,9 +144,9 @@ export function ApprenantFormModal({
               name="profession"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Profession (optionnel)</FormLabel>
+                  <FormLabel>{t('users.learners.modals.form.profession') || "Profession (optionnel)"}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Développeur Junior" />
+                    <Input {...field} placeholder={t('users.learners.modals.form.profession_placeholder') || "Développeur Junior"} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -169,9 +170,9 @@ export function ApprenantFormModal({
               name="filiere"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Filière (optionnel)</FormLabel>
+                  <FormLabel>{t('users.learners.modals.form.filiere') || "Filière (optionnel)"}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Informatique, Marketing..." />
+                    <Input {...field} placeholder={t('users.learners.modals.form.filiere_placeholder') || "Informatique, Marketing..."} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -182,9 +183,9 @@ export function ApprenantFormModal({
               name="attentes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Attentes (optionnel)</FormLabel>
+                  <FormLabel>{t('users.learners.modals.form.attentes') || "Attentes (optionnel)"}</FormLabel>
                   <FormControl>
-                    <Textarea {...field} placeholder="Décrivez vos attentes..." rows={3} />
+                    <Textarea {...field} placeholder={t('users.learners.modals.form.attentes_placeholder') || "Décrivez vos attentes..."} rows={3} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -195,15 +196,15 @@ export function ApprenantFormModal({
               name="cohorteId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Cohorte (optionnel)</FormLabel>
+                  <FormLabel>{t('users.learners.modals.form.cohorte') || "Cohorte (optionnel)"}</FormLabel>
                   <Select onValueChange={(value) => field.onChange(value ? Number(value) : undefined)} value={field.value ? String(field.value) : ""}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner une cohorte (optionnel)" />
+                        <SelectValue placeholder={t('users.learners.modals.form.cohorte_placeholder') || "Sélectionner une cohorte (optionnel)"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Aucune cohorte</SelectItem>
+                      <SelectItem value="">{t('users.learners.modals.form.cohorte_none') || "Aucune cohorte"}</SelectItem>
                       {cohortes.map((cohorte) => (
                         <SelectItem key={cohorte.id} value={String(cohorte.id)}>
                           {cohorte.nom}

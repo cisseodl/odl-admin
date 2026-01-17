@@ -242,7 +242,24 @@
         "edit_description": "Modifiez les informations de l'apprenant",
         "edit_submit": "Enregistrer les modifications",
         "delete_title": "Supprimer l'apprenant",
-        "delete_description": "Êtes-vous sûr de vouloir supprimer l'apprenant {{name}} ? Cette action supprimera également l'utilisateur de base et toutes ses données associées. Cette action est irréversible."
+        "delete_description": "Êtes-vous sûr de vouloir supprimer l'apprenant {{name}} ? Cette action supprimera également l'utilisateur de base et toutes ses données associées. Cette action est irréversible.",
+        "form": {
+          "username": "Nom d'utilisateur",
+          "username_placeholder": "amadou.traore",
+          "numero": "Numéro de téléphone (optionnel)",
+          "numero_placeholder": "0612345678",
+          "profession": "Profession (optionnel)",
+          "profession_placeholder": "Développeur Junior",
+          "niveau_etude": "Niveau d'étude (optionnel)",
+          "niveau_etude_placeholder": "Licence, Master...",
+          "filiere": "Filière (optionnel)",
+          "filiere_placeholder": "Informatique, Marketing...",
+          "attentes": "Attentes (optionnel)",
+          "attentes_placeholder": "Décrivez vos attentes...",
+          "cohorte": "Cohorte (optionnel)",
+          "cohorte_placeholder": "Sélectionner une cohorte (optionnel)",
+          "cohorte_none": "Aucune cohorte"
+        }
       },
       "toasts": {
         "error_fetch": "Impossible de récupérer les apprenants.",
@@ -548,8 +565,91 @@
     }
   },
   "evaluations": {
-    "title": "Gestion des Évaluations",
-    "description": "Gérez toutes les évaluations de la plateforme"
+    "title": "Évaluations",
+    "description": "Gérez les évaluations de vos formations",
+    "list": {
+      "header_title": "Titre",
+      "header_type": "Type",
+      "header_course": "Cours",
+      "header_status": "Statut",
+      "header_created": "Date de création",
+      "action_view": "Voir détails",
+      "action_edit": "Modifier",
+      "action_delete": "Supprimer",
+      "add_button": "Ajouter une évaluation",
+      "search_placeholder": "Rechercher une évaluation...",
+      "empty_title": "Aucune évaluation",
+      "empty_description": "Commencez par ajouter une évaluation à la plateforme"
+    },
+    "create": {
+      "title": "Créer une évaluation",
+      "description": "Créez une nouvelle évaluation pour vos cours",
+      "form": {
+        "title": "Titre",
+        "title_placeholder": "Titre de l'évaluation",
+        "description": "Description",
+        "description_placeholder": "Description de l'évaluation",
+        "course": "Cours",
+        "course_placeholder": "Sélectionner un cours",
+        "type": "Type d'évaluation",
+        "type_placeholder": "Sélectionner un type",
+        "type_quiz": "Quiz (Auto-corrigé)",
+        "type_tp": "TP (Corrigé par instructeur)",
+        "tp_instructions": "Instructions du TP",
+        "tp_instructions_placeholder": "Instructions pour le travail pratique...",
+        "tp_file": "Fichier TP (optionnel)",
+        "file_selected": "Fichier sélectionné",
+        "uploading": "Téléchargement en cours..."
+      },
+      "submit": "Créer l'évaluation"
+    },
+    "edit": {
+      "title": "Modifier l'évaluation",
+      "description": "Modifiez les informations de l'évaluation",
+      "submit": "Enregistrer les modifications"
+    },
+    "delete": {
+      "title": "Supprimer l'évaluation",
+      "description": "Êtes-vous sûr de vouloir supprimer cette évaluation ? Cette action est irréversible.",
+      "confirm": "Supprimer"
+    },
+    "correct": {
+      "title": "Corriger le TP",
+      "description": "Donnez une note entre 0 et 100 pour cette soumission",
+      "submitted_file": "Fichier soumis",
+      "view_file": "Voir le fichier",
+      "score": "Score (0-100)",
+      "feedback": "Commentaires (optionnel)",
+      "feedback_placeholder": "Commentaires pour l'apprenant...",
+      "submit": "Enregistrer la correction"
+    },
+    "pending": {
+      "header_evaluation": "Évaluation",
+      "header_learner": "Apprenant",
+      "header_submitted": "Soumis le",
+      "action_correct": "Corriger",
+      "empty_title": "Aucun TP en attente",
+      "empty_description": "Tous les TPs ont été corrigés"
+    },
+    "tabs": {
+      "evaluations": "Mes évaluations",
+      "pending_tps": "TPs en attente"
+    },
+    "toasts": {
+      "success_create": "Évaluation créée",
+      "success_create_message": "L'évaluation a été créée avec succès.",
+      "error_create": "Erreur de création",
+      "success_correct": "TP corrigé",
+      "success_correct_message": "Le TP a été corrigé avec succès.",
+      "error_correct": "Erreur de correction",
+      "success_delete": "Évaluation supprimée",
+      "success_delete_message": "L'évaluation a été supprimée avec succès.",
+      "error_delete": "Erreur de suppression",
+      "error_load": "Erreur de chargement",
+      "error_load_courses": "Erreur de chargement des cours",
+      "success_file_upload": "Fichier téléchargé",
+      "error_file_upload": "Erreur de téléchargement"
+    }
   },
   "moderation": {
     "title": "Modération",
@@ -1122,93 +1222,6 @@
         "days": "{{count}} jour",
         "days_plural": "{{count}} jours",
         "ago": "il y a {{time}}"
-      }
-    },
-    "evaluations": {
-      "title": "Évaluations",
-      "description": "Gérez les évaluations de vos formations",
-      "list": {
-        "header_title": "Titre",
-        "header_type": "Type",
-        "header_course": "Cours",
-        "header_status": "Statut",
-        "header_created": "Date de création",
-        "action_view": "Voir détails",
-        "action_edit": "Modifier",
-        "action_delete": "Supprimer",
-        "add_button": "Ajouter une évaluation",
-        "search_placeholder": "Rechercher une évaluation...",
-        "empty_title": "Aucune évaluation",
-        "empty_description": "Commencez par ajouter une évaluation à la plateforme"
-      },
-      "create": {
-        "title": "Créer une évaluation",
-        "description": "Créez une nouvelle évaluation pour vos cours",
-        "form": {
-          "title": "Titre",
-          "title_placeholder": "Titre de l'évaluation",
-          "description": "Description",
-          "description_placeholder": "Description de l'évaluation",
-          "course": "Cours",
-          "course_placeholder": "Sélectionner un cours",
-          "type": "Type d'évaluation",
-          "type_placeholder": "Sélectionner un type",
-          "type_quiz": "Quiz (Auto-corrigé)",
-          "type_tp": "TP (Corrigé par instructeur)",
-          "tp_instructions": "Instructions du TP",
-          "tp_instructions_placeholder": "Instructions pour le travail pratique...",
-          "tp_file": "Fichier TP (optionnel)",
-          "file_selected": "Fichier sélectionné",
-          "uploading": "Téléchargement en cours..."
-        },
-        "submit": "Créer l'évaluation"
-      },
-      "edit": {
-        "title": "Modifier l'évaluation",
-        "description": "Modifiez les informations de l'évaluation",
-        "submit": "Enregistrer les modifications"
-      },
-      "delete": {
-        "title": "Supprimer l'évaluation",
-        "description": "Êtes-vous sûr de vouloir supprimer cette évaluation ? Cette action est irréversible.",
-        "confirm": "Supprimer"
-      },
-      "correct": {
-        "title": "Corriger le TP",
-        "description": "Donnez une note entre 0 et 100 pour cette soumission",
-        "submitted_file": "Fichier soumis",
-        "view_file": "Voir le fichier",
-        "score": "Score (0-100)",
-        "feedback": "Commentaires (optionnel)",
-        "feedback_placeholder": "Commentaires pour l'apprenant...",
-        "submit": "Enregistrer la correction"
-      },
-      "pending": {
-        "header_evaluation": "Évaluation",
-        "header_learner": "Apprenant",
-        "header_submitted": "Soumis le",
-        "action_correct": "Corriger",
-        "empty_title": "Aucun TP en attente",
-        "empty_description": "Tous les TPs ont été corrigés"
-      },
-      "tabs": {
-        "evaluations": "Mes évaluations",
-        "pending_tps": "TPs en attente"
-      },
-      "toasts": {
-        "success_create": "Évaluation créée",
-        "success_create_message": "L'évaluation a été créée avec succès.",
-        "error_create": "Erreur de création",
-        "success_correct": "TP corrigé",
-        "success_correct_message": "Le TP a été corrigé avec succès.",
-        "error_correct": "Erreur de correction",
-        "success_delete": "Évaluation supprimée",
-        "success_delete_message": "L'évaluation a été supprimée avec succès.",
-        "error_delete": "Erreur de suppression",
-        "error_load": "Erreur de chargement",
-        "error_load_courses": "Erreur de chargement des cours",
-        "success_file_upload": "Fichier téléchargé",
-        "error_file_upload": "Erreur de téléchargement"
       }
     }
   },
