@@ -73,6 +73,11 @@ export function ApprenantList() {
   const [cohortes, setCohortes] = useState<Cohorte[]>([]);
   const [loading, setLoading] = useState(true);
   
+  const { searchQuery, setSearchQuery, filteredData } = useSearch<ApprenantDisplay>({
+    data: apprenants,
+    searchKeys: ["name", "email", "filiere", "niveauEtude"],
+  });
+  
   const fetchApprenants = useCallback(async () => {
     setLoading(true);
     try {
@@ -134,45 +139,40 @@ export function ApprenantList() {
   const handleCreateOrUpdateApprenant = async (data: ApprenantProfileFormData & { userId?: number, id?: number }) => {
     try {
       if (data.id) { // This is an update
-        const updatedApprenant: Partial<Apprenant> = {
-          nom: data.nom,
-          prenom: data.prenom,
-          email: data.email,
+        await apprenantService.updateApprenant(data.id, {
+          username: data.username,
           numero: data.numero,
           profession: data.profession,
           niveauEtude: data.niveauEtude,
           filiere: data.filiere,
           attentes: data.attentes,
           satisfaction: data.satisfaction,
-          cohorte: data.cohorteId ? { id: data.cohorteId, nom: cohortes.find(c => c.id === data.cohorteId)?.nom || "" } : undefined,
-        };
-        await apprenantService.updateApprenant(data.id, updatedApprenant);
+          cohorteId: data.cohorteId,
+        });
         toast({
           title: "Succès",
           description: "Le profil apprenant a été mis à jour.",
         });
       } else { // This is a creation/promotion
-        const newApprenant: Omit<Apprenant, 'id'> = {
-          nom: data.nom,
-          prenom: data.prenom,
-          email: data.email,
+        await apprenantService.createApprenant({
+          username: data.username,
+          userId: data.userId,
           numero: data.numero,
           profession: data.profession,
           niveauEtude: data.niveauEtude,
           filiere: data.filiere,
           attentes: data.attentes,
           satisfaction: data.satisfaction,
-          cohorte: data.cohorteId ? { id: data.cohorteId, nom: cohortes.find(c => c.id === data.cohorteId)?.nom || "" } : undefined,
-          // user ID will be linked by the backend via the POST /apprenants/create endpoint
-        };
-        await apprenantService.createApprenant(newApprenant);
+          cohorteId: data.cohorteId,
+          activate: true,
+        });
         toast({
           title: "Succès",
           description: "L'utilisateur a été promu et le profil apprenant créé.",
         });
       }
       fetchApprenants();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to save apprenant:", error);
       toast({
         title: "Erreur",
@@ -287,7 +287,14 @@ export function ApprenantList() {
                 {
                   label: "Modifier",
                   icon: <Edit className="h-4 w-4" />,
-                  onClick: () => apprenantFormModal.open(apprenant), // Open form for editing
+                  onClick: () => apprenantFormModal.open({ 
+                    id: apprenant.id,
+                    username: apprenant.name,
+                    numero: apprenant.numero,
+                    profession: apprenant.profession,
+                    niveauEtude: apprenant.niveauEtude,
+                    filiere: apprenant.filiere,
+                  }), // Open form for editing
                 },
                 {
                   label: "Supprimer",
@@ -375,19 +382,34 @@ export function ApprenantList() {
         />
       )}
 
-      {apprenantFormModal.isOpen && ( // Render when either adding or editing
-        <ApprenantFormModal
-          open={apprenantFormModal.isOpen}
-          onOpenChange={(open) => !open && apprenantFormModal.close()}
-          onSubmit={handleCreateOrUpdateApprenant}
-          title={apprenantFormModal.selectedItem?.id ? "Modifier le profil apprenant" : "Créer le profil apprenant"}
-          description={apprenantFormModal.selectedItem?.id ? "Modifiez les détails du profil apprenant." : "Remplissez les détails du profil apprenant pour l'utilisateur sélectionné."}
-          submitLabel={apprenantFormModal.selectedItem?.id ? "Enregistrer les modifications" : "Créer le profil"}
-          defaultValues={apprenantFormModal.selectedItem || {}}
-          userId={promoteUserModal.selectedItem?.userId} // Pass userId if coming from promotion flow
-          cohortes={cohortes}
-        />
-      )}
+      {apprenantFormModal.isOpen && (() => {
+        const selectedItem = apprenantFormModal.selectedItem;
+        // Si c'est une édition, récupérer les données de l'apprenant actuel
+        const currentApprenant = selectedItem?.id 
+          ? apprenants.find(a => a.id === selectedItem.id)
+          : null;
+        
+        return (
+          <ApprenantFormModal
+            open={apprenantFormModal.isOpen}
+            onOpenChange={(open) => !open && apprenantFormModal.close()}
+            onSubmit={handleCreateOrUpdateApprenant}
+            title={selectedItem?.id ? "Modifier le profil apprenant" : "Créer le profil apprenant"}
+            description={selectedItem?.id ? "Modifiez les détails du profil apprenant." : "Remplissez les détails du profil apprenant pour l'utilisateur sélectionné."}
+            submitLabel={selectedItem?.id ? "Enregistrer les modifications" : "Créer le profil"}
+            defaultValues={currentApprenant ? {
+              username: currentApprenant.name,
+              numero: currentApprenant.numero,
+              profession: currentApprenant.profession,
+              niveauEtude: currentApprenant.niveauEtude,
+              filiere: currentApprenant.filiere,
+              cohorteId: undefined, // À récupérer depuis les données brutes si nécessaire
+            } : (selectedItem || {})}
+            userId={selectedItem?.userId || promoteUserModal.selectedItem?.userId}
+            cohortes={cohortes}
+          />
+        );
+      })()}
 
       {viewModal.selectedItem && (
         <ViewUserModal // Reusing ViewUserModal needs a UserDisplay type

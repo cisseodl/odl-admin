@@ -66,6 +66,7 @@ export function ApprenantFormModal({
   cohortes = [],
   userId,
 }: ApprenantFormModalProps) {
+  const { t } = useLanguage();
   const form = useForm<ApprenantProfileFormData>({
     resolver: zodResolver(apprenantProfileSchema),
     defaultValues: {

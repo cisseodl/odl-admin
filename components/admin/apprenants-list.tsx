@@ -233,39 +233,46 @@ export function ApprenantsList() {
     });
   };
 
-  const handleUpdateApprenant = async (data: UserFormData) => {
+  const handleUpdateApprenant = async (data: ApprenantProfileFormData) => {
     setError(null);
     if (editModal.selectedItem) {
       try {
-        const updatedApprenantData: Partial<Apprenant> = {
-          nom: data.nom || "",
-          prenom: data.prenom || "",
-          email: data.email,
+        // Récupérer l'apprenant actuel pour obtenir le userId
+        const currentApprenant = rawApprenantsData.find((app: Apprenant) => app.id === editModal.selectedItem?.id);
+        const userId = currentApprenant?.user?.id;
+        
+        const updatedApprenantData = {
+          username: data.username,
           numero: data.numero,
           profession: data.profession,
           niveauEtude: data.niveauEtude,
           filiere: data.filiere,
-          activate: data.status === "Actif",
+          attentes: data.attentes,
+          satisfaction: data.satisfaction,
+          cohorteId: data.cohorteId,
+          userDetails: userId ? {
+            // Les champs User peuvent être mis à jour séparément si nécessaire
+          } : undefined,
         };
-
-        if (data.cohorteId) {
-          // @ts-ignore
-          updatedApprenantData.cohorte = { id: data.cohorteId } as Cohorte;
-        } else if (editModal.selectedItem.cohorte) {
-           // @ts-ignore
-           updatedApprenantData.cohorte = editModal.selectedItem.cohorte;
-        }
 
         const updatedApprenant = await apprenantService.updateApprenant(editModal.selectedItem.id, updatedApprenantData);
         const apprenant = updatedApprenant?.data || updatedApprenant;
-        setApprenants((prev) =>
-          prev.map((a) =>
-            a.id === editModal.selectedItem!.id ? mapApprenantToApprenantDisplay(apprenant) : a
-          )
-        );
+        
+        // Recharger la liste complète pour avoir les données à jour
+        await fetchApprenants();
+        
+        toast({
+          title: t('common.success'),
+          description: t('users.learners.toasts.success_update'),
+        });
         editModal.close();
       } catch (err: any) {
         setError(err.message || t('users.learners.toasts.error_update'));
+        toast({
+          title: t('common.error'),
+          description: err.message || t('users.learners.toasts.error_update'),
+          variant: "destructive",
+        });
         console.error("Error updating apprenant:", err);
       }
     }
@@ -601,19 +608,28 @@ export function ApprenantsList() {
         />
       )}
 
-      {editModal.selectedItem && (
-        <UserFormModal
-          open={editModal.isOpen}
-          onOpenChange={(open) => !open && editModal.close()}
-          title={t('users.learners.modals.edit_title')}
-          description={t('users.learners.modals.edit_description')}
-          defaultValues={mapApprenantDisplayToUserFormData(editModal.selectedItem)}
-          onSubmit={handleUpdateApprenant}
-          submitLabel={t('users.learners.modals.edit_submit')}
-          disableRoleField={true}
-          roleDefaultValue="Apprenant"
-        />
-      )}
+      {editModal.selectedItem && (() => {
+        const currentApprenant = rawApprenantsData.find((app: Apprenant) => app.id === editModal.selectedItem?.id);
+        return (
+          <ApprenantFormModal
+            open={editModal.isOpen}
+            onOpenChange={(open) => !open && editModal.close()}
+            onSubmit={handleUpdateApprenant}
+            title={t('users.learners.modals.edit_title')}
+            description={t('users.learners.modals.edit_description')}
+            submitLabel={t('users.learners.modals.edit_submit')}
+            defaultValues={{
+              username: editModal.selectedItem.name,
+              numero: editModal.selectedItem.numero,
+              profession: editModal.selectedItem.profession,
+              niveauEtude: editModal.selectedItem.niveauEtude,
+              filiere: editModal.selectedItem.filiere,
+              cohorteId: editModal.selectedItem.cohorte?.id,
+            }}
+            cohortes={cohortes}
+          />
+        );
+      })()}
 
       {viewModal.selectedItem && (
         <ViewUserModal

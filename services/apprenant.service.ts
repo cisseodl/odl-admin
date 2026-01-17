@@ -3,9 +3,17 @@ import { fetchApi } from './api.service';
 
 export class ApprenantService {
   async getAllApprenants(): Promise<any> {
-    const response = await fetchApi<any>("/apprenants/get-all", { method: "GET" });
-    // Backend retourne CResponse avec structure { ok: boolean, data: Apprenant[], message: string }
-    return response.data || response; // Extraire data de la réponse CResponse
+    try {
+      const response = await fetchApi<any>("/api/apprenants/get-all", { method: "GET" });
+      // Backend retourne CResponse avec structure { ok: boolean, data: Apprenant[], message: string }
+      if (!response || !response.data) {
+        return [];
+      }
+      return Array.isArray(response.data) ? response.data : [response.data];
+    } catch (error) {
+      console.error("Error fetching apprenants:", error);
+      return [];
+    }
   }
 
   async getApprenantsByCohorte(cohorteId: number, page: number, size: number): Promise<any> {
@@ -13,10 +21,10 @@ export class ApprenantService {
     return response.data || response;
   }
 
-  async createApprenant(apprenantData: Omit<Apprenant, 'id'> & { userId?: number; userEmail?: string }): Promise<any> {
-    // Le backend accepte maintenant userId ou userEmail dans ApprenantCreateRequest
-    // Structure attendue: { nom, prenom, email, numero, profession, niveauEtude, filiere, attentes, satisfaction, cohorteId, userId?, userEmail? }
-    const response = await fetchApi<any>("/apprenants/create", {
+  async createApprenant(apprenantData: { username?: string; userId?: number; userEmail?: string; numero?: string; profession?: string; niveauEtude?: string; filiere?: string; attentes?: string; satisfaction?: boolean; cohorteId?: number; activate?: boolean }): Promise<any> {
+    // Le backend accepte maintenant username au lieu de nom/prenom/email dans ApprenantCreateRequest
+    // Structure attendue: { username, numero, profession, niveauEtude, filiere, attentes, satisfaction, cohorteId, userId?, userEmail?, activate? }
+    const response = await fetchApi<any>("/api/apprenants/create", {
       method: "POST",
       body: apprenantData,
     });
@@ -27,7 +35,7 @@ export class ApprenantService {
 
   async getApprenantById(id: number): Promise<any> {
     try {
-      const response = await fetchApi<any>(`/apprenants/${id}`, { method: "GET" });
+      const response = await fetchApi<any>(`/api/apprenants/${id}`, { method: "GET" });
       return response.data || response;
     } catch (error) {
       console.error(`Error fetching apprenant with ID ${id}:`, error);
