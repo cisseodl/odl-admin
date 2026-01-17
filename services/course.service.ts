@@ -5,22 +5,34 @@ import { UserDb } from "@/models/user-db.model"; // Import UserDb for instructor
 
 export class CourseService {
   async getAllCourses(filters: { status?: string } = {}): Promise<any> {
-    const queryParams = new URLSearchParams();
-    if (filters.status) {
-      // Mapper les statuts frontend vers backend
-      const statusMap: Record<string, string> = {
-        'IN_REVIEW': 'BROUILLON',
-        'DRAFT': 'BROUILLON',
-        'PUBLISHED': 'PUBLIE',
-        'ARCHIVED': 'ARCHIVE',
-      };
-      const backendStatus = statusMap[filters.status] || filters.status;
-      queryParams.append("status", backendStatus);
+    try {
+      const queryParams = new URLSearchParams();
+      if (filters.status) {
+        // Mapper les statuts frontend vers backend
+        const statusMap: Record<string, string> = {
+          'IN_REVIEW': 'BROUILLON',
+          'DRAFT': 'BROUILLON',
+          'PUBLISHED': 'PUBLIE',
+          'ARCHIVED': 'ARCHIVE',
+        };
+        const backendStatus = statusMap[filters.status] || filters.status;
+        queryParams.append("status", backendStatus);
+      }
+      const endpoint = `/courses/read?${queryParams.toString()}`;
+      const apiResponse = await fetchApi<any>(endpoint, { method: "GET" });
+      // Le backend retourne CResponse avec structure { ok, data, message }
+      if (!apiResponse) {
+        console.warn("getAllCourses: API response is null or undefined");
+        return [];
+      }
+      if (apiResponse.data !== undefined) {
+        return Array.isArray(apiResponse.data) ? apiResponse.data : (apiResponse.data ? [apiResponse.data] : []);
+      }
+      return Array.isArray(apiResponse) ? apiResponse : [];
+    } catch (error: any) {
+      console.error("Error fetching courses:", error);
+      return [];
     }
-    const endpoint = `/courses/read?${queryParams.toString()}`;
-    const apiResponse = await fetchApi<any>(endpoint, { method: "GET" });
-    // Le backend retourne CResponse avec structure { ok, data, message }
-    return apiResponse.data || apiResponse;
   }
 
   async getCourseById(id: number): Promise<Course> {

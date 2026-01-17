@@ -25,8 +25,20 @@ export interface EvaluationCorrectionRequest {
 
 export class EvaluationService {
   async getAllEvaluations(): Promise<Evaluation[]> {
-    const response = await fetchApi<any>("/evaluations/get-all", { method: "GET" });
-    return response.data || response;
+    try {
+      const response = await fetchApi<any>("/api/evaluations/get-all", { method: "GET" });
+      if (!response) {
+        console.warn("getAllEvaluations: API response is null or undefined");
+        return [];
+      }
+      if (response.data !== undefined) {
+        return Array.isArray(response.data) ? response.data : (response.data ? [response.data] : []);
+      }
+      return Array.isArray(response) ? response : [];
+    } catch (error: any) {
+      console.error("Error fetching evaluations:", error);
+      return [];
+    }
   }
 
   async createEvaluation(request: EvaluationRequest): Promise<Evaluation> {
@@ -38,10 +50,13 @@ export class EvaluationService {
   }
 
   async submitEvaluation(request: EvaluationSubmissionRequest): Promise<EvaluationAttempt> {
-    const response = await fetchApi<any>("/evaluations/submit", {
+    const response = await fetchApi<any>("/api/evaluations/submit", {
       method: "POST",
       body: request,
     });
+    if (!response) {
+      throw new Error("La réponse de l'API est vide");
+    }
     return response.data || response;
   }
 
@@ -54,17 +69,41 @@ export class EvaluationService {
   }
 
   async getAttemptsByEvaluationAndUser(evaluationId: number, userId: number): Promise<EvaluationAttempt[]> {
-    const response = await fetchApi<any>(`/evaluations/${evaluationId}/attempts/${userId}`, {
-      method: "GET",
-    });
-    return response.data || response;
+    try {
+      const response = await fetchApi<any>(`/api/evaluations/${evaluationId}/attempts/${userId}`, {
+        method: "GET",
+      });
+      if (!response) {
+        console.warn("getAttemptsByEvaluationAndUser: API response is null or undefined");
+        return [];
+      }
+      if (response.data !== undefined) {
+        return Array.isArray(response.data) ? response.data : (response.data ? [response.data] : []);
+      }
+      return Array.isArray(response) ? response : [];
+    } catch (error: any) {
+      console.error("Error fetching attempts:", error);
+      return [];
+    }
   }
 
   async getPendingEvaluationsForInstructor(instructorId: number): Promise<EvaluationAttempt[]> {
-    const response = await fetchApi<any>(`/evaluations/instructor/${instructorId}/pending`, {
-      method: "GET",
-    });
-    return response.data || response;
+    try {
+      const response = await fetchApi<any>(`/api/evaluations/instructor/${instructorId}/pending`, {
+        method: "GET",
+      });
+      if (!response) {
+        console.warn("getPendingEvaluationsForInstructor: API response is null or undefined");
+        return [];
+      }
+      if (response.data !== undefined) {
+        return Array.isArray(response.data) ? response.data : (response.data ? [response.data] : []);
+      }
+      return Array.isArray(response) ? response : [];
+    } catch (error: any) {
+      console.error("Error fetching pending evaluations:", error);
+      return [];
+    }
   }
 
   async getEvaluationById(id: number): Promise<Evaluation | null> {
@@ -79,15 +118,18 @@ export class EvaluationService {
   }
 
   async updateEvaluation(id: number, evaluationData: Partial<Evaluation>): Promise<Evaluation> {
-    const response = await fetchApi<any>(`/evaluations/update/${id}`, {
+    const response = await fetchApi<any>(`/api/evaluations/update/${id}`, {
       method: "PUT",
       body: evaluationData,
     });
+    if (!response) {
+      throw new Error("La réponse de l'API est vide");
+    }
     return response.data || response;
   }
 
   async deleteEvaluation(id: number): Promise<void> {
-    await fetchApi<any>(`/evaluations/delete/${id}`, {
+    await fetchApi<any>(`/api/evaluations/delete/${id}`, {
       method: "DELETE",
     });
   }

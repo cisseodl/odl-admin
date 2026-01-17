@@ -82,10 +82,15 @@ export function InstructorEvaluationsList() {
     setError(null)
     try {
       const response = await evaluationService.getAllEvaluations()
-      setEvaluations(Array.isArray(response) ? response.map(mapEvaluationToEvaluationDisplay) : [])
+      if (Array.isArray(response) && response.length > 0) {
+        setEvaluations(response.map(mapEvaluationToEvaluationDisplay))
+      } else {
+        setEvaluations([])
+      }
     } catch (err: any) {
-      setError(err.message || t('evaluations.toasts.error_load') || "Impossible de charger les évaluations.")
       console.error("Error fetching evaluations:", err)
+      setError(err.message || t('evaluations.toasts.error_load') || "Impossible de charger les évaluations.")
+      setEvaluations([])
     } finally {
       setLoading(false)
     }
@@ -95,17 +100,21 @@ export function InstructorEvaluationsList() {
     if (!user?.id) return
     try {
       const response = await evaluationService.getPendingEvaluationsForInstructor(Number(user.id))
-      const attempts = Array.isArray(response) ? response : []
-      setPendingTps(attempts.map((attempt: EvaluationAttempt) => ({
-        id: attempt.id,
-        evaluationId: attempt.evaluationId,
-        evaluationTitle: "Évaluation", // TODO: fetch evaluation title
-        learnerName: "Apprenant", // TODO: fetch learner name
-        submittedFileUrl: attempt.submittedFileUrl || undefined,
-        createdAt: attempt.createdAt ? new Date(attempt.createdAt).toLocaleDateString("fr-FR") : "N/A",
-      })))
+      if (Array.isArray(response) && response.length > 0) {
+        setPendingTps(response.map((attempt: EvaluationAttempt) => ({
+          id: attempt.id,
+          evaluationId: attempt.evaluationId,
+          evaluationTitle: "Évaluation", // TODO: fetch evaluation title
+          learnerName: "Apprenant", // TODO: fetch learner name
+          submittedFileUrl: attempt.submittedFileUrl || undefined,
+          createdAt: attempt.createdAt ? new Date(attempt.createdAt).toLocaleDateString("fr-FR") : "N/A",
+        })))
+      } else {
+        setPendingTps([])
+      }
     } catch (err: any) {
       console.error("Error fetching pending TPs:", err)
+      setPendingTps([])
     }
   }
 
