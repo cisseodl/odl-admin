@@ -1171,6 +1171,8 @@
       "title": "Mes Apprenants",
       "description": "Suivez la progression et les scores de vos apprenants",
       "search_placeholder": "Rechercher un apprenant...",
+      "filter_by_course": "Filtrer par cours",
+      "filter_all_courses": "Tous les cours",
       "table": {
         "header_learner": "Apprenant",
         "header_course": "Formation",
@@ -1178,6 +1180,7 @@
         "header_score": "Score",
         "header_last_activity": "Dernière Activité",
         "modules_completed": "{{completed}}/{{total}} modules",
+        "no_students_for_course": "Aucun apprenant inscrit à ce cours",
         "no_students": "Aucun apprenant trouvé."
       }
     },
