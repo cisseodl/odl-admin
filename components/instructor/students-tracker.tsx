@@ -305,11 +305,13 @@ export function StudentsTracker() {
                         <SelectItem value="all">
                           {t('instructor.students.filter_all_courses') || "Tous les cours"}
                         </SelectItem>
-                        {instructorCourses.map((course: any) => (
-                          <SelectItem key={course.id} value={String(course.id)}>
-                            {course.title || `Cours ${course.id}`}
-                          </SelectItem>
-                        ))}
+                        {instructorCourses
+                          .filter((course: any) => course.id != null && course.id !== undefined)
+                          .map((course: any) => (
+                            <SelectItem key={course.id} value={String(course.id)}>
+                              {course.title || `Cours ${course.id}`}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
