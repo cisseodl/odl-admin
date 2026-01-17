@@ -68,12 +68,30 @@ export function CreateEvaluationModal({
 
   useEffect(() => {
     const fetchCourses = async () => {
+      if (!user?.id) {
+        console.warn("No user ID available for fetching courses")
+        setCourses([])
+        return
+      }
+      
       setLoadingCourses(true)
       try {
-        const coursesData = await courseService.getAllCourses()
-        setCourses(Array.isArray(coursesData) ? coursesData : [])
+        // Récupérer uniquement les cours de l'instructeur connecté
+        const coursesData = await courseService.getCoursesByInstructorId(Number(user.id))
+        if (Array.isArray(coursesData) && coursesData.length > 0) {
+          setCourses(coursesData)
+        } else {
+          console.warn("No courses found for instructor:", coursesData)
+          setCourses([])
+          toast({
+            title: t('evaluations.toasts.error_load_courses') || "Avertissement",
+            description: "Aucun cours disponible. Veuillez créer un cours d'abord.",
+            variant: "default",
+          })
+        }
       } catch (err: any) {
         console.error("Error fetching courses:", err)
+        setCourses([])
         toast({
           title: t('evaluations.toasts.error_load_courses') || "Erreur",
           description: err.message || "Impossible de charger les cours.",
@@ -83,10 +101,10 @@ export function CreateEvaluationModal({
         setLoadingCourses(false)
       }
     }
-    if (open) {
+    if (open && user?.id) {
       fetchCourses()
     }
-  }, [open, t, toast])
+  }, [open, user?.id, t, toast])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
