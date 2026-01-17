@@ -306,12 +306,19 @@ export function StudentsTracker() {
                           {t('instructor.students.filter_all_courses') || "Tous les cours"}
                         </SelectItem>
                         {instructorCourses
-                          .filter((course: any) => course.id != null && course.id !== undefined)
-                          .map((course: any) => (
-                            <SelectItem key={course.id} value={String(course.id)}>
-                              {course.title || `Cours ${course.id}`}
-                            </SelectItem>
-                          ))}
+                          .filter((course: any) => {
+                            // Filtrer les cours avec des IDs valides (non null, non undefined, non vide)
+                            const courseId = course?.id;
+                            return courseId != null && courseId !== undefined && courseId !== "" && String(courseId).trim() !== "";
+                          })
+                          .map((course: any) => {
+                            const courseId = String(course.id).trim();
+                            return (
+                              <SelectItem key={course.id} value={courseId}>
+                                {course.title || `Cours ${course.id}`}
+                              </SelectItem>
+                            );
+                          })}
                       </SelectContent>
                     </Select>
                   </div>
