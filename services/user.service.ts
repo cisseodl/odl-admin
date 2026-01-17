@@ -4,17 +4,20 @@ import { fetchApi } from './api.service';
 export class UserService {
   async getAllUsers(page: number, size: number): Promise<{ content: UserDb[], totalElements: number }> {
     try {
-      const response = await fetchApi<any>(`/users/get-all/${page}/${size}`, { method: "GET" });
-      // Le backend retourne directement un tableau dans response.data
+      const response = await fetchApi<any>(`/api/users/get-all/${page}/${size}`, { method: "GET" });
+      // Le backend retourne maintenant une structure paginée avec content et totalElements
+      if (response.data && response.data.content && Array.isArray(response.data.content)) {
+        return {
+          content: response.data.content,
+          totalElements: response.data.totalElements || response.data.content.length
+        };
+      }
+      // Fallback pour l'ancien format (tableau simple)
       if (Array.isArray(response.data)) {
         return { content: response.data, totalElements: response.data.length };
       }
-      // Si c'est déjà un objet avec content, le retourner tel quel
-      if (response.data && response.data.content && Array.isArray(response.data.content)) {
-        return response.data;
-      }
       return { content: [], totalElements: 0 };
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching all users:", error);
       return { content: [], totalElements: 0 };
     }
