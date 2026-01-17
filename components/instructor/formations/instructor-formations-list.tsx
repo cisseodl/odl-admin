@@ -10,7 +10,7 @@ import { useModal } from "@/hooks/use-modal"
 import { useSearch } from "@/hooks/use-search"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import type { ColumnDef } from "@tanstack/react-table"
-import { Eye, Edit, Trash2, Clock, Target, Users as UsersIcon, Link as LinkIcon, Image as ImageIcon } from "lucide-react"
+import { Edit, Trash2, Clock } from "lucide-react"
 import { RubriqueFormModal } from "@/components/shared/rubrique-form-modal"
 import { ApiRubrique, rubriqueService } from "@/services/rubrique.service"
 import { PageLoader } from "@/components/ui/page-loader"
@@ -257,11 +257,6 @@ export function InstructorFormationsList() {
           return (
             <ActionMenu
               actions={[
-                {
-                  label: t('common.view') || "Voir détails",
-                  icon: <Eye className="h-4 w-4" />,
-                  onClick: () => viewModal.open(rubrique),
-                },
                 {
                   label: t('common.edit') || "Modifier",
                   icon: <Edit className="h-4 w-4" />,
