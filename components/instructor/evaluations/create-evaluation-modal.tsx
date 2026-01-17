@@ -18,6 +18,7 @@ import { courseService } from "@/services"
 import { Course } from "@/models"
 import { fileUploadService } from "@/services/file-upload.service"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/auth-context"
 
 const createEvaluationSchema = z.object({
   title: z.string().min(1, { message: "Le titre est requis." }),
@@ -45,6 +46,7 @@ export function CreateEvaluationModal({
 }: CreateEvaluationModalProps) {
   const { t } = useLanguage()
   const { toast } = useToast()
+  const { user } = useAuth()
   const [courses, setCourses] = useState<Course[]>([])
   const [loadingCourses, setLoadingCourses] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)

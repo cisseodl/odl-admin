@@ -62,21 +62,27 @@ export class CourseService {
   }
 
   async getCoursesByInstructorId(instructorId: number): Promise<Course[]> {
-    const response = await fetchApi<any>(`/courses/read/by-instructor/${instructorId}`, { // Endpoint corrigé
-      method: "GET",
-    });
-    // Le backend retourne CResponse avec structure { ok, data, message }
-    // Extraire les données de la réponse
-    if (Array.isArray(response)) {
-      return response;
-    } else if (response && response.data) {
-      return Array.isArray(response.data) ? response.data : [];
-    } else {
-      console.error(
-        "API response for /api/courses/read/by-instructor is not in expected format:",
-        response
-      );
-      throw new Error("Invalid API response format for instructor courses.");
+    try {
+      const response = await fetchApi<any>(`/courses/read/by-instructor/${instructorId}`, {
+        method: "GET",
+      });
+      // Le backend retourne CResponse avec structure { ok, data, message }
+      if (!response) {
+        console.warn("getCoursesByInstructorId: API response is null or undefined");
+        return [];
+      }
+      // Extraire les données de la réponse
+      if (Array.isArray(response)) {
+        return response;
+      } else if (response.data !== undefined) {
+        return Array.isArray(response.data) ? response.data : (response.data ? [response.data] : []);
+      } else {
+        console.warn("API response for /courses/read/by-instructor is not in expected format:", response);
+        return [];
+      }
+    } catch (error: any) {
+      console.error("Error fetching courses by instructor ID:", error);
+      return [];
     }
   }
 
