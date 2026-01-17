@@ -69,7 +69,7 @@ export class ApprenantService {
     const cohorteId = (apprenantData.cohorte as any)?.id || (apprenantData as any).cohorteId;
     if (cohorteId) queryParams.append("cohorteId", String(cohorteId));
 
-    const response = await fetchApi<any>(`/apprenants/${id}?${queryParams.toString()}`, {
+    const response = await fetchApi<any>(`/api/apprenants/${id}?${queryParams.toString()}`, {
       method: "PUT",
       body: userBody,
     });
