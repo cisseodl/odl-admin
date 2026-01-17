@@ -7,11 +7,16 @@ export class ApprenantService {
       const response = await fetchApi<any>("/api/apprenants/get-all", { method: "GET" });
       // Backend retourne CResponse avec structure { ok: boolean, data: Apprenant[], message: string }
       if (!response || !response.data) {
+        console.warn("[ApprenantService] Response data is empty or null");
         return [];
       }
       return Array.isArray(response.data) ? response.data : [response.data];
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching apprenants:", error);
+      // Si c'est une erreur 404, c'est probablement que le backend n'a pas été redéployé
+      if (error.message && error.message.includes("404")) {
+        console.error("[ApprenantService] 404 Error - Le backend n'a peut-être pas été redéployé avec le nouveau mapping /api/apprenants");
+      }
       return [];
     }
   }
