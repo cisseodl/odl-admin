@@ -787,10 +787,10 @@ export function ContentManager() {
         <ModuleLessonFormModal
           open={addModuleModal.isOpen}
           onOpenChange={addModuleModal.close}
-          title="Ajouter un module"
-          description="Créez un nouveau module avec ses leçons."
+          title={t('content.modals.add_module_title') || "Ajouter un module"}
+          description={t('content.modals.add_module_description') || "Créez un nouveau module avec ses leçons."}
           onSubmit={handleAddModule}
-          submitLabel="Créer le module"
+          submitLabel={t('content.modals.add_module_submit') || "Créer le module"}
           courses={courses}
           defaultValues={{
             courseId: addModuleModal.selectedItem.courseId,
@@ -831,10 +831,10 @@ export function ContentManager() {
       <ConfirmDialog
         open={deleteModuleModal.isOpen}
         onOpenChange={deleteModuleModal.close}
-        title="Supprimer le module"
-        description="Êtes-vous sûr de vouloir supprimer ce module ? Toutes les leçons associées seront également supprimées. Cette action est irréversible."
-        confirmLabel="Supprimer"
-        cancelLabel="Annuler"
+        title={t('content.modals.delete_module_title') || "Supprimer le module"}
+        description={t('content.modals.delete_module_description') || "Êtes-vous sûr de vouloir supprimer ce module ? Toutes les leçons associées seront également supprimées. Cette action est irréversible."}
+        confirmLabel={t('common.delete') || "Supprimer"}
+        cancelLabel={t('common.cancel') || "Annuler"}
         onConfirm={handleDeleteModule}
         variant="destructive"
       />
@@ -842,10 +842,10 @@ export function ContentManager() {
       <ConfirmDialog
         open={deleteLessonModal.isOpen}
         onOpenChange={deleteLessonModal.close}
-        title="Supprimer la leçon"
-        description="Êtes-vous sûr de vouloir supprimer cette leçon ? Cette action est irréversible."
-        confirmLabel="Supprimer"
-        cancelLabel="Annuler"
+        title={t('content.modals.delete_lesson_title') || "Supprimer la leçon"}
+        description={t('content.modals.delete_lesson_description') || "Êtes-vous sûr de vouloir supprimer cette leçon ? Cette action est irréversible."}
+        confirmLabel={t('common.delete') || "Supprimer"}
+        cancelLabel={t('common.cancel') || "Annuler"}
         onConfirm={handleDeleteLesson}
         variant="destructive"
       />
@@ -853,10 +853,10 @@ export function ContentManager() {
       <ConfirmDialog
         open={deleteQuizModal.isOpen}
         onOpenChange={deleteQuizModal.close}
-        title="Supprimer le quiz"
-        description="Êtes-vous sûr de vouloir supprimer ce quiz ? Cette action est irréversible."
-        confirmLabel="Supprimer"
-        cancelLabel="Annuler"
+        title={t('content.modals.delete_quiz_title') || "Supprimer le quiz"}
+        description={t('content.modals.delete_quiz_description') || "Êtes-vous sûr de vouloir supprimer ce quiz ? Cette action est irréversible."}
+        confirmLabel={t('common.delete') || "Supprimer"}
+        cancelLabel={t('common.cancel') || "Annuler"}
         onConfirm={handleDeleteQuiz}
         variant="destructive"
       />

@@ -772,6 +772,21 @@
       "delete_description": "Êtes-vous sûr de vouloir supprimer la section \"{{name}}\" ? Cette action est irréversible.",
       "delete_confirm": "Supprimer"
     },
+    "form": {
+      "title": "Titre de la Rubrique",
+      "title_placeholder": "Ex: Développement Web",
+      "description": "Description",
+      "description_placeholder": "Description détaillée...",
+      "objectives": "Objectifs",
+      "objectives_placeholder": "Objectifs de la rubrique...",
+      "target_audience": "Public Cible",
+      "target_audience_placeholder": "Ex: Développeurs débutants",
+      "duration": "Durée du Format",
+      "duration_placeholder": "Ex: 3 mois ou 40 heures",
+      "resources_link": "Lien vers Ressources",
+      "resources_link_placeholder": "https://example.com/resources",
+      "image": "Image de la Rubrique"
+    },
     "toasts": {
       "error_data": "Erreur de données",
       "error_unexpected_response": "La réponse de l'API pour les sections est inattendue.",
@@ -1347,6 +1362,40 @@
   },
   "content": {
     "title": "Gestion du Contenu",
+    "add_module_button": "Ajouter un module",
+    "modals": {
+      "add_module_title": "Ajouter un module",
+      "add_module_description": "Créez un nouveau module avec ses leçons.",
+      "add_module_submit": "Créer le module",
+      "edit_module_title": "Modifier le module",
+      "edit_module_description": "Modifiez le module et ses leçons.",
+      "edit_module_submit": "Modifier le module",
+      "delete_module_title": "Supprimer le module",
+      "delete_module_description": "Êtes-vous sûr de vouloir supprimer ce module ? Toutes les leçons associées seront également supprimées. Cette action est irréversible.",
+      "delete_lesson_title": "Supprimer la leçon",
+      "delete_lesson_description": "Êtes-vous sûr de vouloir supprimer cette leçon ? Cette action est irréversible.",
+      "delete_quiz_title": "Supprimer le quiz",
+      "delete_quiz_description": "Êtes-vous sûr de vouloir supprimer ce quiz ? Cette action est irréversible.",
+      "error_select_course": "Erreur",
+      "error_select_course_message": "Veuillez sélectionner un cours d'abord.",
+      "form": {
+        "course": "Cours",
+        "course_placeholder": "Sélectionnez un cours",
+        "module_title": "Titre du module",
+        "module_title_placeholder": "Introduction au module",
+        "module_order": "Ordre du module",
+        "lessons_title": "Leçons du module",
+        "lesson_number": "Leçon #{{number}}",
+        "lesson_title": "Titre de la leçon",
+        "lesson_title_placeholder": "Introduction à la leçon",
+        "lesson_order": "Ordre de la leçon",
+        "lesson_type": "Type de leçon",
+        "lesson_type_placeholder": "Sélectionnez un type",
+        "lesson_file": "Fichier",
+        "lesson_duration": "Durée (minutes)",
+        "video_file_info": "Téléchargez un fichier vidéo (MP4, AVI, etc.)"
+      }
+    },
     "description": "Visualisez et gérez les modules, leçons et quiz pour toutes les formations",
     "courses": {
       "title": "Formations",

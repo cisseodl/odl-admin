@@ -31,7 +31,8 @@ import {
 import { Course } from "@/models"
 import { PlusCircle, MinusCircle, Upload, File } from "lucide-react";
 import { fileUploadService } from "@/services/file-upload.service";
-import { useToast } from "@/hooks/use-toast"; // Import icons
+import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/language-context";
 
 export enum LessonType {
   VIDEO = "VIDEO",
@@ -111,6 +112,7 @@ export function ModuleLessonFormModal({
   defaultValues,
   courses,
 }: ModuleLessonFormModalProps) {
+  const { t } = useLanguage();
   const form = useForm<ModuleFormData>({
     resolver: zodResolver(moduleFormSchema),
     defaultValues: {
@@ -229,9 +231,9 @@ export function ModuleLessonFormModal({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Titre du module</FormLabel>
+                  <FormLabel>{t('content.modals.form.module_title') || "Titre du module"}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Introduction au module" {...field} />
+                    <Input placeholder={t('content.modals.form.module_title_placeholder') || "Introduction au module"} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -242,7 +244,7 @@ export function ModuleLessonFormModal({
               name="moduleOrder"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Ordre du module</FormLabel>
+                  <FormLabel>{t('content.modals.form.module_order') || "Ordre du module"}</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="1" {...field} onChange={event => field.onChange(Number(event.target.value))} />
                   </FormControl>
@@ -252,18 +254,18 @@ export function ModuleLessonFormModal({
             />
 
             <div className="space-y-4 border p-4 rounded-md">
-              <h3 className="text-lg font-semibold">Leçons du module</h3>
+              <h3 className="text-lg font-semibold">{t('content.modals.form.lessons_title') || "Leçons du module"}</h3>
               {fields.map((field, index) => (
                 <div key={field.id} className="space-y-4 border-t pt-4">
-                  <h4 className="text-md font-medium">Leçon #{index + 1}</h4>
+                  <h4 className="text-md font-medium">{t('content.modals.form.lesson_number', { number: index + 1 }) || `Leçon #${index + 1}`}</h4>
                   <FormField
                     control={form.control}
                     name={`lessons.${index}.title`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Titre de la leçon</FormLabel>
+                        <FormLabel>{t('content.modals.form.lesson_title') || "Titre de la leçon"}</FormLabel>
                         <FormControl>
-                          <Input placeholder="Introduction à la leçon" {...field} />
+                          <Input placeholder={t('content.modals.form.lesson_title_placeholder') || "Introduction à la leçon"} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -274,7 +276,7 @@ export function ModuleLessonFormModal({
                     name={`lessons.${index}.lessonOrder`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Ordre de la leçon</FormLabel>
+                        <FormLabel>{t('content.modals.form.lesson_order') || "Ordre de la leçon"}</FormLabel>
                         <FormControl>
                           <Input type="number" placeholder="1" {...field} onChange={event => field.onChange(Number(event.target.value))} />
                         </FormControl>
@@ -287,16 +289,16 @@ export function ModuleLessonFormModal({
                     name={`lessons.${index}.type`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Type de leçon</FormLabel>
+                        <FormLabel>{t('content.modals.form.lesson_type') || "Type de leçon"}</FormLabel>
                         <Select onValueChange={(value) => field.onChange(value)} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Sélectionnez un type" />
+                              <SelectValue placeholder={t('content.modals.form.lesson_type_placeholder') || "Sélectionnez un type"} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value={LessonType.VIDEO}>Vidéo</SelectItem>
-                            <SelectItem value={LessonType.DOCUMENT}>Document</SelectItem>
+                            <SelectItem value={LessonType.VIDEO}>{t('content.lesson_types.video') || "Vidéo"}</SelectItem>
+                            <SelectItem value={LessonType.DOCUMENT}>{t('content.lesson_types.document') || "Document"}</SelectItem>
                             <SelectItem value={LessonType.QUIZ}>Quiz</SelectItem>
                             <SelectItem value={LessonType.LAB}>Lab</SelectItem>
                           </SelectContent>
@@ -346,7 +348,7 @@ export function ModuleLessonFormModal({
                         name={`lessons.${index}.duration`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Durée (minutes)</FormLabel>
+                            <FormLabel>{t('content.modals.form.lesson_duration') || "Durée (minutes)"}</FormLabel>
                             <FormControl>
                               <Input type="number" placeholder="10" {...field} onChange={event => field.onChange(Number(event.target.value))} />
                             </FormControl>
@@ -396,7 +398,7 @@ export function ModuleLessonFormModal({
                         name={`lessons.${index}.duration`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Durée (minutes)</FormLabel>
+                            <FormLabel>{t('content.modals.form.lesson_duration') || "Durée (minutes)"}</FormLabel>
                             <FormControl>
                               <Input type="number" placeholder="10" {...field} onChange={event => field.onChange(Number(event.target.value))} />
                             </FormControl>

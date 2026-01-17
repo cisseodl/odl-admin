@@ -790,13 +790,13 @@ export function ContentManager() {
         </CardContent>
       </Card>
 
-      <ModuleLessonFormModal
+        <ModuleLessonFormModal
         open={addModuleModal.isOpen}
         onOpenChange={addModuleModal.close}
-        title="Ajouter un nouveau module"
-        description="Remplissez les informations pour créer un nouveau module dans votre formation."
+        title={t('content.modals.add_module_title') || "Ajouter un nouveau module"}
+        description={t('content.modals.add_module_description') || "Remplissez les informations pour créer un nouveau module dans votre formation."}
         onSubmit={handleAddModule}
-        submitLabel="Ajouter le module"
+        submitLabel={t('content.modals.add_module_submit') || "Ajouter le module"}
         courses={courses}
       />
 
@@ -804,10 +804,10 @@ export function ContentManager() {
         <ModuleLessonFormModal
           open={editModuleModal.isOpen}
           onOpenChange={editModuleModal.close}
-          title="Modifier le module"
-          description="Modifiez les informations du module."
+          title={t('content.modals.edit_module_title') || "Modifier le module"}
+          description={t('content.modals.edit_module_description') || "Modifiez les informations du module."}
           onSubmit={handleEditModule}
-          submitLabel="Modifier le module"
+          submitLabel={t('content.modals.edit_module_submit') || "Modifier le module"}
           courses={courses}
           defaultValues={{
             courseId: editModuleModal.selectedItem.courseId,
@@ -829,9 +829,11 @@ export function ContentManager() {
       <ConfirmDialog
         open={deleteModuleModal.isOpen}
         onOpenChange={deleteModuleModal.close}
-        title="Supprimer le module"
-        description="Êtes-vous sûr de vouloir supprimer ce module ? Cette action est irréversible."
+        title={t('content.modals.delete_module_title') || "Supprimer le module"}
+        description={t('content.modals.delete_module_description') || "Êtes-vous sûr de vouloir supprimer ce module ? Cette action est irréversible."}
+        confirmText={t('common.delete') || "Supprimer"}
         onConfirm={handleDeleteModule}
+        variant="destructive"
       />
 
       {contentViewerModal.selectedItem && (

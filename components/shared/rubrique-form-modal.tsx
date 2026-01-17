@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ImagePlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/language-context";
 
 
 // Define the Zod schema for the form
@@ -65,6 +66,7 @@ export function RubriqueFormModal({
   submitLabel,
   defaultValues,
 }: RubriqueFormModalProps) {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const form = useForm<RubriqueFormData>({
     resolver: zodResolver(rubriqueFormSchema),
@@ -151,9 +153,9 @@ export function RubriqueFormModal({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t('rubriques.form.description') || "Description"}</FormLabel>
                   <FormControl>
-                    <Textarea {...field} placeholder="Description détaillée..." rows={3} />
+                    <Textarea {...field} placeholder={t('rubriques.form.description_placeholder') || "Description détaillée..."} rows={3} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -164,9 +166,9 @@ export function RubriqueFormModal({
               name="objectifs"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Objectifs</FormLabel>
+                  <FormLabel>{t('rubriques.form.objectives') || "Objectifs"}</FormLabel>
                   <FormControl>
-                    <Textarea {...field} placeholder="Objectifs de la rubrique..." rows={2} />
+                    <Textarea {...field} placeholder={t('rubriques.form.objectives_placeholder') || "Objectifs de la rubrique..."} rows={2} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -179,9 +181,9 @@ export function RubriqueFormModal({
                 name="publicCible"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Public Cible</FormLabel>
+                    <FormLabel>{t('rubriques.form.target_audience') || "Public Cible"}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex: Développeurs débutants" />
+                      <Input {...field} placeholder={t('rubriques.form.target_audience_placeholder') || "Ex: Développeurs débutants"} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -192,9 +194,9 @@ export function RubriqueFormModal({
                 name="dureeFormat"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Durée du Format</FormLabel>
+                    <FormLabel>{t('rubriques.form.duration') || "Durée du Format"}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex: 3 mois ou 40 heures" />
+                      <Input {...field} placeholder={t('rubriques.form.duration_placeholder') || "Ex: 3 mois ou 40 heures"} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -220,7 +222,7 @@ export function RubriqueFormModal({
               name="imageFile"
               render={({ field: { value, onChange, ...fieldProps } }) => (
                 <FormItem>
-                  <FormLabel>Image de la Rubrique</FormLabel>
+                  <FormLabel>{t('rubriques.form.image') || "Image de la Rubrique"}</FormLabel>
                   <FormControl>
                     <Input
                       {...fieldProps}
