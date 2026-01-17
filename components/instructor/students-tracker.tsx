@@ -10,7 +10,9 @@ import { Progress } from "@/components/ui/progress"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useSearch } from "@/hooks/use-search"
 import type { ColumnDef } from "@tanstack/react-table"
-import { User, Mail, BookOpen, TrendingUp, Calendar } from "lucide-react"
+import { User, Mail, BookOpen, TrendingUp, Calendar, Filter } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 
 import { useAuth } from "@/contexts/auth-context"; // Import useAuth
 import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
@@ -24,6 +26,7 @@ type Student = {
   name: string
   email: string
   course: string
+  courseId: number // Ajout de courseId pour le filtrage
   progress: number
   score: number
   completedModules: number
@@ -38,6 +41,9 @@ export function StudentsTracker() {
   const { t } = useLanguage()
   const { user, isLoading: authLoading } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
+  const [allStudents, setAllStudents] = useState<Student[]>([]); // Stocker tous les étudiants pour le filtrage
+  const [instructorCourses, setInstructorCourses] = useState<any[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,16 +58,18 @@ export function StudentsTracker() {
       setError(null);
       try {
         // Récupérer les cours de l'instructeur
-        const instructorCourses = await courseService.getCoursesByInstructorId(Number(user.id));
+        const courses = await courseService.getCoursesByInstructorId(Number(user.id));
+        setInstructorCourses(courses || []);
         
-        if (!instructorCourses || instructorCourses.length === 0) {
+        if (!courses || courses.length === 0) {
           setStudents([]);
+          setAllStudents([]);
           setLoading(false);
           return;
         }
 
         // Récupérer les détails de cours (inscriptions) pour les cours de l'instructeur
-        const courseIds = instructorCourses.map((c: any) => c.id);
+        const courseIds = courses.map((c: any) => c.id);
         const allDetailsCourses: any[] = [];
         
         // Récupérer les détails pour chaque cours
@@ -83,6 +91,7 @@ export function StudentsTracker() {
         
         if (learnerIds.length === 0) {
           setStudents([]);
+          setAllStudents([]);
           setLoading(false);
           return;
         }
@@ -105,7 +114,7 @@ export function StudentsTracker() {
           
           // Pour chaque inscription de l'apprenant à un cours de l'instructeur
           for (const detail of apprenantDetailsCourses) {
-            const course = instructorCourses.find((c: any) => c.id === detail.courseId);
+            const course = courses.find((c: any) => c.id === detail.courseId);
             if (!course) continue;
             
             // Récupérer le cours complet avec modules pour calculer la progression
@@ -121,6 +130,7 @@ export function StudentsTracker() {
                 name: `${apprenant.prenom || ''} ${apprenant.nom || ''}`.trim(),
                 email: apprenant.email || "",
                 course: fullCourse.title || course.title || "N/A",
+                courseId: course.id, // Ajout de courseId pour le filtrage
                 progress: 0, // Progression réelle à calculer depuis l'API
                 score: 0, // Score réel à récupérer depuis l'API
                 completedModules: 0, // Modules complétés à récupérer depuis l'API
@@ -138,6 +148,7 @@ export function StudentsTracker() {
                 name: `${apprenant.prenom || ''} ${apprenant.nom || ''}`.trim(),
                 email: apprenant.email || "",
                 course: course.title || "N/A",
+                courseId: course.id, // Ajout de courseId pour le filtrage
                 progress: 0,
                 score: 0,
                 completedModules: 0,
@@ -150,7 +161,8 @@ export function StudentsTracker() {
           }
         }
         
-        setStudents(mappedStudents);
+        setAllStudents(mappedStudents); // Stocker tous les étudiants
+        setStudents(mappedStudents); // Afficher tous par défaut
 
       } catch (err: any) {
         setError(err.message || "Failed to fetch students data.");
@@ -162,8 +174,16 @@ export function StudentsTracker() {
     fetchStudentsData();
   }, [user, authLoading]);
 
+  // Filtrer les étudiants par cours sélectionné
+  const filteredByCourse = useMemo(() => {
+    if (selectedCourseId === "all") {
+      return allStudents;
+    }
+    return allStudents.filter(student => student.courseId === Number(selectedCourseId));
+  }, [allStudents, selectedCourseId]);
+
   const { searchQuery, setSearchQuery, filteredData } = useSearch<Student>({
-    data: students,
+    data: filteredByCourse,
     searchKeys: ["name", "email", "course"],
   })
 
@@ -263,15 +283,44 @@ export function StudentsTracker() {
             <div className="text-center text-destructive p-4">{error}</div>
           ) : (
             <>
-              <div className="mb-4">
-                <SearchBar
-                  placeholder={t('instructor.students.search_placeholder')}
-                  value={searchQuery}
-                  onChange={setSearchQuery}
-                />
+              <div className="mb-4 flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <SearchBar
+                    placeholder={t('instructor.students.search_placeholder')}
+                    value={searchQuery}
+                    onChange={setSearchQuery}
+                  />
+                </div>
+                {instructorCourses.length > 0 && (
+                  <div className="flex items-center gap-2 sm:w-64">
+                    <Label htmlFor="course-filter" className="flex items-center gap-2 whitespace-nowrap">
+                      <Filter className="h-4 w-4" />
+                      {t('instructor.students.filter_by_course') || "Filtrer par cours"}
+                    </Label>
+                    <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+                      <SelectTrigger id="course-filter" className="w-full">
+                        <SelectValue placeholder={t('instructor.students.filter_all_courses') || "Tous les cours"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">
+                          {t('instructor.students.filter_all_courses') || "Tous les cours"}
+                        </SelectItem>
+                        {instructorCourses.map((course: any) => (
+                          <SelectItem key={course.id} value={String(course.id)}>
+                            {course.title || `Cours ${course.id}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
-              {students.length === 0 ? (
-                <div className="text-center text-muted-foreground p-4">{t('instructor.students.table.no_students')}</div>
+              {filteredByCourse.length === 0 ? (
+                <div className="text-center text-muted-foreground p-4">
+                  {selectedCourseId === "all" 
+                    ? t('instructor.students.table.no_students')
+                    : t('instructor.students.table.no_students_for_course') || "Aucun apprenant inscrit à ce cours"}
+                </div>
               ) : (
                 <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
               )}
