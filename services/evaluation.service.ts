@@ -57,10 +57,13 @@ export class EvaluationService {
   }
 
   async createEvaluation(request: EvaluationRequest): Promise<Evaluation> {
-    const response = await fetchApi<any>("/evaluations/create", {
+    const response = await fetchApi<any>("/api/evaluations/create", {
       method: "POST",
       body: request,
     });
+    if (!response) {
+      throw new Error("La réponse de l'API est vide");
+    }
     return response.data || response;
   }
 
