@@ -69,7 +69,8 @@ export async function fetchApi<T>(
   }
 
   // Vérifier si la réponse contient une erreur (CResponse avec ok: false)
-  if (jsonData && jsonData.ok === false) {
+  // Mais ne pas lancer d'exception si le status HTTP est 200, car le backend peut retourner ok=false avec status 200
+  if (jsonData && jsonData.ok === false && !response.ok) {
     throw new Error(jsonData.message || `API Error ${response.status}: Something went wrong`);
   }
 

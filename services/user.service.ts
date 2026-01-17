@@ -5,20 +5,53 @@ export class UserService {
   async getAllUsers(page: number, size: number): Promise<{ content: UserDb[], totalElements: number }> {
     try {
       const response = await fetchApi<any>(`/api/users/get-all/${page}/${size}`, { method: "GET" });
-      // Le backend retourne maintenant une structure paginée avec content et totalElements
-      if (response.data && response.data.content && Array.isArray(response.data.content)) {
+      console.log("UserService.getAllUsers - Raw API response:", JSON.stringify(response, null, 2));
+      
+      // Le backend retourne ResponseEntity<CResponse<{content: [...], totalElements: ...}>>
+      // fetchApi retourne directement l'objet CResponse après parsing JSON
+      // Donc response = { ok: true, data: {content: [...], totalElements: ...}, message: "..." }
+      
+      // Vérifier si la réponse est un CResponse avec data
+      if (response && response.data) {
+        // Si data contient directement content (structure paginée)
+        if (response.data.content && Array.isArray(response.data.content)) {
+          console.log("UserService.getAllUsers - Found paginated structure in data.content, length:", response.data.content.length);
+          return {
+            content: response.data.content,
+            totalElements: response.data.totalElements || response.data.content.length
+          };
+        }
+        // Si data est directement un tableau (ancien format)
+        if (Array.isArray(response.data)) {
+          console.log("UserService.getAllUsers - Found array in data, length:", response.data.length);
+          return { content: response.data, totalElements: response.data.length };
+        }
+        // Si data est un objet mais sans content, essayer de voir ce qu'il contient
+        console.warn("UserService.getAllUsers - data exists but no content array:", response.data);
+      }
+      
+      // Si response est directement la structure paginée (sans wrapper CResponse)
+      if (response && response.content && Array.isArray(response.content)) {
+        console.log("UserService.getAllUsers - Found direct paginated structure, content length:", response.content.length);
         return {
-          content: response.data.content,
-          totalElements: response.data.totalElements || response.data.content.length
+          content: response.content,
+          totalElements: response.totalElements || response.content.length
         };
       }
-      // Fallback pour l'ancien format (tableau simple)
-      if (Array.isArray(response.data)) {
-        return { content: response.data, totalElements: response.data.length };
+      
+      // Si response est directement un tableau
+      if (Array.isArray(response)) {
+        console.log("UserService.getAllUsers - Found direct array, length:", response.length);
+        return { content: response, totalElements: response.length };
       }
+      
+      console.warn("UserService.getAllUsers - Unexpected response structure. Full response:", response);
+      console.warn("UserService.getAllUsers - Response type:", typeof response);
+      console.warn("UserService.getAllUsers - Response keys:", response ? Object.keys(response) : "null");
       return { content: [], totalElements: 0 };
     } catch (error: any) {
       console.error("Error fetching all users:", error);
+      console.error("Error details:", error.message, error.stack);
       return { content: [], totalElements: 0 };
     }
   }
