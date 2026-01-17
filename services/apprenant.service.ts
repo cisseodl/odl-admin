@@ -4,6 +4,7 @@ import { fetchApi } from './api.service';
 export class ApprenantService {
   async getAllApprenants(): Promise<any> {
     try {
+      // Essayer d'abord avec le nouveau endpoint /api/apprenants/get-all
       const response = await fetchApi<any>("/api/apprenants/get-all", { method: "GET" });
       // Backend retourne CResponse avec structure { ok: boolean, data: Apprenant[], message: string }
       if (!response || !response.data) {
@@ -12,11 +13,22 @@ export class ApprenantService {
       }
       return Array.isArray(response.data) ? response.data : [response.data];
     } catch (error: any) {
-      console.error("Error fetching apprenants:", error);
-      // Si c'est une erreur 404, c'est probablement que le backend n'a pas été redéployé
+      // Si erreur 404, essayer l'ancien endpoint sans /api (compatibilité)
       if (error.message && error.message.includes("404")) {
-        console.error("[ApprenantService] 404 Error - Le backend n'a peut-être pas été redéployé avec le nouveau mapping /api/apprenants");
+        console.warn("[ApprenantService] 404 avec /api/apprenants/get-all, tentative avec l'ancien endpoint /apprenants/get-all");
+        try {
+          const fallbackResponse = await fetchApi<any>("/apprenants/get-all", { method: "GET" });
+          if (!fallbackResponse || !fallbackResponse.data) {
+            return [];
+          }
+          return Array.isArray(fallbackResponse.data) ? fallbackResponse.data : [fallbackResponse.data];
+        } catch (fallbackError: any) {
+          console.error("[ApprenantService] Erreur également avec l'ancien endpoint:", fallbackError);
+          console.error("[ApprenantService] Le backend doit être redéployé avec le nouveau mapping /api/apprenants");
+          return [];
+        }
       }
+      console.error("Error fetching apprenants:", error);
       return [];
     }
   }
