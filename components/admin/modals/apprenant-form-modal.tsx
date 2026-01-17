@@ -198,14 +198,14 @@ export function ApprenantFormModal({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('users.learners.modals.form.cohorte') || "Cohorte (optionnel)"}</FormLabel>
-                  <Select onValueChange={(value) => field.onChange(value ? Number(value) : undefined)} value={field.value ? String(field.value) : ""}>
+                  <Select onValueChange={(value) => field.onChange(value === "__none__" ? undefined : Number(value))} value={field.value ? String(field.value) : "__none__"}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t('users.learners.modals.form.cohorte_placeholder') || "Sélectionner une cohorte (optionnel)"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">{t('users.learners.modals.form.cohorte_none') || "Aucune cohorte"}</SelectItem>
+                      <SelectItem value="__none__">{t('users.learners.modals.form.cohorte_none') || "Aucune cohorte"}</SelectItem>
                       {cohortes.map((cohorte) => (
                         <SelectItem key={cohorte.id} value={String(cohorte.id)}>
                           {cohorte.nom}
