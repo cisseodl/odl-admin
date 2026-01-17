@@ -38,6 +38,7 @@ export const rubriqueFormSchema = z.object({
   publicCible: z.string().optional(),
   dureeFormat: z.string().optional(),
   lienRessources: z.string().url("L'URL des ressources doit être valide.").optional().or(z.literal("")),
+  formationsProposees: z.string().optional(), // Formations proposées (peut contenir du HTML ou du texte formaté)
   imageFile: z.any() // File object for new image
     .refine((file) => !file || (file instanceof File && file.type.startsWith("image/")), "Le fichier doit être une image.")
     .optional(),
@@ -77,6 +78,7 @@ export function RubriqueFormModal({
       publicCible: defaultValues?.publicCible || "",
       dureeFormat: defaultValues?.dureeFormat || "",
       lienRessources: defaultValues?.lienRessources || "",
+      formationsProposees: defaultValues?.formationsProposees || "",
       currentImage: defaultValues?.image || undefined, // Pass existing image URL for display
     },
   });
@@ -91,6 +93,7 @@ export function RubriqueFormModal({
         publicCible: "",
         dureeFormat: "",
         lienRessources: "",
+        formationsProposees: "",
         imageFile: undefined,
         currentImage: undefined,
       });
@@ -103,6 +106,7 @@ export function RubriqueFormModal({
           publicCible: defaultValues.publicCible || "",
           dureeFormat: defaultValues.dureeFormat || "",
           lienRessources: defaultValues.lienRessources || "",
+          formationsProposees: defaultValues.formationsProposees || "",
           imageFile: undefined,
           currentImage: defaultValues.image || undefined,
         });
@@ -116,6 +120,7 @@ export function RubriqueFormModal({
         publicCible: defaultValues.publicCible || "",
         dureeFormat: defaultValues.dureeFormat || "",
         lienRessources: defaultValues.lienRessources || "",
+        formationsProposees: defaultValues.formationsProposees || "",
         imageFile: undefined,
         currentImage: defaultValues.image || undefined,
       });
@@ -214,6 +219,26 @@ export function RubriqueFormModal({
                     <Input {...field} placeholder={t('rubriques.form.resources_link_placeholder') || "https://example.com/resources"} />
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="formationsProposees"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('rubriques.form.formations_proposees') || "Formations proposées"}</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      {...field} 
+                      placeholder={t('rubriques.form.formations_proposees_placeholder') || "Liste des formations proposées (une par ligne ou format HTML)...\nEx:\n• Développement Web (React, Next.js, Angular, Node.js)\n• Développement Mobile (Flutter, React Native)"} 
+                      rows={5} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                  <p className="text-xs text-muted-foreground">
+                    {t('rubriques.form.formations_proposees_hint') || "Vous pouvez utiliser des puces (•) ou du formatage HTML simple. Une formation par ligne."}
+                  </p>
                 </FormItem>
               )}
             />

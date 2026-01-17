@@ -25,6 +25,7 @@ type RubriqueDisplay = {
   publicCible: string | null // Updated casing
   dureeFormat: string | null // Updated casing
   lien_ressources: string | null
+  formationsProposees: string | null // Added field
 }
 
 const mapApiRubriqueToRubriqueDisplay = (rubrique: ApiRubrique): RubriqueDisplay => {
@@ -37,6 +38,7 @@ const mapApiRubriqueToRubriqueDisplay = (rubrique: ApiRubrique): RubriqueDisplay
     publicCible: rubrique.public_cible, // Map snake_case to camelCase
     dureeFormat: rubrique.duree_format, // Map snake_case to camelCase
     lien_ressources: rubrique.lien_ressources,
+    formationsProposees: rubrique.formations_proposees || null, // Map snake_case to camelCase
   };
 };
 
@@ -100,6 +102,7 @@ export function RubriquesList() {
             public_cible: rubriqueData.publicCible, // Map camelCase to snake_case for API
             duree_format: rubriqueData.dureeFormat, // Map camelCase to snake_case for API
             lien_ressources: rubriqueData.lienRessources,
+            formations_proposees: rubriqueData.formationsProposees, // Map camelCase to snake_case for API
             image: rubriqueData.image, // Image path as string
         };
 

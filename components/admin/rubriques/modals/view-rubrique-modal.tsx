@@ -59,6 +59,19 @@ export function ViewRubriqueModal({ open, onOpenChange, rubrique }: ViewRubrique
               </div>
             )}
           </div>
+
+          {rubrique.formationsProposees && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Formations proposées</p>
+                <div 
+                  className="text-sm text-muted-foreground whitespace-pre-line"
+                  dangerouslySetInnerHTML={{ __html: rubrique.formationsProposees.replace(/\n/g, '<br />') }}
+                />
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>

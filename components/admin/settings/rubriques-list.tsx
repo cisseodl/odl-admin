@@ -69,6 +69,7 @@ export function RubriquesList() {
         publicCible: data.publicCible,
         dureeFormat: data.dureeFormat,
         lienRessources: data.lienRessources,
+        formationsProposees: data.formationsProposees,
       };
       await rubriqueService.createRubrique(newRubrique, data.imageFile);
       toast({
@@ -98,6 +99,7 @@ export function RubriquesList() {
         publicCible: data.publicCible,
         dureeFormat: data.dureeFormat,
         lienRessources: data.lienRessources,
+        formationsProposees: data.formationsProposees,
       };
       await rubriqueService.updateRubrique(editModal.selectedItem.id, updatedRubrique, data.imageFile);
       toast({
