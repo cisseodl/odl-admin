@@ -13,6 +13,12 @@ export class FileUploadService {
     try {
       console.log(`[FileUploadService] uploadFile appelé - fichier: ${file.name}, taille: ${file.size}, type: ${file.type}, dossier: ${folderName}`);
       
+      // Validation de la taille du fichier (500MB = 500 * 1024 * 1024 bytes)
+      const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+      if (file.size > MAX_FILE_SIZE) {
+        throw new Error(`Le fichier est trop volumineux (${(file.size / (1024 * 1024)).toFixed(2)}MB). La taille maximale autorisée est de 500MB. Veuillez réduire la taille du fichier ou le compresser.`);
+      }
+      
       const formData = new FormData();
       formData.append("file", file);
       formData.append("folderName", folderName);
@@ -62,7 +68,9 @@ export class FileUploadService {
         errorMessage += jsonData?.message || jsonData?.error || response.statusText;
         
         // Messages d'erreur plus explicites selon le code de statut
-        if (response.status === 500) {
+        if (response.status === 413) {
+          errorMessage = `Le fichier est trop volumineux (limite: 500MB). Veuillez réduire la taille du fichier ou le compresser.`;
+        } else if (response.status === 500) {
           errorMessage += ". Vérifiez la configuration du serveur.";
         } else if (response.status === 401 || response.status === 403) {
           errorMessage += ". Vérifiez votre authentification.";
