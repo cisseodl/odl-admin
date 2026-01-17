@@ -78,10 +78,15 @@ export function CreateEvaluationModal({
       type: EvaluationType.QUIZ,
       tpInstructions: "",
       tpFileUrl: "",
+      questions: [],
     },
   })
 
   const evaluationType = form.watch("type")
+  const { fields: questionFields, append: appendQuestion, remove: removeQuestion } = useFieldArray({
+    control: form.control,
+    name: "questions",
+  })
 
   useEffect(() => {
     const fetchCourses = async () => {
