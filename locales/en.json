@@ -672,8 +672,6 @@
       "success_file_upload": "File Uploaded",
       "error_file_upload": "Upload Error"
     }
-    "title": "Evaluation Management",
-    "description": "Manage all platform evaluations"
   },
   "announcements": {
     "title": "Announcements",
