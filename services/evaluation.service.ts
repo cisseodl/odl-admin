@@ -1,6 +1,20 @@
 import { Evaluation, EvaluationAttempt, EvaluationType } from '../models/evaluation.model';
 import { fetchApi } from './api.service';
 
+export interface QuestionRequest {
+  title: string;
+  description?: string;
+  type?: string; // SINGLE_CHOICE, MULTIPLE_CHOICE
+  points?: number;
+  reponses?: ResponseRequest[];
+}
+
+export interface ResponseRequest {
+  title: string;
+  description?: string;
+  isCorrect: boolean;
+}
+
 export interface EvaluationRequest {
   title: string;
   description?: string;
@@ -8,6 +22,7 @@ export interface EvaluationRequest {
   type: EvaluationType;
   tpInstructions?: string;
   tpFileUrl?: string;
+  questions?: QuestionRequest[]; // Questions pour les QUIZ
 }
 
 export interface EvaluationSubmissionRequest {

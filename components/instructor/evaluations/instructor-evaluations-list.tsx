@@ -128,6 +128,7 @@ export function InstructorEvaluationsList() {
         type: data.type,
         tpInstructions: data.tpInstructions,
         tpFileUrl: data.tpFileUrl,
+        questions: data.questions, // Inclure les questions pour les QUIZ
       })
       toast({
         title: t('evaluations.toasts.success_create') || "Succès",
