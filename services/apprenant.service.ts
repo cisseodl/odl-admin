@@ -17,8 +17,13 @@ export class ApprenantService {
   }
 
   async getApprenantsByCohorte(cohorteId: number, page: number, size: number): Promise<any> {
-    const response = await fetchApi<any>(`/apprenants/get-by-cohorte/${cohorteId}/${page}/${size}`, { method: "GET" });
-    return response.data || response;
+    try {
+      const response = await fetchApi<any>(`/api/apprenants/get-by-cohorte/${cohorteId}/${page}/${size}`, { method: "GET" });
+      return response.data || response;
+    } catch (error) {
+      console.error("Error fetching apprenants by cohorte:", error);
+      return [];
+    }
   }
 
   async createApprenant(apprenantData: { username?: string; userId?: number; userEmail?: string; numero?: string; profession?: string; niveauEtude?: string; filiere?: string; attentes?: string; satisfaction?: boolean; cohorteId?: number; activate?: boolean }): Promise<any> {
@@ -43,31 +48,20 @@ export class ApprenantService {
     }
   }
 
-  async updateApprenant(id: number, apprenantData: Partial<Apprenant>): Promise<any> {
+  async updateApprenant(id: number, apprenantData: { username?: string; numero?: string; profession?: string; niveauEtude?: string; filiere?: string; attentes?: string; satisfaction?: boolean; cohorteId?: number; userDetails?: { fullName?: string; email?: string; phone?: string; activate?: boolean } }): Promise<any> {
     // Le backend attend un User dans le body ET des query params pour les champs Apprenant
-    const userBody = {
-      fullName: apprenantData.nom && apprenantData.prenom 
-        ? `${apprenantData.prenom} ${apprenantData.nom}`.trim()
-        : undefined,
-      email: apprenantData.email,
-      phone: apprenantData.numero,
-      activate: apprenantData.activate,
-    };
+    const userBody = apprenantData.userDetails || {};
 
     // Construire les query params pour les champs spécifiques à Apprenant
     const queryParams = new URLSearchParams();
-    if (apprenantData.nom) queryParams.append("nom", apprenantData.nom);
-    if (apprenantData.prenom) queryParams.append("prenom", apprenantData.prenom);
-    if (apprenantData.email) queryParams.append("email", apprenantData.email);
+    if (apprenantData.username) queryParams.append("username", apprenantData.username);
     if (apprenantData.numero) queryParams.append("numero", apprenantData.numero);
     if (apprenantData.profession) queryParams.append("profession", apprenantData.profession);
     if (apprenantData.niveauEtude) queryParams.append("niveauEtude", apprenantData.niveauEtude);
     if (apprenantData.filiere) queryParams.append("filiere", apprenantData.filiere);
     if (apprenantData.attentes) queryParams.append("attentes", apprenantData.attentes);
     if (apprenantData.satisfaction !== undefined) queryParams.append("satisfaction", String(apprenantData.satisfaction));
-    // Gérer cohorteId depuis l'objet cohorte ou directement
-    const cohorteId = (apprenantData.cohorte as any)?.id || (apprenantData as any).cohorteId;
-    if (cohorteId) queryParams.append("cohorteId", String(cohorteId));
+    if (apprenantData.cohorteId) queryParams.append("cohorteId", String(apprenantData.cohorteId));
 
     const response = await fetchApi<any>(`/api/apprenants/${id}?${queryParams.toString()}`, {
       method: "PUT",
