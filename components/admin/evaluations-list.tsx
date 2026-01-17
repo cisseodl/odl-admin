@@ -13,21 +13,23 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Eye, Edit, Trash2, FileText, Upload, Calendar } from "lucide-react"
 
-import { Evaluation } from "@/models";
+import { Evaluation, EvaluationType } from "@/models";
 import { evaluationService } from "@/services";
 import { PageLoader } from "@/components/ui/page-loader";
 import { EmptyState } from "./empty-state";
-// Assume EvaluationFormModal and ViewEvaluationModal exist or need to be created
-import { EvaluationFormModal } from "@/components/shared/evaluation-form-modal"; // Placeholder
-import { ViewEvaluationModal } from "./evaluations/modals/view-evaluation-modal"; // Corrected path
+import { EvaluationFormModal } from "@/components/shared/evaluation-form-modal";
+import { ViewEvaluationModal } from "./evaluations/modals/view-evaluation-modal";
+import { useLanguage } from "@/contexts/language-context";
+
 type EvaluationDisplay = {
   id: number
   title: string
   description?: string
   status: string
   imagePath?: string
+  type?: EvaluationType
+  courseTitle?: string
   createdAt: string
-  // Add other fields needed for display
 }
 
 // Helper function to map Evaluation to EvaluationDisplay
@@ -38,6 +40,8 @@ const mapEvaluationToEvaluationDisplay = (evaluation: Evaluation): EvaluationDis
     description: evaluation.description || "N/A",
     status: evaluation.status || "N/A",
     imagePath: evaluation.imagePath || undefined,
+    type: evaluation.type,
+    courseTitle: evaluation.course?.title || "N/A",
     createdAt: evaluation.createdAt ? new Date(evaluation.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) : "N/A",
   };
 };
@@ -52,6 +56,7 @@ const mapEvaluationDisplayToEvaluationFormData = (evaluation: EvaluationDisplay)
 };
 
 export function EvaluationsList() {
+  const { t } = useLanguage()
   const addModal = useModal<EvaluationDisplay>()
   const editModal = useModal<EvaluationDisplay>()
   const deleteModal = useModal<EvaluationDisplay>()
@@ -144,7 +149,7 @@ export function EvaluationsList() {
     () => [
       {
         accessorKey: "title",
-        header: "Titre",
+        header: t('evaluations.list.header_title') || "Titre",
         cell: ({ row }) => (
           <div className="font-medium flex items-center gap-2">
             <FileText className="h-4 w-4 text-muted-foreground" />
@@ -153,13 +158,27 @@ export function EvaluationsList() {
         ),
       },
       {
+        accessorKey: "type",
+        header: t('evaluations.list.header_type') || "Type",
+        cell: ({ row }) => (
+          <StatusBadge
+            status={row.original.type === EvaluationType.QUIZ ? "QUIZ" : row.original.type === EvaluationType.TP ? "TP" : "N/A"}
+          />
+        ),
+      },
+      {
+        accessorKey: "courseTitle",
+        header: t('evaluations.list.header_course') || "Cours",
+        cell: ({ row }) => row.original.courseTitle || "N/A",
+      },
+      {
         accessorKey: "status",
-        header: "Statut",
+        header: t('evaluations.list.header_status') || "Statut",
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       {
         accessorKey: "createdAt",
-        header: "Date de création",
+        header: t('evaluations.list.header_created') || "Date de création",
         cell: ({ row }) => (
           <div className="flex items-center gap-1 text-sm">
             <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
@@ -169,24 +188,24 @@ export function EvaluationsList() {
       },
       {
         id: "actions",
-        header: "Actions",
+        header: t('table.actions') || "Actions",
         cell: ({ row }) => {
           const evaluation = row.original;
           return (
             <ActionMenu
               actions={[
                 {
-                  label: "Voir détails",
+                  label: t('evaluations.list.action_view') || "Voir détails",
                   icon: <Eye className="h-4 w-4" />,
                   onClick: () => viewModal.open(evaluation),
                 },
                 {
-                  label: "Modifier",
+                  label: t('evaluations.list.action_edit') || "Modifier",
                   icon: <Edit className="h-4 w-4" />,
                   onClick: () => editModal.open(evaluation),
                 },
                 {
-                  label: "Supprimer",
+                  label: t('evaluations.list.action_delete') || "Supprimer",
                   icon: <Trash2 className="h-4 w-4" />,
                   onClick: () => deleteModal.open(evaluation.id),
                   variant: "destructive",
@@ -197,7 +216,7 @@ export function EvaluationsList() {
         },
       },
     ],
-    [viewModal, editModal, deleteModal]
+    [viewModal, editModal, deleteModal, t]
   );
 
   return (
@@ -214,7 +233,7 @@ export function EvaluationsList() {
         <CardContent>
           <div className="mb-4">
             <SearchBar
-              placeholder="Rechercher une évaluation..."
+              placeholder={t('evaluations.list.search_placeholder') || "Rechercher une évaluation..."}
               value={searchQuery}
               onChange={setSearchQuery}
             />
@@ -226,8 +245,8 @@ export function EvaluationsList() {
           ) : filteredData.length === 0 ? (
             <EmptyState
               icon={FileText}
-              title="Aucune évaluation"
-              description="Commencez par ajouter une évaluation à la plateforme"
+              title={t('evaluations.list.empty_title') || "Aucune évaluation"}
+              description={t('evaluations.list.empty_description') || "Commencez par ajouter une évaluation à la plateforme"}
             />
           ) : (
             <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
@@ -239,21 +258,21 @@ export function EvaluationsList() {
       <EvaluationFormModal
         open={addModal.isOpen}
         onOpenChange={(open) => !open && addModal.close()}
-        title="Ajouter une évaluation"
-        description="Créez une nouvelle évaluation pour les cours"
+        title={t('evaluations.create.title') || "Ajouter une évaluation"}
+        description={t('evaluations.create.description') || "Créez une nouvelle évaluation pour les cours"}
         onSubmit={handleAddEvaluation}
-        submitLabel="Créer l'évaluation"
+        submitLabel={t('evaluations.create.submit') || "Créer l'évaluation"}
       />
 
       {editModal.selectedItem && (
         <EvaluationFormModal
           open={editModal.isOpen}
           onOpenChange={(open) => !open && editModal.close()}
-          title="Modifier l'évaluation"
-          description="Modifiez les informations de l'évaluation"
+          title={t('evaluations.edit.title') || "Modifier l'évaluation"}
+          description={t('evaluations.edit.description') || "Modifiez les informations de l'évaluation"}
           defaultValues={mapEvaluationDisplayToEvaluationFormData(editModal.selectedItem)}
           onSubmit={handleUpdateEvaluation}
-          submitLabel="Enregistrer les modifications"
+          submitLabel={t('evaluations.edit.submit') || "Enregistrer les modifications"}
         />
       )}
 
@@ -269,9 +288,9 @@ export function EvaluationsList() {
         open={deleteModal.isOpen}
         onOpenChange={(open) => !open && deleteModal.close()}
         onConfirm={() => handleDeleteEvaluation(deleteModal.selectedItem?.id || 0)}
-        title="Supprimer l'évaluation"
-        description={`Êtes-vous sûr de vouloir supprimer ${deleteModal.selectedItem?.title} ? Cette action est irréversible.`}
-        confirmText="Supprimer"
+        title={t('evaluations.delete.title') || "Supprimer l'évaluation"}
+        description={t('evaluations.delete.description') || `Êtes-vous sûr de vouloir supprimer ${deleteModal.selectedItem?.title} ? Cette action est irréversible.`}
+        confirmText={t('evaluations.delete.confirm') || "Supprimer"}
         variant="destructive"
       />
     </>

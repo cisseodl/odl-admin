@@ -587,6 +587,91 @@
     "admin": "Administrator"
   },
   "evaluations": {
+    "title": "Evaluations",
+    "description": "Manage evaluations for your courses",
+    "list": {
+      "header_title": "Title",
+      "header_type": "Type",
+      "header_course": "Course",
+      "header_status": "Status",
+      "header_created": "Created Date",
+      "action_view": "View details",
+      "action_edit": "Edit",
+      "action_delete": "Delete",
+      "add_button": "Add Evaluation",
+      "search_placeholder": "Search for an evaluation...",
+      "empty_title": "No evaluations",
+      "empty_description": "Start by adding an evaluation to the platform"
+    },
+    "create": {
+      "title": "Create Evaluation",
+      "description": "Create a new evaluation for your courses",
+      "form": {
+        "title": "Title",
+        "title_placeholder": "Evaluation title",
+        "description": "Description",
+        "description_placeholder": "Evaluation description",
+        "course": "Course",
+        "course_placeholder": "Select a course",
+        "type": "Evaluation Type",
+        "type_placeholder": "Select a type",
+        "type_quiz": "Quiz (Auto-corrected)",
+        "type_tp": "TP (Instructor-corrected)",
+        "tp_instructions": "TP Instructions",
+        "tp_instructions_placeholder": "Instructions for the practical work...",
+        "tp_file": "TP File (optional)",
+        "file_selected": "File selected",
+        "uploading": "Uploading..."
+      },
+      "submit": "Create Evaluation"
+    },
+    "edit": {
+      "title": "Edit Evaluation",
+      "description": "Modify evaluation information",
+      "submit": "Save Changes"
+    },
+    "delete": {
+      "title": "Delete Evaluation",
+      "description": "Are you sure you want to delete this evaluation? This action is irreversible.",
+      "confirm": "Delete"
+    },
+    "correct": {
+      "title": "Correct TP",
+      "description": "Give a score between 0 and 100 for this submission",
+      "submitted_file": "Submitted File",
+      "view_file": "View file",
+      "score": "Score (0-100)",
+      "feedback": "Comments (optional)",
+      "feedback_placeholder": "Comments for the learner...",
+      "submit": "Save Correction"
+    },
+    "pending": {
+      "header_evaluation": "Evaluation",
+      "header_learner": "Learner",
+      "header_submitted": "Submitted on",
+      "action_correct": "Correct",
+      "empty_title": "No pending TPs",
+      "empty_description": "All TPs have been corrected"
+    },
+    "tabs": {
+      "evaluations": "My Evaluations",
+      "pending_tps": "Pending TPs"
+    },
+    "toasts": {
+      "success_create": "Evaluation Created",
+      "success_create_message": "The evaluation has been created successfully.",
+      "error_create": "Creation Error",
+      "success_correct": "TP Corrected",
+      "success_correct_message": "The TP has been corrected successfully.",
+      "error_correct": "Correction Error",
+      "success_delete": "Evaluation Deleted",
+      "success_delete_message": "The evaluation has been deleted successfully.",
+      "error_delete": "Deletion Error",
+      "error_load": "Loading Error",
+      "error_load_courses": "Error loading courses",
+      "success_file_upload": "File Uploaded",
+      "error_file_upload": "Upload Error"
+    }
     "title": "Evaluation Management",
     "description": "Manage all platform evaluations"
   },

@@ -171,5 +171,10 @@ export const instructorRoutes: Route[] = [
     icon: Users,
     href: "/instructor/students",
   },
+  {
+    label: "routes.evaluations",
+    icon: FileQuestion,
+    href: "/instructor/evaluations",
+  },
 ]
 
