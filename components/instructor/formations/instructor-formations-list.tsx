@@ -5,247 +5,270 @@ import { PageHeader } from "@/components/ui/page-header"
 import { SearchBar } from "@/components/ui/search-bar"
 import { DataTable } from "@/components/ui/data-table"
 import { ActionMenu } from "@/components/ui/action-menu"
+import { StatusBadge } from "@/components/ui/status-badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { useModal } from "@/hooks/use-modal"
 import { useSearch } from "@/hooks/use-search"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import type { ColumnDef } from "@tanstack/react-table"
-import { Edit, Trash2, Clock } from "lucide-react"
-import { RubriqueFormModal } from "@/components/shared/rubrique-form-modal"
-import { ApiRubrique, rubriqueService } from "@/services/rubrique.service"
+import { Eye, Edit, Trash2, BookOpen, Users, Star, FileText, Video, Clock } from "lucide-react"
+import { CourseFormModal, type CourseFormData } from "@/components/shared/course-form-modal"
+import { ViewCourseModal } from "@/components/admin/modals/view-course-modal"
+import { courseService, categorieService } from "@/services"
 import { PageLoader } from "@/components/ui/page-loader"
 import { EmptyState } from "@/components/admin/empty-state"
-import type { RubriqueFormData } from "@/lib/validations/rubrique"
 import { useLanguage } from "@/contexts/language-context"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
-import { BookOpen } from "lucide-react"
+import type { Course, Categorie } from "@/models"
 
-type RubriqueDisplay = {
+type CourseDisplay = {
   id: number
-  rubrique: string
-  image: string | null
-  description: string | null
-  objectifs: string | null
-  publicCible: string | null
-  dureeFormat: string | null
-  lien_ressources: string | null
-  createdBy?: string
-}
-
-const mapApiRubriqueToRubriqueDisplay = (rubrique: ApiRubrique): RubriqueDisplay => {
-  return {
-    id: rubrique.id,
-    rubrique: rubrique.rubrique,
-    image: rubrique.image,
-    description: rubrique.description,
-    objectifs: rubrique.objectifs,
-    publicCible: rubrique.public_cible,
-    dureeFormat: rubrique.duree_format,
-    lien_ressources: rubrique.lien_ressources,
-    createdBy: rubrique.created_by,
-  }
+  title: string
+  subtitle?: string
+  description?: string
+  status: string
+  modules: number
+  chapters: number
+  videos: number
+  students: number
+  rating: number
+  createdAt: string
+  categoryId?: number
+  level?: string
+  language?: string
+  imagePath?: string
 }
 
 export function InstructorFormationsList() {
   const { t } = useLanguage()
   const { toast } = useToast()
   const { user } = useAuth()
-  const addModal = useModal<RubriqueDisplay>()
-  const editModal = useModal<RubriqueDisplay>()
-  const deleteModal = useModal<RubriqueDisplay>()
-  const viewModal = useModal<RubriqueDisplay>()
+  const addModal = useModal<CourseDisplay>()
+  const editModal = useModal<CourseDisplay>()
+  const deleteModal = useModal<CourseDisplay>()
+  const viewModal = useModal<CourseDisplay>()
 
-  const [rubriques, setRubriques] = useState<RubriqueDisplay[]>([])
+  const [courses, setCourses] = useState<CourseDisplay[]>([])
+  const [categories, setCategories] = useState<Categorie[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchRubriques = async () => {
+  const fetchCourses = async () => {
+    if (!user?.id) {
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     setError(null)
     try {
-      const response = await rubriqueService.getAllRubriques()
+      const coursesData = await courseService.getCoursesByInstructorId(Number(user.id))
       
-      // Le backend retourne CResponse avec structure { ok, data, message }
-      let allRubriques: ApiRubrique[] = []
-      
-      if (response && response.data) {
-        allRubriques = Array.isArray(response.data) ? response.data : (response.data ? [response.data] : [])
-      } else if (Array.isArray(response)) {
-        allRubriques = response
+      if (Array.isArray(coursesData) && coursesData.length > 0) {
+        const mapped: CourseDisplay[] = coursesData.map((c: any) => ({
+          id: c.id,
+          title: c.title || "Sans titre",
+          subtitle: c.subtitle,
+          description: c.description,
+          status:
+            c.status === "PUBLISHED" || c.status === "PUBLIE" || c.status === "Publié"
+              ? "Publié"
+              : c.status === "DRAFT" || c.status === "BROUILLON" || c.status === "Brouillon"
+              ? "Brouillon"
+              : c.status === "IN_REVIEW" || c.status === "En révision"
+              ? "En révision"
+              : "Brouillon",
+          modules: Array.isArray(c.modules) ? c.modules.length : 0,
+          chapters: Array.isArray(c.modules)
+            ? c.modules.reduce(
+                (acc: number, m: any) =>
+                  acc + (Array.isArray(m.lessons) ? m.lessons.length : 0),
+                0
+              )
+            : 0,
+          videos: 0,
+          students: c.studentsCount || 0,
+          rating: c.averageRating || 0,
+          createdAt: c.createdAt
+            ? new Date(c.createdAt).toLocaleDateString("fr-FR")
+            : "",
+          categoryId: c.categorie?.id || c.categoryId,
+          level: c.level,
+          language: c.language,
+          imagePath: c.imagePath || c.image,
+        }))
+        setCourses(mapped)
+      } else {
+        setCourses([])
       }
-      
-      // Filtrer les rubriques créées par l'instructeur connecté
-      const instructorRubriques = allRubriques.filter((rubrique: ApiRubrique) => {
-        // Si createdBy est un email, comparer avec l'email de l'utilisateur
-        // Si createdBy est un ID, comparer avec l'ID de l'utilisateur
-        if (user?.email && rubrique.created_by) {
-          return rubrique.created_by === user.email || rubrique.created_by === String(user.id)
-        }
-        return false
-      })
-      
-      setRubriques(instructorRubriques.map(mapApiRubriqueToRubriqueDisplay))
     } catch (err: any) {
-      console.error("Error fetching rubriques:", err)
-      setError(err.message || t('rubriques.toasts.error_load') || "Impossible de charger les formations.")
-      setRubriques([])
+      console.error("Error fetching courses:", err)
+      setError(err.message || t('courses.toasts.error_load') || "Impossible de charger les formations.")
+      setCourses([])
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    if (user?.id || user?.email) {
-      fetchRubriques()
+  const fetchCategories = async () => {
+    try {
+      const response = await categorieService.getAllCategories()
+      if (Array.isArray(response)) {
+        setCategories(response)
+      } else if (response && Array.isArray(response.data)) {
+        setCategories(response.data)
+      } else {
+        setCategories([])
+      }
+    } catch (err) {
+      console.error("Failed to load categories:", err)
+      setCategories([])
     }
-  }, [user?.id, user?.email])
+  }
 
-  const { searchQuery, setSearchQuery, filteredData } = useSearch<RubriqueDisplay>({
-    data: rubriques,
-    searchKeys: ["rubrique", "description", "objectifs", "publicCible"],
+  useEffect(() => {
+    if (user?.id) {
+      fetchCourses()
+      fetchCategories()
+    }
+  }, [user?.id])
+
+  const { searchQuery, setSearchQuery, filteredData } = useSearch<CourseDisplay>({
+    data: courses,
+    searchKeys: ["title", "description"],
   })
 
-  const handleAddRubrique = async (data: RubriqueFormData & { imageFile?: File | undefined }) => {
+  const handleAddCourse = async (data: CourseFormData) => {
     setError(null)
     try {
-      const { imageFile, ...rubriqueData } = data
-      const response = await rubriqueService.createRubrique(rubriqueData, imageFile)
+      const { categoryId, ...courseData } = data
+      const response = await courseService.createCourse(categoryId, courseData)
       
-      if (response && response.data) {
-        const newRubrique = mapApiRubriqueToRubriqueDisplay(response.data)
-        setRubriques((prev) => [...prev, newRubrique])
-        addModal.close()
+      if (response) {
         toast({
-          title: t('rubriques.toasts.success_create') || "Succès",
-          description: t('rubriques.toasts.create_success') || "Formation créée avec succès.",
+          title: t('courses.toasts.success_create') || "Succès",
+          description: t('courses.toasts.create_success') || "Formation créée avec succès.",
         })
-      } else {
-        throw new Error("Réponse invalide de l'API")
+        addModal.close()
+        await fetchCourses()
       }
     } catch (err: any) {
-      console.error("Error adding rubrique:", err)
+      console.error("Error adding course:", err)
       toast({
-        title: t('rubriques.toasts.error_create') || "Erreur",
-        description: err.message || t('rubriques.toasts.create_error') || "Impossible de créer la formation.",
+        title: t('courses.toasts.error_create') || "Erreur",
+        description: err.message || t('courses.toasts.create_error') || "Impossible de créer la formation.",
         variant: "destructive",
       })
     }
   }
 
-  const handleUpdateRubrique = async (data: RubriqueFormData & { imageFile?: File | undefined }) => {
+  const handleUpdateCourse = async (data: CourseFormData) => {
     setError(null)
     if (editModal.selectedItem) {
       try {
-        const { imageFile, ...rubriqueData } = data
-
-        const payload: Partial<ApiRubrique> = {
-          rubrique: rubriqueData.rubrique,
-          description: rubriqueData.description,
-          objectifs: rubriqueData.objectifs,
-          public_cible: rubriqueData.publicCible,
-          duree_format: rubriqueData.dureeFormat,
-          lien_ressources: rubriqueData.lienRessources,
-          image: rubriqueData.image,
-        }
-
-        const response = await rubriqueService.updateRubrique(
-          editModal.selectedItem.id,
-          payload,
-          imageFile
-        )
+        const { categoryId, ...courseData } = data
+        const response = await courseService.updateCourse(editModal.selectedItem.id, courseData)
         
-        if (response && response.data) {
-          const updatedRubrique = mapApiRubriqueToRubriqueDisplay(response.data)
-          setRubriques((prev) =>
-            prev.map((rubrique) =>
-              rubrique.id === editModal.selectedItem!.id ? updatedRubrique : rubrique
-            )
-          )
-          editModal.close()
+        if (response) {
           toast({
-            title: t('rubriques.toasts.success_update') || "Succès",
-            description: t('rubriques.toasts.update_success') || "Formation mise à jour avec succès.",
+            title: t('courses.toasts.success_update') || "Succès",
+            description: t('courses.toasts.update_success') || "Formation mise à jour avec succès.",
           })
-        } else {
-          throw new Error("Réponse invalide de l'API")
+          editModal.close()
+          await fetchCourses()
         }
       } catch (err: any) {
-        console.error("Error updating rubrique:", err)
+        console.error("Error updating course:", err)
         toast({
-          title: t('rubriques.toasts.error_update') || "Erreur",
-          description: err.message || t('rubriques.toasts.update_error') || "Impossible de mettre à jour la formation.",
+          title: t('courses.toasts.error_update') || "Erreur",
+          description: err.message || t('courses.toasts.update_error') || "Impossible de mettre à jour la formation.",
           variant: "destructive",
         })
       }
     }
   }
 
-  const handleDeleteRubrique = async () => {
+  const handleDeleteCourse = async () => {
     setError(null)
     if (deleteModal.selectedItem) {
       try {
-        await rubriqueService.deleteRubrique(deleteModal.selectedItem.id)
-        setRubriques((prev) => prev.filter((rubrique) => rubrique.id !== deleteModal.selectedItem!.id))
-        deleteModal.close()
+        await courseService.deleteCourse(deleteModal.selectedItem.id)
         toast({
-          title: t('rubriques.toasts.success_delete') || "Succès",
-          description: t('rubriques.toasts.delete_success') || "Formation supprimée avec succès.",
+          title: t('courses.toasts.success_delete') || "Succès",
+          description: t('courses.toasts.delete_success') || "Formation supprimée avec succès.",
         })
+        setCourses((prev) => prev.filter((course) => course.id !== deleteModal.selectedItem.id))
+        deleteModal.close()
       } catch (err: any) {
-        console.error("Error deleting rubrique:", err)
+        console.error("Error deleting course:", err)
         toast({
-          title: t('rubriques.toasts.error_delete') || "Erreur",
-          description: err.message || t('rubriques.toasts.delete_error') || "Impossible de supprimer la formation.",
+          title: t('courses.toasts.error_delete') || "Erreur",
+          description: err.message || t('courses.toasts.delete_error') || "Impossible de supprimer la formation.",
           variant: "destructive",
         })
       }
     }
   }
 
-  const columns: ColumnDef<RubriqueDisplay>[] = useMemo(
+  const columns: ColumnDef<CourseDisplay>[] = useMemo(
     () => [
       {
-        accessorKey: "rubrique",
-        header: t('rubriques.list.header_rubrique') || "Formation",
+        accessorKey: "title",
+        header: t('courses.list.header_course') || "Formation",
         cell: ({ row }) => (
-          <div className="font-medium">{row.original.rubrique}</div>
-        ),
-      },
-      {
-        accessorKey: "description",
-        header: t('rubriques.form.description') || "Description",
-        cell: ({ row }) => (
-          <div className="text-sm text-muted-foreground line-clamp-2">
-            {row.original.description || t('common.none') || "N/A"}
+          <div className="font-medium flex items-center gap-2">
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+            {row.original.title}
           </div>
         ),
       },
       {
-        accessorKey: "objectifs",
-        header: t('rubriques.form.objectives') || "Objectifs",
+        accessorKey: "modules",
+        header: t('courses.modules') || "Modules",
         cell: ({ row }) => (
-          <div className="text-sm text-muted-foreground line-clamp-2">
-            {row.original.objectifs || t('common.none') || "N/A"}
+          <div className="flex items-center gap-1">
+            <FileText className="h-4 w-4 text-muted-foreground" />
+            {row.original.modules}
           </div>
         ),
       },
       {
-        accessorKey: "publicCible",
-        header: t('rubriques.form.target_audience') || "Public Cible",
+        accessorKey: "chapters",
+        header: t('courses.chapters') || "Chapitres",
+      },
+      {
+        accessorKey: "students",
+        header: t('courses.list.header_students') || "Étudiants",
         cell: ({ row }) => (
-          <div className="text-sm text-muted-foreground line-clamp-2">
-            {row.original.publicCible || t('common.none') || "N/A"}
+          <div className="flex items-center gap-1">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            {row.original.students}
           </div>
         ),
       },
       {
-        accessorKey: "dureeFormat",
-        header: t('rubriques.form.duration') || "Durée / Format",
+        accessorKey: "rating",
+        header: t('courses.list.header_rating') || "Note",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-1">
+            <Star className="h-4 w-4 fill-primary text-primary" />
+            {row.original.rating.toFixed(1)}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: t('courses.list.header_status') || "Statut",
+        cell: ({ row }) => <StatusBadge status={row.original.status} />,
+      },
+      {
+        accessorKey: "createdAt",
+        header: t('courses.list.header_created') || "Date de création",
         cell: ({ row }) => (
           <div className="flex items-center gap-1 text-sm">
             <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-            {row.original.dureeFormat || t('common.none') || "N/A"}
+            {row.original.createdAt}
           </div>
         ),
       },
@@ -253,19 +276,44 @@ export function InstructorFormationsList() {
         id: "actions",
         header: t('common.actions') || "Actions",
         cell: ({ row }) => {
-          const rubrique = row.original
+          const course = row.original
+          const courseForModal: any = {
+            id: course.id,
+            title: course.title,
+            subtitle: course.subtitle,
+            description: course.description,
+            imagePath: course.imagePath,
+            duration: 0,
+            level: course.level,
+            language: course.language,
+            bestseller: false,
+            objectives: [],
+            features: [],
+            modules: [],
+            status: course.status === "Publié" ? "PUBLISHED" : course.status === "Brouillon" ? "DRAFT" : "IN_REVIEW",
+            price: 0,
+            categorie: null,
+            instructor: null,
+            students: course.students,
+            rating: course.rating,
+          }
           return (
             <ActionMenu
               actions={[
                 {
+                  label: t('common.view') || "Voir détails",
+                  icon: <Eye className="h-4 w-4" />,
+                  onClick: () => viewModal.open(courseForModal),
+                },
+                {
                   label: t('common.edit') || "Modifier",
                   icon: <Edit className="h-4 w-4" />,
-                  onClick: () => editModal.open(rubrique),
+                  onClick: () => editModal.open(course),
                 },
                 {
                   label: t('common.delete') || "Supprimer",
                   icon: <Trash2 className="h-4 w-4" />,
-                  onClick: () => deleteModal.open(rubrique),
+                  onClick: () => deleteModal.open(course),
                   variant: "destructive",
                 },
               ]}
@@ -282,7 +330,7 @@ export function InstructorFormationsList() {
       <PageHeader
         title={t('routes.instructor_formations') || "Formations"}
         action={{
-          label: t('rubriques.list.add_button') || "Ajouter une formation",
+          label: t('courses.actions.create') || "Ajouter une formation",
           onClick: () => addModal.open(),
         }}
       />
@@ -291,7 +339,7 @@ export function InstructorFormationsList() {
         <CardContent>
           <div className="mb-4">
             <SearchBar
-              placeholder={t('rubriques.list.search_placeholder') || "Rechercher une formation..."}
+              placeholder={t('courses.search_placeholder') || "Rechercher une formation..."}
               value={searchQuery}
               onChange={setSearchQuery}
             />
@@ -303,8 +351,8 @@ export function InstructorFormationsList() {
           ) : filteredData.length === 0 ? (
             <EmptyState
               icon={BookOpen}
-              title={t('rubriques.list.empty_title') || "Aucune formation"}
-              description={t('rubriques.list.empty_description') || "Commencez par ajouter une formation"}
+              title={t('courses.list.empty_title') || "Aucune formation"}
+              description={t('courses.list.empty_description') || "Commencez par ajouter une formation"}
             />
           ) : (
             <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
@@ -312,33 +360,50 @@ export function InstructorFormationsList() {
         </CardContent>
       </Card>
 
-      <RubriqueFormModal
+      <CourseFormModal
         open={addModal.isOpen}
         onOpenChange={(open) => !open && addModal.close()}
-        title={t('rubriques.modals.add_title') || "Ajouter une formation"}
-        description={t('rubriques.modals.add_description') || "Créez une nouvelle formation pour organiser le contenu"}
-        onSubmit={handleAddRubrique}
-        submitLabel={t('rubriques.modals.add_submit') || "Créer la formation"}
+        title={t('courses.actions.create') || "Ajouter une formation"}
+        description={t('courses.create_description') || "Créez une nouvelle formation"}
+        onSubmit={handleAddCourse}
+        submitLabel={t('courses.actions.create') || "Créer la formation"}
+        categories={categories}
       />
 
       {editModal.selectedItem && (
-        <RubriqueFormModal
+        <CourseFormModal
           open={editModal.isOpen}
           onOpenChange={(open) => !open && editModal.close()}
-          title={t('rubriques.modals.edit_title') || "Modifier la formation"}
-          description={t('rubriques.modals.edit_description') || "Modifiez les informations de la formation"}
-          defaultValues={editModal.selectedItem}
-          onSubmit={handleUpdateRubrique}
-          submitLabel={t('rubriques.modals.edit_submit') || "Enregistrer les modifications"}
+          title={t('courses.actions.edit') || "Modifier la formation"}
+          description={t('courses.edit_description') || "Modifiez les informations de la formation"}
+          defaultValues={{
+            title: editModal.selectedItem.title,
+            subtitle: editModal.selectedItem.subtitle || "",
+            description: editModal.selectedItem.description || "",
+            level: (editModal.selectedItem.level as "BEGINNER" | "INTERMEDIATE" | "ADVANCED") || "BEGINNER",
+            language: editModal.selectedItem.language || "",
+            categoryId: editModal.selectedItem.categoryId || 0,
+          }}
+          onSubmit={handleUpdateCourse}
+          submitLabel={t('courses.actions.edit') || "Enregistrer les modifications"}
+          categories={categories}
+        />
+      )}
+
+      {viewModal.selectedItem && (
+        <ViewCourseModal
+          open={viewModal.isOpen}
+          onOpenChange={(open) => !open && viewModal.close()}
+          course={viewModal.selectedItem}
         />
       )}
 
       <ConfirmDialog
         open={deleteModal.isOpen}
         onOpenChange={(open) => !open && deleteModal.close()}
-        onConfirm={handleDeleteRubrique}
-        title={t('rubriques.modals.delete_title') || "Supprimer la formation"}
-        description={t('rubriques.modals.delete_description', { name: deleteModal.selectedItem?.rubrique }) || `Êtes-vous sûr de vouloir supprimer ${deleteModal.selectedItem?.rubrique} ? Cette action est irréversible.`}
+        onConfirm={handleDeleteCourse}
+        title={t('courses.modals.delete_title') || "Supprimer la formation"}
+        description={t('courses.modals.delete_description', { name: deleteModal.selectedItem?.title }) || `Êtes-vous sûr de vouloir supprimer ${deleteModal.selectedItem?.title} ? Cette action est irréversible.`}
         confirmText={t('common.delete') || "Supprimer"}
         variant="destructive"
       />
