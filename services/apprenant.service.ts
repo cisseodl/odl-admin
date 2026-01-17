@@ -71,10 +71,15 @@ export class ApprenantService {
   }
 
   async deleteApprenant(id: number): Promise<any> {
-    const response = await fetchApi<any>(`/apprenants/${id}`, {
-      method: "DELETE",
-    });
-    return response.data || response;
+    try {
+      const response = await fetchApi<any>(`/api/apprenants/${id}`, {
+        method: "DELETE",
+      });
+      return response.data || response;
+    } catch (error: any) {
+      console.error(`Error deleting apprenant with ID ${id}:`, error);
+      throw error;
+    }
   }
 
   async getApprenantDashboardSummary(apprenantId: number): Promise<{ coursesEnrolled: number; completedCourses: number; totalCertificates: number; }> {
