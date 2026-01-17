@@ -131,9 +131,9 @@ export function ApprenantFormModal({
               name="numero"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Numéro de téléphone (optionnel)</FormLabel>
+                  <FormLabel>{t('users.learners.modals.form.numero') || "Numéro de téléphone (optionnel)"}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="0612345678" />
+                    <Input {...field} placeholder={t('users.learners.modals.form.numero_placeholder') || "0612345678"} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -157,9 +157,9 @@ export function ApprenantFormModal({
               name="niveauEtude"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Niveau d'étude (optionnel)</FormLabel>
+                  <FormLabel>{t('users.learners.modals.form.niveau_etude') || "Niveau d'étude (optionnel)"}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Licence, Master..." />
+                    <Input {...field} placeholder={t('users.learners.modals.form.niveau_etude_placeholder') || "Licence, Master..."} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

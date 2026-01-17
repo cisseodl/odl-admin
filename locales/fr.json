@@ -1393,7 +1393,8 @@
         "lesson_type_placeholder": "Sélectionnez un type",
         "lesson_file": "Fichier",
         "lesson_duration": "Durée (minutes)",
-        "video_file_info": "Téléchargez un fichier vidéo (MP4, AVI, etc.)"
+        "video_file_info": "Téléchargez un fichier vidéo (MP4, AVI, etc.)",
+        "quiz_id": "ID du Quiz"
       }
     },
     "description": "Visualisez et gérez les modules, leçons et quiz pour toutes les formations",

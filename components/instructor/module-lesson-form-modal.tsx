@@ -207,11 +207,11 @@ export function ModuleLessonFormModal({
               name="courseId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Cours</FormLabel>
+                  <FormLabel>{t('content.modals.form.course') || "Cours"}</FormLabel>
                   <Select onValueChange={(value) => field.onChange(Number(value))} defaultValue={String(field.value)}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez un cours" />
+                        <SelectValue placeholder={t('content.modals.form.course_placeholder') || "Sélectionnez un cours"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -365,7 +365,7 @@ export function ModuleLessonFormModal({
                         name={`lessons.${index}.contentFile`}
                         render={({ field: { value, onChange, ...field } }) => (
                           <FormItem>
-                            <FormLabel>Fichier document</FormLabel>
+                            <FormLabel>{t('content.modals.form.lesson_file') || "Fichier document"}</FormLabel>
                             <FormControl>
                               <div className="flex items-center gap-2">
                                 <Input
@@ -430,7 +430,7 @@ export function ModuleLessonFormModal({
                         name={`lessons.${index}.contentFile`}
                         render={({ field: { value, onChange, ...field } }) => (
                           <FormItem>
-                            <FormLabel>Fichier lab</FormLabel>
+                            <FormLabel>{t('content.modals.form.lesson_file') || "Fichier lab"}</FormLabel>
                             <FormControl>
                               <div className="flex items-center gap-2">
                                 <Input

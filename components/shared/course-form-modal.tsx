@@ -84,9 +84,9 @@ export function CourseFormModal({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Titre</FormLabel>
+                  <FormLabel>{t('course_form.title_label') || "Titre"}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Introduction à..." {...field} />
+                    <Input placeholder={t('course_form.title_placeholder') || "Introduction à..."} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -110,9 +110,9 @@ export function CourseFormModal({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t('course_form.description_label') || "Description"}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Ce cours couvre..." {...field} />
+                    <Textarea placeholder={t('course_form.description_placeholder') || "Ce cours couvre..."} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

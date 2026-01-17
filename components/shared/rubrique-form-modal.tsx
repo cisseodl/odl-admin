@@ -140,9 +140,9 @@ export function RubriqueFormModal({
               name="rubrique"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Titre de la Rubrique</FormLabel>
+                  <FormLabel>{t('rubriques.form.title') || "Titre de la Rubrique"}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Ex: Développement Web" />
+                    <Input {...field} placeholder={t('rubriques.form.title_placeholder') || "Ex: Développement Web"} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -209,9 +209,9 @@ export function RubriqueFormModal({
               name="lienRessources"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Lien vers Ressources</FormLabel>
+                  <FormLabel>{t('rubriques.form.resources_link') || "Lien vers Ressources"}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="https://example.com/resources" />
+                    <Input {...field} placeholder={t('rubriques.form.resources_link_placeholder') || "https://example.com/resources"} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
