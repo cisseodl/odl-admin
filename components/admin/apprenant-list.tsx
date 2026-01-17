@@ -193,7 +193,7 @@ export function ApprenantList() {
         description: "Le profil apprenant a été supprimé.",
       });
       fetchApprenants();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to delete apprenant:", error);
       toast({
         title: "Erreur",
