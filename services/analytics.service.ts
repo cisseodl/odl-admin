@@ -139,10 +139,18 @@ class AnalyticsService {
   }
 
   async getUserGrowthData(timeframe: string): Promise<UserGrowthDataPoint[]> { // Renamed and added timeframe parameter
-    const queryParams = new URLSearchParams();
-    queryParams.append("timeframe", timeframe); // Add timeframe to query params
-    const response = await fetchApi<{ data: UserGrowthDataPoint[] }>(`/analytics/user-growth?${queryParams.toString()}`, { method: 'GET' });
-    return response.data; // Extraire la propriété 'data'
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.append("timeFilter", timeframe); // Utiliser timeFilter pour correspondre au backend
+      const response = await fetchApi<{ data: UserGrowthDataPoint[] }>(`/api/analytics/user-growth?${queryParams.toString()}`, { method: 'GET' });
+      if (!response || !response.data) {
+        return [];
+      }
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error("Error fetching user growth data:", error);
+      return [];
+    }
   }
 
   async getCoursePerformanceData(timeFilter?: string, startDate?: string, endDate?: string): Promise<CoursePerformanceDataPoint[]> {

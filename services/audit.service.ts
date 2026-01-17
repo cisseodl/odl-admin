@@ -66,8 +66,49 @@ export class AuditService {
   }
 
   async getInstructorRecentActivity(instructorId: number, limit: number): Promise<AuditLog[]> { // Nouvelle méthode
-    const response = await fetchApi<any>(`/api/audit/instructor-activity?instructorId=${instructorId}&limit=${limit}`, { method: "GET" });
-    return response.data || response;
+    try {
+      const response = await fetchApi<any>(`/api/analytics/instructor-activity?instructorId=${instructorId}&limit=${limit}`, { method: "GET" });
+      if (!response || !response.data) {
+        return [];
+      }
+      const logs = Array.isArray(response.data) ? response.data : [response.data];
+      // Mapper les ActivityLog du backend vers AuditLog du frontend
+      return logs.map((log: any) => {
+        let details: Record<string, unknown> | undefined = undefined;
+        if (log.details) {
+          try {
+            details = typeof log.details === 'string' ? JSON.parse(log.details) : log.details;
+          } catch (e) {
+            details = { raw: log.details };
+          }
+        }
+        
+        let resourceName: string | undefined = undefined;
+        if (details) {
+          resourceName = (details.courseTitle as string) || 
+                     (details.userName as string) || 
+                     (details.title as string) || 
+                     log.resource;
+        } else {
+          resourceName = log.resource;
+        }
+        
+        return {
+          id: log.id || 0,
+          userId: log.user?.id || instructorId,
+          userName: log.userName || "Utilisateur inconnu",
+          action: (log.action || log.activityType || "unknown") as AuditAction,
+          resource: (log.resource || "unknown") as AuditResource,
+          resourceId: details?.id as number || details?.courseId as number || log.courseId || undefined,
+          resourceName: resourceName || log.courseTitle,
+          details: details,
+          createdAt: log.createdAt || log.timestamp || new Date().toISOString(),
+        };
+      });
+    } catch (error) {
+      console.error("Error fetching instructor recent activity:", error);
+      return [];
+    }
   }
 
   async getModerationSummary(): Promise<ModerationSummary> {

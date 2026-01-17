@@ -16,6 +16,7 @@ import { QuickActions } from "@/components/admin/quick-actions"
 import { analyticsService, type AdminDashboardAnalytics } from "@/services/analytics.service";
 import { UsersByRoleChart } from "./users-by-role-chart"
 import { TopCoursesChart } from "./top-courses-chart"
+import { KPILearnerGrowthChart } from "@/components/admin/kpi-learner-growth-chart"
 import { useLanguage } from "@/contexts/language-context"
 
 type TimeFilter = "7d" | "30d" | "90d" | "custom" | "all"
@@ -131,6 +132,9 @@ export function DashboardEnhanced() {
         {overviewData?.usersByRole ? <UsersByRoleChart data={overviewData.usersByRole} /> : null}
         {overviewData?.top5CoursesByEnrollment ? <TopCoursesChart data={overviewData.top5CoursesByEnrollment} /> : null}
       </div>
+
+      {/* Croissance des apprenants */}
+      <KPILearnerGrowthChart />
 
       {/* Comparaisons (pourrait être alimenté par un autre service plus tard) */}
       <ComparisonStats
