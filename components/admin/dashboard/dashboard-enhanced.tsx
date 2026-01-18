@@ -129,7 +129,7 @@ export function DashboardEnhanced() {
 
       {/* Graphiques */}
       <div className="grid gap-6 lg:grid-cols-2 mt-6">
-        {overviewData?.usersByRole ? <UsersByRoleChart data={overviewData.usersByRole} /> : null}
+        <UsersByRoleChart />
         {overviewData?.top5CoursesByEnrollment ? <TopCoursesChart data={overviewData.top5CoursesByEnrollment} /> : null}
       </div>
 

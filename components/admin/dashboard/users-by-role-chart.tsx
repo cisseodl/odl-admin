@@ -1,12 +1,10 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { useLanguage } from "@/contexts/language-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts"
-
-interface UsersByRoleChartProps {
-  data: { [role: string]: number }
-}
+import { analyticsService } from "@/services/analytics.service"
 
 const COLORS = {
   LEARNER: "#0088FE",
@@ -14,9 +12,78 @@ const COLORS = {
   ADMIN: "#FFBB28",
 }
 
-export function UsersByRoleChart({ data }: UsersByRoleChartProps) {
+export function UsersByRoleChart() {
   const { t } = useLanguage()
+  const [data, setData] = useState<{ [role: string]: number }>({})
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const analytics = await analyticsService.getAdminDashboardAnalytics()
+        if (analytics.usersByRole) {
+          setData(analytics.usersByRole)
+        }
+      } catch (err) {
+        setError(t('dashboard.loadError') || 'Erreur lors du chargement des données')
+        console.error('Error fetching users by role data:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [t])
+
   const chartData = Object.entries(data).map(([name, value]) => ({ name, value }))
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('dashboard.charts.users_by_role.title')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-[300px]">
+            <p className="text-muted-foreground">{t('dashboard.loading') || 'Chargement...'}</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('dashboard.charts.users_by_role.title')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-[300px]">
+            <p className="text-destructive">{error}</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (chartData.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('dashboard.charts.users_by_role.title')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-[300px]">
+            <p className="text-muted-foreground">{t('dashboard.noData') || 'Aucune donnée disponible'}</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card>

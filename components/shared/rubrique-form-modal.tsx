@@ -265,7 +265,27 @@ export function RubriqueFormModal({
                       <ImagePlus className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm text-muted-foreground">Image actuelle : {form.watch("currentImage")?.split('/').pop()}</span>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={form.watch("currentImage")} alt="Current" className="h-20 w-auto max-w-full object-contain rounded-md" />
+                      <img 
+                        src={form.watch("currentImage")} 
+                        alt="Current" 
+                        className="h-20 w-auto max-w-full object-contain rounded-md border"
+                        onError={(e) => {
+                          // Si l'image ne charge pas, masquer l'image et afficher un message
+                          const target = e.currentTarget;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            const errorMsg = document.createElement('span');
+                            errorMsg.className = 'text-xs text-destructive';
+                            errorMsg.textContent = '(Image non disponible)';
+                            parent.appendChild(errorMsg);
+                          }
+                        }}
+                        onLoad={(e) => {
+                          // S'assurer que l'image est visible si elle charge correctement
+                          e.currentTarget.style.display = 'block';
+                        }}
+                      />
                     </div>
                   )}
                 </FormItem>
