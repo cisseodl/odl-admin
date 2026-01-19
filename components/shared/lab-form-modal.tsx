@@ -126,7 +126,14 @@ export function LabFormModal({
         // Fonction pour mettre à jour les URLs de fichiers dans le form
         const updateFormWithFileUrls = (urls: string[]) => {
           setUploadedFileUrls(urls)
-          form.setValue("uploadedFiles", urls.length > 0 ? JSON.stringify(urls) : "")
+          const uploadedFilesValue = urls.length > 0 ? JSON.stringify(urls) : ""
+          form.setValue("uploadedFiles", uploadedFilesValue, { 
+            shouldValidate: true,
+            shouldDirty: true,
+            shouldTouch: true
+          })
+          // Déclencher la validation complète du formulaire
+          form.trigger("labType")
         }
         
         const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
