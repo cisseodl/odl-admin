@@ -63,16 +63,29 @@ export function ModalForm<T extends Record<string, any>>({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex flex-col max-h-[calc(100vh-100px)] sm:max-w-[600px] w-[95vw]">
-        <DialogHeader>
+      <DialogContent className="flex flex-col max-h-[90vh] sm:max-w-[600px] w-[95vw] p-0 gap-0">
+        <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0">
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex flex-col flex-grow overflow-y-auto">
-          <ScrollArea className="max-h-[calc(100vh-200px)]">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="flex-1 overflow-y-auto px-6 min-h-0">
             <div className="grid gap-4 py-4">{children(form)}</div>
-          </ScrollArea>
-          <DialogFooter className="mt-auto border-t pt-4">
+            {/* Afficher les erreurs de validation globales */}
+            {Object.keys(form.formState.errors).length > 0 && (
+              <div className="text-sm text-destructive pb-4 space-y-1 w-full overflow-hidden">
+                <p className="font-medium">Erreurs de validation :</p>
+                <ul className="list-disc list-inside space-y-1 w-full">
+                  {Object.entries(form.formState.errors).map(([field, error]: [string, any]) => (
+                    <li key={field} className="break-words break-all text-wrap w-full pr-2">
+                      <span className="font-medium">{field}:</span> <span className="break-words break-all">{error?.message || "Erreur"}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="border-t pt-4 px-6 pb-6 flex-shrink-0 mt-auto">
             <Button type="button" variant="outline" onClick={handleCancel}>
               {cancelLabel}
             </Button>
@@ -80,19 +93,6 @@ export function ModalForm<T extends Record<string, any>>({
               {form.formState.isSubmitting ? "Enregistrement..." : submitLabel}
             </Button>
           </DialogFooter>
-          {/* Afficher les erreurs de validation globales */}
-          {Object.keys(form.formState.errors).length > 0 && (
-            <div className="text-sm text-destructive px-6 pb-2 space-y-1 w-full overflow-hidden">
-              <p className="font-medium">Erreurs de validation :</p>
-              <ul className="list-disc list-inside space-y-1 w-full">
-                {Object.entries(form.formState.errors).map(([field, error]: [string, any]) => (
-                  <li key={field} className="break-words break-all text-wrap w-full pr-2">
-                    <span className="font-medium">{field}:</span> <span className="break-words break-all">{error?.message || "Erreur"}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </form>
       </DialogContent>
     </Dialog>
