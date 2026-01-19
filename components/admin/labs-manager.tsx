@@ -39,6 +39,7 @@ type ContentDisplay = {
   uploadedFiles?: string;
   resourceLinks?: string;
   estimatedDurationMinutes?: number;
+  maxDurationMinutes?: number;
   instructions?: string;
   activate?: boolean;
 }
@@ -59,6 +60,7 @@ const mapLabDefinitionToContentDisplay = (lab: LabDefinition): ContentDisplay =>
     uploadedFiles: lab.uploaded_files || "",
     resourceLinks: lab.resource_links || "",
     estimatedDurationMinutes: lab.estimated_duration_minutes,
+    maxDurationMinutes: lab.max_duration_minutes,
     instructions: lab.instructions || "",
     activate: lab.activate,
   };
@@ -71,9 +73,12 @@ const mapContentDisplayToLabFormData = (content: ContentDisplay): LabFormData =>
     description: content.description || "",
     uploadedFiles: content.uploadedFiles || "",
     resourceLinks: content.resourceLinks || "",
-    estimatedDurationMinutes: content.estimatedDurationMinutes || 0,
+    estimatedDurationMinutes: content.estimatedDurationMinutes || 60,
+    maxDurationMinutes: content.maxDurationMinutes || 90,
     instructions: content.instructions || "",
-    activate: content.activate || false,
+    activate: content.activate ?? true,
+    labType: content.uploadedFiles && content.uploadedFiles !== "" && content.uploadedFiles !== "[]" ? "file" :
+             content.resourceLinks && content.resourceLinks !== "" && content.resourceLinks !== "[]" ? "link" : "instructions",
   };
 };
 
@@ -110,39 +115,46 @@ export function LabsManager() {
     searchKeys: ["title", "course", "type"],
   })
 
-  const handleAddLab = async (data: LabFormData) => { // ContentUploadWizard onComplete
+  const handleAddLab = async (data: LabFormData) => {
+    console.log("handleAddLab called with data:", data)
     setError(null);
     try {
+      // Préparer les données selon le type de lab choisi
       const newLabDefinition: Omit<LabDefinition, 'id'> = {
         title: data.title,
         description: data.description || "",
-        uploaded_files: data.uploadedFiles || null,
-        resource_links: data.resourceLinks || null,
+        uploaded_files: data.labType === "file" ? (data.uploadedFiles || null) : null,
+        resource_links: data.labType === "link" ? (data.resourceLinks || null) : null,
         estimated_duration_minutes: data.estimatedDurationMinutes,
-        instructions: data.instructions,
-        activate: data.activate,
+        max_duration_minutes: data.maxDurationMinutes || data.estimatedDurationMinutes,
+        instructions: data.labType === "instructions" ? (data.instructions || "") : (data.instructions || ""),
+        activate: data.activate ?? true,
       };
+      console.log("Creating lab with:", newLabDefinition)
       const createdLab = await labDefinitionService.createLabDefinition(newLabDefinition);
+      console.log("Lab created successfully:", createdLab)
       setContent((prev) => [...prev, mapLabDefinitionToContentDisplay(createdLab)]);
       addModal.close();
     } catch (err: any) {
+      console.error("Error in handleAddLab:", err)
       setError(err.message || "Failed to add lab.");
       console.error("Error adding lab:", err);
     }
   };
 
-  const handleUpdateLab = async (data: LabFormData) => { // ContentFormModal onSubmit
+  const handleUpdateLab = async (data: LabFormData) => {
     setError(null);
     if (editModal.selectedItem) {
       try {
         const updatedLabDefinition: Partial<LabDefinition> = {
           title: data.title,
           description: data.description,
-          uploaded_files: data.uploadedFiles || null,
-          resource_links: data.resourceLinks || null,
+          uploaded_files: data.labType === "file" ? (data.uploadedFiles || null) : null,
+          resource_links: data.labType === "link" ? (data.resourceLinks || null) : null,
           estimated_duration_minutes: data.estimatedDurationMinutes,
-          instructions: data.instructions,
-          activate: data.activate,
+          max_duration_minutes: data.maxDurationMinutes || data.estimatedDurationMinutes,
+          instructions: data.labType === "instructions" ? (data.instructions || "") : (data.instructions || ""),
+          activate: data.activate ?? true,
         };
         const updatedLab = await labDefinitionService.updateLabDefinition(editModal.selectedItem.id, updatedLabDefinition);
         setContent((prev) =>

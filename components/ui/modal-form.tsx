@@ -43,11 +43,18 @@ export function ModalForm<T extends Record<string, any>>({
     ...(resolver ? { resolver } : {}),
   })
 
-  const handleSubmit = form.handleSubmit((data) => {
-    onSubmit(data)
-    form.reset()
-    onOpenChange(false)
-  })
+  const handleSubmit = form.handleSubmit(
+    (data) => {
+      onSubmit(data)
+      form.reset()
+      onOpenChange(false)
+    },
+    (errors) => {
+      // Afficher les erreurs dans la console pour le debug
+      console.error("Form validation errors:", errors)
+      // Ne pas fermer le modal si la validation échoue
+    }
+  )
 
   const handleCancel = () => {
     form.reset()
@@ -62,8 +69,10 @@ export function ModalForm<T extends Record<string, any>>({
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col flex-grow overflow-y-auto">
-          <div className="grid gap-4 py-4">{children(form)}</div>
-          <DialogFooter className="mt-auto">
+          <ScrollArea className="max-h-[calc(100vh-200px)]">
+            <div className="grid gap-4 py-4">{children(form)}</div>
+          </ScrollArea>
+          <DialogFooter className="mt-auto border-t pt-4">
             <Button type="button" variant="outline" onClick={handleCancel}>
               {cancelLabel}
             </Button>
@@ -71,6 +80,19 @@ export function ModalForm<T extends Record<string, any>>({
               {form.formState.isSubmitting ? "Enregistrement..." : submitLabel}
             </Button>
           </DialogFooter>
+          {/* Afficher les erreurs de validation globales */}
+          {Object.keys(form.formState.errors).length > 0 && (
+            <div className="text-sm text-destructive px-6 pb-2 space-y-1">
+              <p className="font-medium">Erreurs de validation :</p>
+              <ul className="list-disc list-inside space-y-1">
+                {Object.entries(form.formState.errors).map(([field, error]: [string, any]) => (
+                  <li key={field}>
+                    {field}: {error?.message || "Erreur"}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </form>
       </DialogContent>
     </Dialog>

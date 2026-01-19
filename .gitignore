@@ -33,3 +33,8 @@ next-env.d.ts
 .kiro/steering/byterover-rules.md
 .qoder/rules/byterover-rules.md
 .augment/rules/byterover-rules.md
+
+# IDE
+.idea/
+.angular/
+.DS_Store

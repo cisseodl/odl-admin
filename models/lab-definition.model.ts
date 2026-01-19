@@ -11,6 +11,7 @@ export interface LabDefinition {
   uploaded_files?: string | null; // JSON array de chemins/URLs
   resource_links?: string | null; // JSON array d'URLs
   estimated_duration_minutes?: number | null;
+  max_duration_minutes?: number | null; // Durée maximale avant arrêt automatique
   instructions?: string | null;
   title: string;
   sessions?: LabSession[] | null;
