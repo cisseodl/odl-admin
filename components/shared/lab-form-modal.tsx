@@ -390,18 +390,20 @@ export function LabFormModal({
           )}
           <div className="grid grid-cols-2 gap-4">
             <FormField
-              type="number"
+              type="input"
               name="estimatedDurationMinutes"
               label="Durée estimée (minutes) *"
               placeholder="60"
+              inputType="number"
               register={form.register}
               error={form.formState.errors.estimatedDurationMinutes?.message}
             />
             <FormField
-              type="number"
+              type="input"
               name="maxDurationMinutes"
               label="Durée maximale (minutes) *"
               placeholder="90"
+              inputType="number"
               register={form.register}
               error={form.formState.errors.maxDurationMinutes?.message}
             />

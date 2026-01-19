@@ -63,7 +63,7 @@ export function ModalForm<T extends Record<string, any>>({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex flex-col max-h-[calc(100vh-100px)] sm:max-w-[500px]">
+      <DialogContent className="flex flex-col max-h-[calc(100vh-100px)] sm:max-w-[600px] w-[95vw]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
@@ -82,12 +82,12 @@ export function ModalForm<T extends Record<string, any>>({
           </DialogFooter>
           {/* Afficher les erreurs de validation globales */}
           {Object.keys(form.formState.errors).length > 0 && (
-            <div className="text-sm text-destructive px-6 pb-2 space-y-1 max-w-full">
+            <div className="text-sm text-destructive px-6 pb-2 space-y-1 w-full overflow-hidden">
               <p className="font-medium">Erreurs de validation :</p>
-              <ul className="list-disc list-inside space-y-1">
+              <ul className="list-disc list-inside space-y-1 w-full">
                 {Object.entries(form.formState.errors).map(([field, error]: [string, any]) => (
-                  <li key={field} className="break-words text-wrap max-w-full">
-                    <span className="font-medium">{field}:</span> <span>{error?.message || "Erreur"}</span>
+                  <li key={field} className="break-words break-all text-wrap w-full pr-2">
+                    <span className="font-medium">{field}:</span> <span className="break-words break-all">{error?.message || "Erreur"}</span>
                   </li>
                 ))}
               </ul>
