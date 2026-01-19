@@ -44,15 +44,11 @@ export function OdcFormationsList() {
         setFormations(response);
       } else {
         console.error("Unexpected response structure:", response);
-        setFormations([]);
-        toast({
-          title: t('common.error'),
-          description: "Format de réponse inattendu",
-          variant: "destructive",
-        });
+        setFormations([]); // Toujours définir un tableau vide pour éviter les erreurs
       }
     } catch (error) {
       console.error("Failed to fetch formations:", error);
+      setFormations([]); // Toujours définir un tableau vide en cas d'erreur
       toast({
         title: t('common.error'),
         description: "Erreur lors du chargement des formations ODC",
@@ -219,7 +215,7 @@ export function OdcFormationsList() {
               Aucune formation ODC trouvée
             </div>
           ) : (
-            <DataTable columns={columns} data={formations} />
+            <DataTable columns={columns} data={formations || []} />
           )}
         </CardContent>
       </Card>

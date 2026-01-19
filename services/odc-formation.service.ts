@@ -24,18 +24,19 @@ export class OdcFormationService {
   async getAllFormations(): Promise<any> {
     const response = await fetchApi<any>("/api/odc-formations", { method: "GET" });
     // Le backend retourne CResponse<List<OdcFormationDto>>
-    if (response.data && Array.isArray(response.data)) {
+    if (response && response.data && Array.isArray(response.data)) {
       return { data: response.data };
     }
-    if (Array.isArray(response)) {
+    if (response && Array.isArray(response)) {
       return { data: response };
     }
-    return response;
+    // Retourner un tableau vide par défaut pour éviter les erreurs
+    return { data: [] };
   }
 
   async getFormationById(id: number): Promise<any> {
     const response = await fetchApi<any>(`/api/odc-formations/${id}`, { method: "GET" });
-    return response.data || response;
+    return response?.data || response || null;
   }
 
   async createFormation(formationData: OdcFormationRequest): Promise<any> {
@@ -43,7 +44,7 @@ export class OdcFormationService {
       method: "POST",
       body: formationData,
     });
-    return response.data || response;
+    return response?.data || response || null;
   }
 
   async updateFormation(id: number, formationData: OdcFormationRequest): Promise<any> {
@@ -51,14 +52,14 @@ export class OdcFormationService {
       method: "PUT",
       body: formationData,
     });
-    return response.data || response;
+    return response?.data || response || null;
   }
 
   async deleteFormation(id: number): Promise<any> {
     const response = await fetchApi<any>(`/api/odc-formations/${id}`, {
       method: "DELETE",
     });
-    return response.data || response;
+    return response?.data || response || null;
   }
 
   async getMyFormations(): Promise<any> {
