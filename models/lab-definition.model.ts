@@ -8,7 +8,8 @@ export interface LabDefinition {
   updatedAt?: Date | null;
   modified_by?: string | null;
   description?: string | null;
-  docker_image_name?: string | null;
+  uploaded_files?: string | null; // JSON array de chemins/URLs
+  resource_links?: string | null; // JSON array d'URLs
   estimated_duration_minutes?: number | null;
   instructions?: string | null;
   title: string;

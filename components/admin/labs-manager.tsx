@@ -36,13 +36,14 @@ type ContentDisplay = {
   status: "Publié" | "Brouillon" // Derived from activate for Lab
   // Champs spécifiques aux labs pour l'édition et l'affichage des détails
   description?: string;
-  dockerImageName?: string;
+  uploadedFiles?: string;
+  resourceLinks?: string;
   estimatedDurationMinutes?: number;
   instructions?: string;
   activate?: boolean;
 }
 
-// Helper function to map LabDefinition to ContentDisplay
+  // Helper function to map LabDefinition to ContentDisplay
 const mapLabDefinitionToContentDisplay = (lab: LabDefinition): ContentDisplay => {
   return {
     id: lab.id || 0,
@@ -55,7 +56,8 @@ const mapLabDefinitionToContentDisplay = (lab: LabDefinition): ContentDisplay =>
     uploadDate: lab.createdAt ? new Date(lab.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) : "",
     status: lab.activate ? "Publié" : "Brouillon", // Assuming activate maps to status
     description: lab.description || "",
-    dockerImageName: lab.docker_image_name || "",
+    uploadedFiles: lab.uploaded_files || "",
+    resourceLinks: lab.resource_links || "",
     estimatedDurationMinutes: lab.estimated_duration_minutes,
     instructions: lab.instructions || "",
     activate: lab.activate,
@@ -67,7 +69,8 @@ const mapContentDisplayToLabFormData = (content: ContentDisplay): LabFormData =>
   return {
     title: content.title,
     description: content.description || "",
-    dockerImageName: content.dockerImageName || "",
+    uploadedFiles: content.uploadedFiles || "",
+    resourceLinks: content.resourceLinks || "",
     estimatedDurationMinutes: content.estimatedDurationMinutes || 0,
     instructions: content.instructions || "",
     activate: content.activate || false,
@@ -113,7 +116,8 @@ export function LabsManager() {
       const newLabDefinition: Omit<LabDefinition, 'id'> = {
         title: data.title,
         description: data.description || "",
-        docker_image_name: data.dockerImageName,
+        uploaded_files: data.uploadedFiles || null,
+        resource_links: data.resourceLinks || null,
         estimated_duration_minutes: data.estimatedDurationMinutes,
         instructions: data.instructions,
         activate: data.activate,
@@ -134,7 +138,8 @@ export function LabsManager() {
         const updatedLabDefinition: Partial<LabDefinition> = {
           title: data.title,
           description: data.description,
-          docker_image_name: data.dockerImageName,
+          uploaded_files: data.uploadedFiles || null,
+          resource_links: data.resourceLinks || null,
           estimated_duration_minutes: data.estimatedDurationMinutes,
           instructions: data.instructions,
           activate: data.activate,

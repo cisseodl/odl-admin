@@ -67,12 +67,22 @@ export function LabFormModal({
             error={form.formState.errors.description?.message}
           />
           <FormField
-            type="input"
-            name="dockerImageName"
-            label="Nom de l'image Docker"
-            placeholder="ubuntu:latest ou my-custom-image"
+            type="textarea"
+            name="uploadedFiles"
+            label="Fichiers uploadés (optionnel)"
+            placeholder='Format JSON: ["/path/to/file1.pdf", "/path/to/file2.zip"] ou laissez vide'
             register={form.register}
-            error={form.formState.errors.dockerImageName?.message}
+            rows={3}
+            error={form.formState.errors.uploadedFiles?.message}
+          />
+          <FormField
+            type="textarea"
+            name="resourceLinks"
+            label="Liens ressources (optionnel)"
+            placeholder='Format JSON: ["https://example.com/resource1", "https://example.com/resource2"] ou laissez vide'
+            register={form.register}
+            rows={3}
+            error={form.formState.errors.resourceLinks?.message}
           />
           <FormField
             type="number"
