@@ -210,8 +210,8 @@ export function LabFormModal({
             />
             
             {/* Choix du type de lab */}
-            <div className="grid gap-2">
-              <Label>Type de contenu du lab *</Label>
+            <div className="grid gap-2 w-full">
+              <Label className="w-full break-words">Type de contenu du lab *</Label>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center space-x-2">
                   <input
