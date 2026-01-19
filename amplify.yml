@@ -16,3 +16,7 @@ frontend:
     paths:
       - node_modules/**/*
       - .pnpm-store/**/*
+# Variables d'environnement pour la production
+# Ces variables doivent être configurées dans la console Amplify
+# Environment variables > Add variable
+# NEXT_PUBLIC_API_URL=https://api.smart-odc.com
