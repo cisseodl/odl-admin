@@ -82,12 +82,12 @@ export function ModalForm<T extends Record<string, any>>({
           </DialogFooter>
           {/* Afficher les erreurs de validation globales */}
           {Object.keys(form.formState.errors).length > 0 && (
-            <div className="text-sm text-destructive px-6 pb-2 space-y-1">
+            <div className="text-sm text-destructive px-6 pb-2 space-y-1 max-w-full">
               <p className="font-medium">Erreurs de validation :</p>
               <ul className="list-disc list-inside space-y-1">
                 {Object.entries(form.formState.errors).map(([field, error]: [string, any]) => (
-                  <li key={field}>
-                    {field}: {error?.message || "Erreur"}
+                  <li key={field} className="break-words text-wrap max-w-full">
+                    <span className="font-medium">{field}:</span> <span>{error?.message || "Erreur"}</span>
                   </li>
                 ))}
               </ul>

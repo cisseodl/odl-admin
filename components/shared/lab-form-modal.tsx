@@ -406,8 +406,8 @@ export function LabFormModal({
               error={form.formState.errors.maxDurationMinutes?.message}
             />
           </div>
-          <p className="text-xs text-muted-foreground">
-            La durée maximale définit quand le lab s'arrêtera automatiquement. Le lab sera automatiquement arrêté à la fin de cette durée.
+          <p className="text-xs text-muted-foreground break-words">
+            Le lab s'arrêtera automatiquement à la fin de cette durée.
           </p>
           <Controller
             control={form.control}

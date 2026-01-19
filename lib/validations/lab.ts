@@ -30,13 +30,13 @@ export const labSchema = z.object({
   }
   return false
 }, {
-  message: "Vous devez fournir soit un fichier, soit un lien, soit des instructions complètes selon votre choix",
+  message: "Veuillez fournir le contenu requis selon le type sélectionné",
   path: ["labType"],
 }).refine((data) => {
   // La durée maximale doit être >= durée estimée
   return data.maxDurationMinutes >= data.estimatedDurationMinutes
 }, {
-  message: "La durée maximale doit être supérieure ou égale à la durée estimée",
+  message: "La durée maximale doit être ≥ à la durée estimée",
   path: ["maxDurationMinutes"],
 });
 
