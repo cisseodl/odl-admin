@@ -15,17 +15,29 @@ export class LabDefinitionService {
   }
 
   async createLabDefinition(labDefinition: Omit<LabDefinition, 'id'>): Promise<LabDefinition> {
+    // Transformer lesson_id en lessonId pour le backend
+    const { lesson_id, ...rest } = labDefinition;
+    const backendPayload = {
+      ...rest,
+      lessonId: lesson_id,
+    };
     const response = await fetchApi<any>("/api/labs/", {
       method: "POST",
-      body: labDefinition,
+      body: backendPayload,
     });
     return response.data;
   }
 
   async updateLabDefinition(id: number, labDefinitionData: Partial<LabDefinition>): Promise<LabDefinition | null> {
+    // Transformer lesson_id en lessonId pour le backend
+    const { lesson_id, ...rest } = labDefinitionData;
+    const backendPayload = {
+      ...rest,
+      ...(lesson_id !== undefined && { lessonId: lesson_id }),
+    };
     const response = await fetchApi<any>(`/api/labs/${id}`, {
       method: "PUT",
-      body: labDefinitionData,
+      body: backendPayload,
     });
     return response.data || response;
   }

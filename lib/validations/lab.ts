@@ -3,6 +3,7 @@ import { z } from "zod"
 export const labSchema = z.object({
   title: z.string().min(1, "Le titre est requis").min(3, "Le titre doit contenir au moins 3 caractères"),
   description: z.string().min(1, "La description est requise"),
+  lessonId: z.coerce.number().optional().nullable(),
   labType: z.enum(["file", "link", "instructions"], {
     required_error: "Vous devez choisir un type de lab",
   }),

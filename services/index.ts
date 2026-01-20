@@ -40,4 +40,5 @@ export { auditService } from "./audit.service";
 export { adminService } from "./admin.service";
 export { rubriqueService } from "./rubrique.service"; // Re-export rubriqueService
 export { fileUploadService } from "./file-upload.service";
+export { lessonService } from "./lesson.service";
 

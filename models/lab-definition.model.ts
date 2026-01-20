@@ -14,5 +14,6 @@ export interface LabDefinition {
   max_duration_minutes?: number | null; // Durée maximale avant arrêt automatique
   instructions?: string | null;
   title: string;
+  lesson_id?: number | null; // ID de la leçon associée
   sessions?: LabSession[] | null;
 }

@@ -10,7 +10,6 @@ import { useState } from "react"
 import { instructorRoutes } from "@/constants/routes"
 import { useLanguage } from "@/contexts/language-context"
 import Image from "next/image"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 export function InstructorSidebar() {
   const { t } = useLanguage()
@@ -57,67 +56,26 @@ export function InstructorSidebar() {
 
           <ScrollArea className="flex-1 px-3 py-4">
             <nav className="space-y-1">
-              <Accordion type="multiple" className="w-full">
-                {instructorRoutes.map((route) => {
-                  const isActive = pathname === route.href || (route.children && route.children.some(child => pathname.startsWith(child.href)))
-                  
-                  if (route.children) {
-                    return (
-                      <AccordionItem key={route.label} value={route.label} className="border-b-0 mb-3">
-                        <AccordionTrigger 
-                          className={cn(
-                            "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
-                            isActive ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground",
-                          )}
-                        >
-                          <route.icon className="h-4 w-4 shrink-0" />
-                          <span>{t(route.label)}</span>
-                        </AccordionTrigger>
-                        <AccordionContent className="pb-1">
-                          <div className="ml-4 pl-2 border-l border-muted-foreground/20 space-y-1">
-                            {route.children.map((child) => {
-                              const isChildActive = pathname === child.href
-                              return (
-                                <Link
-                                  key={child.href}
-                                  href={child.href}
-                                  onClick={() => setIsOpen(false)}
-                                  className={cn(
-                                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
-                                    isChildActive
-                                      ? "bg-primary text-primary-foreground shadow-sm"
-                                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                                  )}
-                                >
-                                  <child.icon className="h-4 w-4 shrink-0" />
-                                  <span>{t(child.label)}</span>
-                                </Link>
-                              )
-                            })}
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    )
-                  }
-                  
-                  return (
-                    <Link
-                      key={route.href}
-                      href={route.href}
-                      onClick={() => setIsOpen(false)}
-                      className={cn(
-                        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
-                        isActive
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                      )}
-                    >
-                      <route.icon className="h-4 w-4 shrink-0" />
-                      <span>{t(route.label)}</span>
-                    </Link>
-                  )
-                })}
-              </Accordion>
+              {instructorRoutes.map((route) => {
+                const isActive = pathname === route.href || pathname.startsWith(route.href + "/")
+                
+                return (
+                  <Link
+                    key={route.href}
+                    href={route.href}
+                    onClick={() => setIsOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                      isActive
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                    )}
+                  >
+                    <route.icon className="h-4 w-4 shrink-0" />
+                    <span>{t(route.label)}</span>
+                  </Link>
+                )
+              })}
             </nav>
           </ScrollArea>
         </div>

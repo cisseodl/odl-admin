@@ -54,6 +54,7 @@ const questionSchema = z.object({
 const quizFormSchema = z.object({
   title: z.string().min(2, "Le titre du quiz doit contenir au moins 2 caractères."),
   courseId: z.number({ required_error: "Veuillez sélectionner un cours." }),
+  lessonId: z.coerce.number().optional().nullable(),
   durationMinutes: z.number().min(1, "La durée en minutes est requise."),
   scoreMinimum: z.literal(80), // Fixé à 80% selon la règle métier du backend
   questions: z.array(questionSchema).min(1, "Au moins une question est requise pour le quiz."),

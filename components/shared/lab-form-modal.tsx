@@ -12,9 +12,14 @@ import { Label } from "@/components/ui/label"
 import { Controller } from "react-hook-form"
 import { useState, useRef, useEffect } from "react"
 import { fileUploadService } from "@/services/file-upload.service"
+import { courseService, lessonService } from "@/services"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { X, Upload, File } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Course } from "@/models"
+import { Lesson } from "@/models/lesson.model"
 
 
 type LabFormModalProps = {
@@ -38,6 +43,7 @@ export function LabFormModal({
 }: LabFormModalProps) {
   const [labType, setLabType] = useState<"file" | "link" | "instructions">("instructions")
   const { toast } = useToast()
+  const { user } = useAuth()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadingFiles, setUploadingFiles] = useState<boolean>(false)
   const [uploadedFileUrls, setUploadedFileUrls] = useState<string[]>(() => {
@@ -51,6 +57,11 @@ export function LabFormModal({
     }
     return []
   })
+  const [courses, setCourses] = useState<Course[]>([])
+  const [lessons, setLessons] = useState<Lesson[]>([])
+  const [loadingCourses, setLoadingCourses] = useState(false)
+  const [loadingLessons, setLoadingLessons] = useState(false)
+  const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null)
 
   // Initialiser le formulaire avec les valeurs par défaut
   const formDefaults: Partial<LabFormData> = {
@@ -64,6 +75,54 @@ export function LabFormModal({
     maxDurationMinutes: defaultValues?.maxDurationMinutes || 90,
     ...defaultValues,
   }
+
+  // Charger les cours de l'instructeur
+  useEffect(() => {
+    if (open && user?.id) {
+      const fetchCourses = async () => {
+        setLoadingCourses(true)
+        try {
+          const coursesData = await courseService.getCoursesByInstructorId(Number(user.id))
+          setCourses(Array.isArray(coursesData) ? coursesData : [])
+        } catch (err: any) {
+          console.error("Error fetching courses:", err)
+          toast({
+            title: "Erreur",
+            description: "Impossible de charger les cours.",
+            variant: "destructive",
+          })
+        } finally {
+          setLoadingCourses(false)
+        }
+      }
+      fetchCourses()
+    }
+  }, [open, user?.id, toast])
+
+  // Charger les leçons quand un cours est sélectionné
+  useEffect(() => {
+    if (open && selectedCourseId) {
+      const fetchLessons = async () => {
+        setLoadingLessons(true)
+        try {
+          const lessonsData = await lessonService.getLessonsByCourse(selectedCourseId)
+          setLessons(lessonsData)
+        } catch (err: any) {
+          console.error("Error fetching lessons:", err)
+          toast({
+            title: "Erreur",
+            description: "Impossible de charger les leçons.",
+            variant: "destructive",
+          })
+        } finally {
+          setLoadingLessons(false)
+        }
+      }
+      fetchLessons()
+    } else {
+      setLessons([])
+    }
+  }, [open, selectedCourseId, toast])
 
   // Réinitialiser les fichiers uploadés quand le modal s'ouvre avec de nouvelles valeurs
   useEffect(() => {
@@ -85,6 +144,8 @@ export function LabFormModal({
     } else if (open && !defaultValues) {
       setUploadedFileUrls([])
       setLabType("instructions")
+      setSelectedCourseId(null)
+      setLessons([])
     }
   }, [open, defaultValues])
 
@@ -215,6 +276,69 @@ export function LabFormModal({
               rows={3}
               error={form.formState.errors.description?.message}
             />
+
+            {/* Sélecteur de cours */}
+            <div className="grid gap-2 w-full">
+              <Label className="w-full break-words">Cours (optionnel)</Label>
+              <Select
+                value={selectedCourseId ? String(selectedCourseId) : ""}
+                onValueChange={(value) => {
+                  const courseId = value ? Number(value) : null
+                  setSelectedCourseId(courseId)
+                  form.setValue("lessonId", undefined, { shouldValidate: false })
+                  setLessons([])
+                }}
+                disabled={loadingCourses}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={loadingCourses ? "Chargement..." : "Sélectionner un cours"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Aucun cours</SelectItem>
+                  {courses.map((course) => (
+                    <SelectItem key={course.id} value={String(course.id)}>
+                      {course.title || `Cours #${course.id}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Sélecteur de leçon */}
+            {selectedCourseId && (
+              <div className="grid gap-2 w-full">
+                <Label className="w-full break-words">Leçon associée (optionnel)</Label>
+                <Controller
+                  name="lessonId"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value ? String(field.value) : ""}
+                      onValueChange={(value) => {
+                        field.onChange(value ? Number(value) : null)
+                      }}
+                      disabled={loadingLessons}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={loadingLessons ? "Chargement..." : "Sélectionner une leçon"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Aucune leçon</SelectItem>
+                        {lessons.map((lesson) => (
+                          <SelectItem key={lesson.id} value={String(lesson.id)}>
+                            {lesson.title || `Leçon #${lesson.id}`}
+                            {lesson.module?.title && ` (${lesson.module.title})`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {form.formState.errors.lessonId && (
+                  <p className="text-sm text-destructive">{form.formState.errors.lessonId.message}</p>
+                )}
+              </div>
+            )}
             
             {/* Choix du type de lab */}
             <div className="grid gap-2 w-full">

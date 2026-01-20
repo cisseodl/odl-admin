@@ -128,6 +128,7 @@ export function LabsManager() {
         estimated_duration_minutes: data.estimatedDurationMinutes,
         max_duration_minutes: data.maxDurationMinutes || data.estimatedDurationMinutes,
         instructions: data.labType === "instructions" ? (data.instructions || "") : (data.instructions || ""),
+        lesson_id: data.lessonId || null,
         activate: data.activate ?? true,
       };
       console.log("Creating lab with:", newLabDefinition)
@@ -154,6 +155,7 @@ export function LabsManager() {
           estimated_duration_minutes: data.estimatedDurationMinutes,
           max_duration_minutes: data.maxDurationMinutes || data.estimatedDurationMinutes,
           instructions: data.labType === "instructions" ? (data.instructions || "") : (data.instructions || ""),
+          lesson_id: data.lessonId || null,
           activate: data.activate ?? true,
         };
         const updatedLab = await labDefinitionService.updateLabDefinition(editModal.selectedItem.id, updatedLabDefinition);
