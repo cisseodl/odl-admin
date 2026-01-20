@@ -164,15 +164,15 @@ export function StepCourse({ onSubmit, categories, instructors, loading, default
           <div className="space-y-2">
             <Label htmlFor="formation">{t('course_form.formation_label') || "Formation (optionnel)"}</Label>
             <Select
-              value={formationId ? String(formationId) : ""}
-              onValueChange={(value) => setFormationId(value ? Number(value) : undefined)}
+              value={formationId ? String(formationId) : "__none__"}
+              onValueChange={(value) => setFormationId(value && value !== "__none__" ? Number(value) : undefined)}
               disabled={loadingFormations}
             >
               <SelectTrigger>
                 <SelectValue placeholder={loadingFormations ? (t('common.loading') || "Chargement...") : (t('course_form.formation_placeholder') || "Sélectionnez une formation (optionnel)")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('course_form.no_formation') || "Aucune formation"}</SelectItem>
+                <SelectItem value="__none__">{t('course_form.no_formation') || "Aucune formation"}</SelectItem>
                 {formations.length > 0 ? (
                   formations.map((formation) => (
                     <SelectItem key={formation.id} value={String(formation.id)}>

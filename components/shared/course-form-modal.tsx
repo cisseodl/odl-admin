@@ -233,8 +233,8 @@ export function CourseFormModal({
                   <FormItem>
                     <FormLabel>{t('course_form.formation_label') || "Formation (optionnel)"}</FormLabel>
                     <Select 
-                      onValueChange={(value) => field.onChange(value ? Number(value) : undefined)} 
-                      value={field.value ? String(field.value) : ""}
+                      onValueChange={(value) => field.onChange(value && value !== "__none__" ? Number(value) : undefined)} 
+                      value={field.value ? String(field.value) : "__none__"}
                       disabled={loadingFormations}
                     >
                       <FormControl>
@@ -243,7 +243,7 @@ export function CourseFormModal({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">{t('course_form.no_formation') || "Aucune formation (utiliser catégorie)"}</SelectItem>
+                        <SelectItem value="__none__">{t('course_form.no_formation') || "Aucune formation (utiliser catégorie)"}</SelectItem>
                         {formations.length > 0 ? (
                           formations.map((formation) => (
                             <SelectItem key={formation.id} value={String(formation.id)}>

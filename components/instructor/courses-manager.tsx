@@ -69,6 +69,8 @@ export function CoursesManager() {
         const mapped: Course[] = coursesData.map((c: any) => ({
           id: c.id,
           title: c.title || "Untitled",
+          subtitle: c.subtitle,
+          description: c.description,
           modules: Array.isArray(c.modules) ? c.modules.length : 0,
           chapters: Array.isArray(c.modules)
             ? c.modules.reduce(
@@ -78,7 +80,7 @@ export function CoursesManager() {
               )
             : 0,
           videos: 0, // Placeholder
-          students: c.studentsCount || 0,
+          students: c.enrolledCount || c.studentsCount || 0,
           status:
             c.status === "PUBLISHED" || c.status === "PUBLIE" || c.status === "Publié"
               ? "Publié"
@@ -87,10 +89,18 @@ export function CoursesManager() {
               : c.status === "IN_REVIEW" || c.status === "En révision"
               ? "En révision"
               : "Brouillon",
-          rating: c.averageRating || 0,
+          rating: c.rating || c.averageRating || 0,
           createdAt: c.createdAt
             ? new Date(c.createdAt).toLocaleDateString("fr-FR")
             : "",
+          category: c.category, // String category title from backend mapper
+          categorie: c.categorie, // Full categorie object if available
+          formation: c.formation, // Formation object if available
+          categoryId: c.categorie?.id || c.categoryId,
+          level: c.level,
+          language: c.language,
+          imagePath: c.imageUrl || c.imagePath || c.image,
+          activate: c.activate ?? true,
         }));
         setCourses(mapped);
       } else {
@@ -163,12 +173,29 @@ export function CoursesManager() {
       {
         accessorKey: "title",
         header: t('courses.list.header_course'),
-        cell: ({ row }) => (
-          <div className="font-medium flex items-center gap-2">
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-            {row.original.title}
-          </div>
-        ),
+        cell: ({ row }) => {
+          const course = row.original;
+          // Afficher la hiérarchie : Catégorie → Formation → Cours
+          const categoryTitle = course.categorie?.title || course.category || null;
+          const formationTitle = course.formation?.title || null;
+          return (
+            <div className="font-medium flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4 text-muted-foreground" />
+                <span>{course.title}</span>
+              </div>
+              {(formationTitle || categoryTitle) && (
+                <div className="text-xs text-muted-foreground flex items-center gap-1 ml-6">
+                  {categoryTitle && <span>{categoryTitle}</span>}
+                  {formationTitle && categoryTitle && <span className="mx-1">→</span>}
+                  {formationTitle && <span>{formationTitle}</span>}
+                  {(formationTitle || categoryTitle) && <span className="mx-1">→</span>}
+                  <span className="font-medium text-primary">{course.title}</span>
+                </div>
+              )}
+            </div>
+          );
+        },
       },
       {
         accessorKey: "modules",

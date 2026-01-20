@@ -281,9 +281,9 @@ export function LabFormModal({
             <div className="grid gap-2 w-full">
               <Label className="w-full break-words">Cours (optionnel)</Label>
               <Select
-                value={selectedCourseId ? String(selectedCourseId) : ""}
+                value={selectedCourseId ? String(selectedCourseId) : "__none__"}
                 onValueChange={(value) => {
-                  const courseId = value ? Number(value) : null
+                  const courseId = value && value !== "__none__" ? Number(value) : null
                   setSelectedCourseId(courseId)
                   form.setValue("lessonId", undefined, { shouldValidate: false })
                   setLessons([])
@@ -294,7 +294,7 @@ export function LabFormModal({
                   <SelectValue placeholder={loadingCourses ? "Chargement..." : "Sélectionner un cours"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Aucun cours</SelectItem>
+                  <SelectItem value="__none__">Aucun cours</SelectItem>
                   {courses.map((course) => (
                     <SelectItem key={course.id} value={String(course.id)}>
                       {course.title || `Cours #${course.id}`}
@@ -313,9 +313,9 @@ export function LabFormModal({
                   control={form.control}
                   render={({ field }) => (
                     <Select
-                      value={field.value ? String(field.value) : ""}
+                      value={field.value ? String(field.value) : "__none__"}
                       onValueChange={(value) => {
-                        field.onChange(value ? Number(value) : null)
+                        field.onChange(value && value !== "__none__" ? Number(value) : null)
                       }}
                       disabled={loadingLessons}
                     >
@@ -323,7 +323,7 @@ export function LabFormModal({
                         <SelectValue placeholder={loadingLessons ? "Chargement..." : "Sélectionner une leçon"} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Aucune leçon</SelectItem>
+                        <SelectItem value="__none__">Aucune leçon</SelectItem>
                         {lessons.map((lesson) => (
                           <SelectItem key={lesson.id} value={String(lesson.id)}>
                             {lesson.title || `Leçon #${lesson.id}`}
