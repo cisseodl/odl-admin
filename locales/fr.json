@@ -1022,7 +1022,7 @@
     "evaluations": "Évaluations",
     "leaderboard": "Classements",
     "settings": "Paramètres",
-    "instructor_courses": "Cours",
+    "instructor_courses": "Formations",
     "instructor_modules": "Module",
     "instructor_content": "Contenu",
     "instructor_categories": "Catégorie",
@@ -1062,8 +1062,8 @@
       }
     },
     "courses": {
-      "title": "Cours",
-      "description": "Créez et gérez vos formations, modules, chapitres et vidéos"
+      "title": "Formations",
+      "description": "Gérez vos formations et consultez la liste des formations créées"
     },
     "lessons": {
       "title": "Leçon",
