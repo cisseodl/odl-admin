@@ -92,8 +92,11 @@ export function ContentManager() {
   const { toast } = useToast();
 
   const [courses, setCourses] = useState<CourseWithContent[]>([]);
+  const [modules, setModules] = useState<ModuleWithLessons[]>([]);
   const [expandedCourses, setExpandedCourses] = useState<Set<number>>(new Set());
+  const [expandedModules, setExpandedModules] = useState<Set<number>>(new Set());
   const [loadingContent, setLoadingContent] = useState<Set<number>>(new Set());
+  const [loadingModules, setLoadingModules] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -103,21 +106,53 @@ export function ContentManager() {
       return;
     }
 
-    fetchCourses();
+    fetchModules();
   }, [user, authLoading]);
 
-  const fetchCourses = async () => {
+  const fetchModules = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await courseService.getCoursesByInstructorId(Number(user.id));
-      setCourses(data || []);
+      // Récupérer tous les cours de l'instructeur
+      const coursesData = await courseService.getCoursesByInstructorId(Number(user.id));
+      setCourses(coursesData || []);
+      
+      // Récupérer tous les modules de tous les cours
+      const allModules: ModuleWithLessons[] = [];
+      if (coursesData && Array.isArray(coursesData)) {
+        for (const course of coursesData) {
+          try {
+            const modulesResponse = await moduleService.getModulesByCourse(course.id);
+            let courseModules: ModuleWithLessons[] = [];
+            
+            if (modulesResponse?.data) {
+              courseModules = Array.isArray(modulesResponse.data) ? modulesResponse.data : [];
+            } else if (Array.isArray(modulesResponse)) {
+              courseModules = modulesResponse;
+            }
+            
+            // Ajouter l'ID du cours à chaque module pour référence
+            const modulesWithCourseId = courseModules.map((module: any) => ({
+              ...module,
+              courseId: course.id,
+              courseTitle: course.title,
+              lessons: module.lessons || []
+            }));
+            
+            allModules.push(...modulesWithCourseId);
+          } catch (err: any) {
+            console.error(`Error loading modules for course ${course.id}:`, err);
+          }
+        }
+      }
+      
+      setModules(allModules);
     } catch (err: any) {
-      console.error("Failed to load courses:", err);
-      setError(err.message || "Failed to load courses.");
+      console.error("Failed to load modules:", err);
+      setError(err.message || "Failed to load modules.");
       toast({
         title: "Erreur",
-        description: "Impossible de charger les formations.",
+        description: "Impossible de charger les modules.",
         variant: "destructive",
       });
     } finally {
@@ -228,7 +263,7 @@ export function ContentManager() {
         description: response.message || "Le module a été créé avec succès.",
       });
       
-      await loadCourseContent(data.courseId);
+      await fetchModules();
       addModuleModal.close();
       setError(null);
     } catch (err: any) {
@@ -287,7 +322,7 @@ export function ContentManager() {
         description: response.message || "Le module a été modifié avec succès.",
       });
       
-      await loadCourseContent(courseId);
+      await fetchModules();
       editModuleModal.close();
     } catch (err: any) {
       console.error("Error editing module:", err);
@@ -336,7 +371,7 @@ export function ContentManager() {
         description: response.message || "Le module a été supprimé avec succès.",
       });
       
-      await loadCourseContent(courseId);
+      await fetchModules();
       deleteModuleModal.close();
     } catch (err: any) {
       console.error("Error deleting module:", err);
@@ -397,7 +432,7 @@ export function ContentManager() {
         description: response.message || "La leçon a été supprimée avec succès.",
       });
       
-      await loadCourseContent(courseId);
+      await fetchModules();
       deleteLessonModal.close();
     } catch (err: any) {
       console.error("Error deleting lesson:", err);
@@ -423,7 +458,7 @@ export function ContentManager() {
           : "Le cours a été rejeté.",
       });
       
-      await fetchCourses();
+      await fetchModules();
       validateCourseModal.close();
     } catch (err: any) {
       console.error("Error validating course:", err);
@@ -467,33 +502,21 @@ export function ContentManager() {
       />
 
       <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Mes Formations</CardTitle>
-          <CardDescription>
-            {courses.length === 1 
-              ? `${courses.length} formation disponible`
-              : `${courses.length} formations disponibles`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {courses.length === 0 ? (
+        <CardContent className="pt-6">
+          {modules.length === 0 ? (
             <EmptyState
               icon={FileText}
-              title="Aucune formation disponible"
-              description="Veuillez d'abord créer une formation pour pouvoir y ajouter des modules."
+              title="Aucun module disponible"
+              description="Créez votre premier module pour commencer à organiser vos leçons."
             />
           ) : (
             <div className="space-y-4">
-              {courses.map((course) => {
-                const isExpanded = expandedCourses.has(course.id);
-                const isLoading = loadingContent.has(course.id);
-                const hasContent = course.modules || course.quizzes;
-
+              {modules.map((module) => {
                 return (
-                  <Card key={course.id} className="overflow-hidden">
+                  <Card key={module.id} className="overflow-hidden">
                     <CardHeader 
                       className="cursor-pointer hover:bg-muted/50 transition-colors"
-                      onClick={() => toggleCourse(course.id)}
+                      onClick={() => toggleModule(module.id!)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 flex-1">
@@ -502,283 +525,146 @@ export function ContentManager() {
                               isExpanded ? "rotate-90" : ""
                             }`}
                           />
-                          <BookOpen className="h-5 w-5 text-primary" />
+                          <FileText className="h-5 w-5 text-primary" />
                           <div className="flex-1">
-                            <CardTitle className="text-lg">{course.title}</CardTitle>
+                            <CardTitle className="text-lg">{module.title}</CardTitle>
                             <CardDescription className="mt-1">
-                              {course.subtitle || course.description?.substring(0, 100)}
+                              {course?.title && (
+                                <span className="text-xs text-muted-foreground">
+                                  Formation: {course.title}
+                                </span>
+                              )}
+                              {module.description && (
+                                <span className="ml-2">{module.description}</span>
+                              )}
                             </CardDescription>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          {isLoading && (
-                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                          )}
-                          {course.modules && (
+                          {module.lessons && module.lessons.length > 0 && (
                             <Badge variant="secondary">
-                              {course.modules.length === 1
-                                ? `${course.modules.length} module`
-                                : `${course.modules.length} modules`}
-                            </Badge>
-                          )}
-                          {course.quizzes && course.quizzes.length > 0 && (
-                            <Badge variant="secondary">
-                              {course.quizzes.length} quiz
-                            </Badge>
-                          )}
-                          {course.status === "BROUILLON" && (
-                            <Button
-                              size="sm"
-                              variant="default"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                validateCourseModal.open({ courseId: course.id });
-                              }}
-                            >
-                              <Check className="h-4 w-4 mr-1" />
-                              Publier
-                            </Button>
-                          )}
-                          {course.status === "IN_REVIEW" && (
-                            <Badge variant="outline" className="text-orange-600 border-orange-600">
-                              En révision
-                            </Badge>
-                          )}
-                          {course.status === "PUBLIE" && (
-                            <Badge variant="outline" className="text-green-600 border-green-600">
-                              Publié
+                              {module.lessons.length === 1
+                                ? `${module.lessons.length} leçon`
+                                : `${module.lessons.length} leçons`}
                             </Badge>
                           )}
                         </div>
                       </div>
                     </CardHeader>
 
-                    {isExpanded && hasContent && (
+                    {isExpanded && module.lessons && module.lessons.length > 0 && (
                       <CardContent className="pt-0">
-                        <div className="space-y-6">
-                          {/* Modules et Leçons */}
-                          {course.modules && course.modules.length > 0 && (
-                            <div>
-                              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                                <FileText className="h-4 w-4" />
-                                Modules ({course.modules.length})
-                                <span className="text-xs text-muted-foreground font-normal ml-2">
-                                  ({course.modules.reduce((acc, m) => acc + (m.lessons?.length || 0), 0)} leçons)
-                                </span>
-                              </h3>
-                              <Accordion type="multiple" className="space-y-2">
-                                {course.modules
-                                  .sort((a, b) => (a.moduleOrder || 0) - (b.moduleOrder || 0))
-                                  .map((module) => {
-                                    const lessonType = (module.lessons?.[0]?.type || "DOCUMENT") as keyof typeof lessonTypeIcons
-                                    const Icon = lessonTypeIcons[lessonType] || FileText
-                                    const typeColor = lessonTypeColors[lessonType] || lessonTypeColors.DOCUMENT
-                                    
-                                    return (
-                                      <AccordionItem 
-                                        key={module.id} 
-                                        value={`module-${module.id}`}
-                                        className="border rounded-lg px-4"
+                        <div className="space-y-2">
+                          {module.lessons
+                            .sort((a, b) => (a.lessonOrder || 0) - (b.lessonOrder || 0))
+                            .map((lesson) => {
+                              const lessonType = (lesson.type || "DOCUMENT") as keyof typeof lessonTypeIcons
+                              const LessonIcon = lessonTypeIcons[lessonType] || FileText
+                              const typeColor = lessonTypeColors[lessonType] || lessonTypeColors.DOCUMENT
+                              const typeLabel = lessonTypeLabels[lessonType] || "Document"
+                              
+                              return (
+                                <div
+                                  key={lesson.id}
+                                  className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30"
+                                >
+                                  <LessonIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium text-sm">
+                                        {lesson.title || "Sans titre"}
+                                      </span>
+                                      <Badge 
+                                        variant="secondary" 
+                                        className={typeColor}
                                       >
-                                        <AccordionTrigger className="hover:no-underline">
-                                          <div className="flex items-center gap-2 flex-1 text-left">
-                                            <span className="font-medium">{module.title}</span>
-                                            {module.lessons && module.lessons.length > 0 && (
-                                              <Badge variant="outline" className="ml-2">
-                                                {module.lessons.length} leçon{module.lessons.length > 1 ? "s" : ""}
-                                              </Badge>
-                                            )}
-                                          </div>
-                                        </AccordionTrigger>
-                                        <AccordionContent>
-                                          <div className="flex items-center justify-between mb-3">
-                                            <p className="text-sm text-muted-foreground">
-                                              {module.description || "Aucune description"}
-                                            </p>
-                                            <div className="flex items-center gap-2">
-                                              <ActionMenu
-                                                actions={[
-                                                  {
-                                                    label: "Modifier",
-                                                    icon: <Edit className="h-4 w-4" />,
-                                                    onClick: () => editModuleModal.open({ module, courseId: course.id }),
-                                                  },
-                                                  {
-                                                    label: "Supprimer",
-                                                    icon: <Trash2 className="h-4 w-4" />,
-                                                    onClick: () => deleteModuleModal.open({ moduleId: module.id!, courseId: course.id }),
-                                                    variant: "destructive",
-                                                  },
-                                                ]}
-                                              />
-                                            </div>
-                                          </div>
-                                          {module.lessons && module.lessons.length > 0 ? (
-                                            <div className="space-y-2 pt-2">
-                                              {module.lessons
-                                                .sort((a, b) => (a.lessonOrder || 0) - (b.lessonOrder || 0))
-                                                .map((lesson) => {
-                                                  const lessonType = (lesson.type || "DOCUMENT") as keyof typeof lessonTypeIcons
-                                                  const LessonIcon = lessonTypeIcons[lessonType] || FileText
-                                                  const typeColor = lessonTypeColors[lessonType] || lessonTypeColors.DOCUMENT
-                                                  const typeLabel = lessonTypeLabels[lessonType] || "Document"
-                                                  
-                                                  return (
-                                                    <div
-                                                      key={lesson.id}
-                                                      className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30"
-                                                    >
-                                                      <LessonIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                                      <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2">
-                                                          <span className="font-medium text-sm">
-                                                            {lesson.title || "Sans titre"}
-                                                          </span>
-                                                          <Badge 
-                                                            variant="secondary" 
-                                                            className={typeColor}
-                                                          >
-                                                            {typeLabel}
-                                                          </Badge>
-                                                        </div>
-                                                        {lesson.duration && (
-                                                          <p className="text-xs text-muted-foreground mt-1">
-                                                            Durée: {lesson.duration} min
-                                                          </p>
-                                                        )}
-                                                      </div>
-                                                      <div className="flex items-center gap-2">
-                                                        {lesson.contentUrl && (
-                                                          <>
-                                                            <Button
-                                                              variant="ghost"
-                                                              size="sm"
-                                                              onClick={() => {
-                                                                // Pour les fichiers Word, ouvrir directement dans un nouvel onglet
-                                                                const lowerUrl = lesson.contentUrl!.toLowerCase()
-                                                                const isWord = lowerUrl.endsWith('.doc') || lowerUrl.endsWith('.docx') || 
-                                                                              lowerUrl.includes('.doc') || lowerUrl.includes('.docx')
-                                                                if (isWord) {
-                                                                  window.open(lesson.contentUrl!, '_blank')
-                                                                } else {
-                                                                  contentViewerModal.open({
-                                                                    contentUrl: lesson.contentUrl!,
-                                                                    title: lesson.title || "Contenu",
-                                                                    type: lesson.type || "DOCUMENT"
-                                                                  })
-                                                                }
-                                                              }}
-                                                            >
-                                                              <PlayCircle className="h-4 w-4 mr-1" />
-                                                              Ouvrir
-                                                            </Button>
-                                                            <Button
-                                                              variant="ghost"
-                                                              size="sm"
-                                                              onClick={() => window.open(lesson.contentUrl!, '_blank')}
-                                                              title="Ouvrir dans un nouvel onglet"
-                                                            >
-                                                              <ExternalLink className="h-4 w-4" />
-                                                            </Button>
-                                                          </>
-                                                        )}
-                                                        <ActionMenu
-                                                          actions={[
-                                                            {
-                                                              label: t('common.edit') || "Modifier",
-                                                              icon: <Edit className="h-4 w-4" />,
-                                                              onClick: () => editLessonModal.open({
-                                                                lesson: lesson,
-                                                                moduleId: module.id!,
-                                                                courseId: course.id!
-                                                              }),
-                                                            },
-                                                            {
-                                                              label: t('common.delete') || "Supprimer",
-                                                              icon: <Trash2 className="h-4 w-4" />,
-                                                              onClick: () => deleteLessonModal.open({
-                                                                lessonId: lesson.id!,
-                                                                moduleId: module.id!,
-                                                                courseId: course.id!
-                                                              }),
-                                                              variant: "destructive",
-                                                            },
-                                                          ]}
-                                                        />
-                                                      </div>
-                                                    </div>
-                                                  )
-                                                })}
-                                            </div>
-                                          ) : (
-                                            <p className="text-sm text-muted-foreground py-2">
-                                              Aucune leçon dans ce module.
-                                            </p>
-                                          )}
-                                        </AccordionContent>
-                                      </AccordionItem>
-                                    )
-                                  })}
-                              </Accordion>
-                            </div>
-                          )}
-
-                          {/* Quiz */}
-                          {course.quizzes && course.quizzes.length > 0 && (
-                            <div>
-                              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                                <FileQuestion className="h-4 w-4" />
-                                Quiz ({course.quizzes.length})
-                              </h3>
-                              <div className="space-y-2">
-                                {course.quizzes.map((quiz) => (
-                                  <Card key={quiz.id} className="p-4">
-                                    <div className="flex items-start justify-between">
-                                      <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-2">
-                                          <FileQuestion className="h-4 w-4 text-purple-500" />
-                                          <span className="font-medium">{quiz.title || quiz.titre || "Sans titre"}</span>
-                                        </div>
-                                        {quiz.description && (
-                                          <p className="text-sm text-muted-foreground mb-2">
-                                            {quiz.description}
-                                          </p>
-                                        )}
-                                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                          {(quiz.durationMinutes || quiz.dureeMinutes) && (
-                                            <span>Durée: {quiz.durationMinutes || quiz.dureeMinutes} min</span>
-                                          )}
-                                          {quiz.scoreMinimum && (
-                                            <span>Score minimum: {quiz.scoreMinimum}%</span>
-                                          )}
-                                        </div>
-                                      </div>
-                                      <ActionMenu
-                                        actions={[
-                                          {
-                                            label: "Supprimer",
-                                            icon: <Trash2 className="h-4 w-4" />,
-                                            onClick: () => deleteQuizModal.open({
-                                              quizId: quiz.id,
-                                              courseId: course.id,
-                                            }),
-                                            variant: "destructive",
-                                          },
-                                        ]}
-                                      />
+                                        {typeLabel}
+                                      </Badge>
                                     </div>
-                                  </Card>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {(!course.modules || course.modules.length === 0) && 
-                           (!course.quizzes || course.quizzes.length === 0) && (
-                            <div className="text-center py-8 text-muted-foreground">
-                              Aucun contenu dans ce cours.
-                            </div>
-                          )}
+                                    {lesson.duration && (
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        Durée: {lesson.duration} min
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {lesson.contentUrl && (
+                                      <>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            const lowerUrl = lesson.contentUrl!.toLowerCase()
+                                            const isWord = lowerUrl.endsWith('.doc') || lowerUrl.endsWith('.docx') || 
+                                                          lowerUrl.includes('.doc') || lowerUrl.includes('.docx')
+                                            if (isWord) {
+                                              window.open(lesson.contentUrl!, '_blank')
+                                            } else {
+                                              contentViewerModal.open({
+                                                contentUrl: lesson.contentUrl!,
+                                                title: lesson.title || "Contenu",
+                                                type: lesson.type || "DOCUMENT"
+                                              })
+                                            }
+                                          }}
+                                        >
+                                          <PlayCircle className="h-4 w-4 mr-1" />
+                                          Ouvrir
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => window.open(lesson.contentUrl!, '_blank')}
+                                          title="Ouvrir dans un nouvel onglet"
+                                        >
+                                          <ExternalLink className="h-4 w-4" />
+                                        </Button>
+                                      </>
+                                    )}
+                                    <ActionMenu
+                                      actions={[
+                                        {
+                                          label: t('common.edit') || "Modifier",
+                                          icon: <Edit className="h-4 w-4" />,
+                                          onClick: () => editLessonModal.open({
+                                            lesson: lesson,
+                                            moduleId: module.id!,
+                                            courseId: (module as any).courseId,
+                                          }),
+                                        },
+                                        {
+                                          label: t('common.delete') || "Supprimer",
+                                          icon: <Trash2 className="h-4 w-4" />,
+                                          onClick: () => deleteLessonModal.open({
+                                            lessonId: lesson.id!,
+                                            moduleId: module.id!,
+                                            courseId: (module as any).courseId,
+                                          }),
+                                          variant: "destructive",
+                                        },
+                                      ]}
+                                    />
+                                  </div>
+                                </div>
+                              )
+                            })}
+                        </div>
+                        <div className="flex items-center justify-end gap-2 mt-4">
+                          <ActionMenu
+                            actions={[
+                              {
+                                label: "Modifier",
+                                icon: <Edit className="h-4 w-4" />,
+                                onClick: () => editModuleModal.open({ module, courseId: (module as any).courseId }),
+                              },
+                              {
+                                label: "Supprimer",
+                                icon: <Trash2 className="h-4 w-4" />,
+                                onClick: () => deleteModuleModal.open({ moduleId: module.id!, courseId: (module as any).courseId }),
+                                variant: "destructive",
+                              },
+                            ]}
+                          />
                         </div>
                       </CardContent>
                     )}
