@@ -88,7 +88,7 @@ export function CoursesManager() {
               ? "Brouillon"
               : c.status === "IN_REVIEW" || c.status === "En révision"
               ? "En révision"
-              : "Brouillon",
+              : (c.status || "Brouillon") as "Publié" | "Brouillon" | "En révision",
           rating: c.rating || c.averageRating || 0,
           createdAt: c.createdAt
             ? new Date(c.createdAt).toLocaleDateString("fr-FR")
@@ -180,6 +180,10 @@ export function CoursesManager() {
           const formationTitle = course.formation?.title || null;
           const courseTitle = course.title || "Sans titre";
           
+          if (!courseTitle) {
+            return null;
+          }
+          
           return (
             <div className="font-medium flex flex-col gap-1">
               <div className="flex items-center gap-2">
@@ -246,7 +250,10 @@ export function CoursesManager() {
       {
         accessorKey: "status",
         header: t('courses.list.header_status'),
-        cell: ({ row }) => <StatusBadge status={row.original.status} />,
+        cell: ({ row }) => {
+          const status = row.original.status || "Brouillon";
+          return <StatusBadge status={status} />;
+        },
       },
       {
         id: "actions",
