@@ -210,23 +210,16 @@ export function ContentManager() {
     }
   };
 
-  const toggleCourse = (courseId: number) => {
-    const course = courses.find(c => c.id === courseId);
-    if (!course) return;
-
-    if (expandedCourses.has(courseId)) {
-      setExpandedCourses(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(courseId);
-        return newSet;
-      });
-    } else {
-      if (!course.modules && !course.quizzes) {
-        loadCourseContent(courseId);
+  const toggleModule = (moduleId: number) => {
+    setExpandedModules(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(moduleId)) {
+        newSet.delete(moduleId);
       } else {
-        setExpandedCourses(prev => new Set(prev).add(courseId));
+        newSet.add(moduleId);
       }
-    }
+      return newSet;
+    });
   };
 
   const handleAddModule = async (data: ModuleFormData) => {
