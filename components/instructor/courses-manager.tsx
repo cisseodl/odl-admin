@@ -178,11 +178,13 @@ export function CoursesManager() {
           // Afficher la hiérarchie : Catégorie → Formation → Cours
           const categoryTitle = course.categorie?.title || course.category || null;
           const formationTitle = course.formation?.title || null;
+          const courseTitle = course.title || "Sans titre";
+          
           return (
             <div className="font-medium flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-muted-foreground" />
-                <span>{course.title}</span>
+                <span>{courseTitle}</span>
               </div>
               {(formationTitle || categoryTitle) && (
                 <div className="text-xs text-muted-foreground flex items-center gap-1 ml-6">
@@ -190,7 +192,7 @@ export function CoursesManager() {
                   {formationTitle && categoryTitle && <span className="mx-1">→</span>}
                   {formationTitle && <span>{formationTitle}</span>}
                   {(formationTitle || categoryTitle) && <span className="mx-1">→</span>}
-                  <span className="font-medium text-primary">{course.title}</span>
+                  <span className="font-medium text-primary">{courseTitle}</span>
                 </div>
               )}
             </div>
