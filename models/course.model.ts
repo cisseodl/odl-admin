@@ -25,5 +25,7 @@ export interface Course {
   rejectionReason?: string | null;
   price?: number | null;
   categorie?: Categorie | null;
+  formation?: any | null; // Formation model (to avoid circular import)
+  formation_id?: number | null;
   instructor?: User | null;
 }

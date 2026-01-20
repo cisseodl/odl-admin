@@ -85,9 +85,9 @@ export const adminRoutes: Route[] = [
     href: "/admin/content",
   },
   {
-    label: "routes.labs", // Renamed from Contenus
-    icon: HardDrive, // Changed icon
-    href: "/admin/labs", // Changed href
+    label: "routes.formations",
+    icon: GraduationCap,
+    href: "/admin/formations",
   },
   {
     label: "routes.cohorts", // Replaced Modération
@@ -98,11 +98,6 @@ export const adminRoutes: Route[] = [
     label: "routes.notifications",
     icon: Bell,
     href: "/admin/notifications",
-  },
-  {
-    label: "routes.evaluations", // Replaced Badges
-    icon: FileText, // Changed icon from Award
-    href: "/admin/evaluations", // Changed href from /admin/badges
   },
   {
     label: "routes.leaderboard",

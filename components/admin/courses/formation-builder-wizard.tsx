@@ -32,7 +32,8 @@ export type CourseFormData = {
   title: string
   subtitle?: string
   description: string
-  categoryId: number
+  categoryId?: number
+  formationId?: number
   instructorId: number
   level: string
   language: string
@@ -162,12 +163,15 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
     setIsSaving(true)
     try {
       // Créer le cours (sans modules)
+      // Utiliser formationId si disponible, sinon categoryId
+      const categoryIdForEndpoint = data.categoryId || 0 // Le backend peut gérer les deux
       const coursePayload = {
         title: data.title,
         subtitle: data.subtitle || "",
         description: data.description,
         instructorId: data.instructorId,
-        categoryId: data.categoryId,
+        categoryId: data.formationId ? undefined : data.categoryId, // Ne pas envoyer categoryId si formationId est présent
+        formationId: data.formationId || undefined,
         level: data.level || "DEBUTANT",
         language: data.language || "Français",
         objectives: data.objectives || [],
@@ -176,7 +180,7 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
       }
 
       const createdCourse = await courseService.createCourse(
-        data.categoryId,
+        categoryIdForEndpoint || data.categoryId || 0, // Utiliser categoryId pour l'endpoint (compatibilité)
         coursePayload,
         data.imageFile
       )

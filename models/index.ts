@@ -1,6 +1,7 @@
 export * from "./answer.model";
 export * from "./apprenant.model";
 export * from "./categorie.model";
+export * from "./formation.model";
 export * from "./chapter.model";
 export * from "./cohorte.model";
 export * from "./configuration.model";

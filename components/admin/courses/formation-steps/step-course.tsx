@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useLanguage } from "@/contexts/language-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, X, ChevronRight } from "lucide-react"
 import type { CourseFormData } from "../formation-builder-wizard"
-import { Categorie } from "@/models"
+import { Categorie, Formation } from "@/models"
 import { ApiInstructor } from "@/services/instructor.service"
+import { formationService } from "@/services"
 
 type StepCourseProps = {
   onSubmit: (data: CourseFormData) => void
@@ -27,9 +28,35 @@ export function StepCourse({ onSubmit, categories, instructors, loading, default
   const [subtitle, setSubtitle] = useState(defaultValues?.subtitle || "")
   const [description, setDescription] = useState(defaultValues?.description || "")
   const [categoryId, setCategoryId] = useState<number | undefined>(defaultValues?.categoryId)
+  const [formationId, setFormationId] = useState<number | undefined>(defaultValues?.formationId)
+  const [formations, setFormations] = useState<Formation[]>([])
+  const [loadingFormations, setLoadingFormations] = useState(false)
   const [instructorId, setInstructorId] = useState<number | undefined>(defaultValues?.instructorId)
   const [imageFile, setImageFile] = useState<File | undefined>(defaultValues?.imageFile)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+
+  // Charger les formations quand une catégorie est sélectionnée
+  useEffect(() => {
+    if (categoryId) {
+      loadFormations(categoryId)
+    } else {
+      setFormations([])
+      setFormationId(undefined)
+    }
+  }, [categoryId])
+
+  const loadFormations = async (categorieId: number) => {
+    setLoadingFormations(true)
+    try {
+      const formationsData = await formationService.getFormationsByCategorieId(categorieId)
+      setFormations(formationsData)
+    } catch (error) {
+      console.error("Error loading formations:", error)
+      setFormations([])
+    } finally {
+      setLoadingFormations(false)
+    }
+  }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -47,7 +74,8 @@ export function StepCourse({ onSubmit, categories, instructors, loading, default
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!title.trim() || !description.trim() || !categoryId || !instructorId) {
+    // Vérifier qu'on a au moins une catégorie OU une formation
+    if (!title.trim() || !description.trim() || (!categoryId && !formationId) || !instructorId) {
       return
     }
 
@@ -55,7 +83,8 @@ export function StepCourse({ onSubmit, categories, instructors, loading, default
       title: title.trim(),
       subtitle: subtitle.trim() || undefined,
       description: description.trim(),
-      categoryId,
+      categoryId: categoryId || undefined,
+      formationId: formationId || undefined,
       instructorId,
       level: "DEBUTANT", // Valeur par défaut
       language: "Français", // Valeur par défaut
@@ -111,7 +140,10 @@ export function StepCourse({ onSubmit, categories, instructors, loading, default
           <Label htmlFor="category">{t('course_form.category_label')}</Label>
           <Select
             value={categoryId ? String(categoryId) : ""}
-            onValueChange={(value) => setCategoryId(Number(value))}
+            onValueChange={(value) => {
+              setCategoryId(Number(value))
+              setFormationId(undefined) // Réinitialiser la formation
+            }}
             required
           >
             <SelectTrigger>
@@ -126,6 +158,41 @@ export function StepCourse({ onSubmit, categories, instructors, loading, default
             </SelectContent>
           </Select>
         </div>
+
+        {/* Sélecteur de Formation (apparaît après sélection d'une catégorie) */}
+        {categoryId && (
+          <div className="space-y-2">
+            <Label htmlFor="formation">{t('course_form.formation_label') || "Formation (optionnel)"}</Label>
+            <Select
+              value={formationId ? String(formationId) : ""}
+              onValueChange={(value) => setFormationId(value ? Number(value) : undefined)}
+              disabled={loadingFormations}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={loadingFormations ? (t('common.loading') || "Chargement...") : (t('course_form.formation_placeholder') || "Sélectionnez une formation (optionnel)")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">{t('course_form.no_formation') || "Aucune formation"}</SelectItem>
+                {formations.length > 0 ? (
+                  formations.map((formation) => (
+                    <SelectItem key={formation.id} value={String(formation.id)}>
+                      {formation.title}
+                    </SelectItem>
+                  ))
+                ) : (
+                  !loadingFormations && (
+                    <SelectItem value="__no_formation__" disabled>
+                      {t('course_form.no_formation_available') || "Aucune formation disponible"}
+                    </SelectItem>
+                  )
+                )}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {t('course_form.formation_hint') || "Sélectionnez une formation pour organiser votre cours"}
+            </p>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="instructor">{t('course_form.instructor_label')}</Label>
@@ -183,7 +250,7 @@ export function StepCourse({ onSubmit, categories, instructors, loading, default
       </div>
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={!title.trim() || !description.trim() || !categoryId || !instructorId}>
+        <Button type="submit" disabled={!title.trim() || !description.trim() || (!categoryId && !formationId) || !instructorId}>
           {t('course_form.continue_to_modules')}
           <ChevronRight className="h-4 w-4 ml-2" />
         </Button>
