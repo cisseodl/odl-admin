@@ -1066,8 +1066,8 @@
       "description": "Gérez vos formations et consultez la liste des formations créées"
     },
     "lessons": {
-      "title": "Leçon",
-      "description": "Gérez toutes vos leçons et contenus pédagogiques",
+      "title": "Gestion des Modules et Leçons",
+      "description": "Créez et organisez les modules et leçons de vos formations",
       "form": {
         "title": "Titre de la leçon",
         "title_placeholder": "Ex: Introduction à...",
