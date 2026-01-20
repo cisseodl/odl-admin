@@ -934,8 +934,8 @@
       "description": "Upload and organize your educational content"
     },
     "lessons": {
-      "title": "Lesson",
-      "description": "Manage all your lessons and educational content",
+      "title": "Modules and Lessons Management",
+      "description": "Create and organize modules and lessons for your formations",
       "form": {
         "title": "Lesson Title",
         "title_placeholder": "Ex: Introduction to...",
