@@ -22,7 +22,7 @@ export interface OdcFormationRequest {
 
 export class OdcFormationService {
   async getAllFormations(): Promise<any> {
-    const response = await fetchApi<any>("/api/odc-formations", { method: "GET" });
+    const response = await fetchApi<any>("/api/odc-formations/read", { method: "GET" });
     // Le backend retourne CResponse<List<OdcFormationDto>>
     if (response && response.data && Array.isArray(response.data)) {
       return { data: response.data };

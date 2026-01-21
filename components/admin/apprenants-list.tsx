@@ -55,10 +55,28 @@ const mapApprenantToApprenantDisplay = (apprenant: Apprenant): ApprenantDisplay 
     ? new Date(apprenant.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) 
     : "";
 
+  // Construire le nom : utiliser username ou fullName en priorité, sinon construire depuis prenom + nom
+  let name = "";
+  if (apprenant.username && apprenant.username.trim()) {
+    name = apprenant.username.trim();
+  } else if (apprenant.fullName && apprenant.fullName.trim()) {
+    name = apprenant.fullName.trim();
+  } else {
+    name = `${apprenant.prenom || ''} ${apprenant.nom || ''}`.trim();
+  }
+  
+  // Si le nom est toujours vide, utiliser l'email comme fallback
+  if (!name) {
+    name = apprenant.userEmail || apprenant.email || "Sans nom";
+  }
+
+  // Utiliser userEmail en priorité, sinon email
+  const email = apprenant.userEmail || apprenant.email || "";
+
   return {
     id: apprenant.id || 0,
-    name: `${apprenant.prenom || ''} ${apprenant.nom || ''}`.trim(),
-    email: apprenant.email || "",
+    name: name,
+    email: email,
     numero: apprenant.numero || "",
     status: status,
     joinedDate: joinedDate,
@@ -66,7 +84,7 @@ const mapApprenantToApprenantDisplay = (apprenant: Apprenant): ApprenantDisplay 
     niveauEtude: apprenant.niveauEtude || "",
     profession: apprenant.profession || "",
     cohorte: apprenant.cohorte || null,
-    avatar: undefined,
+    avatar: apprenant.avatar || undefined,
     coursesEnrolled: 0,
     completedCourses: 0,
     totalCertificates: 0,

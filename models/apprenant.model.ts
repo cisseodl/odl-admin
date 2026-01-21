@@ -15,4 +15,10 @@ export interface Apprenant {
   prenom?: string | null;
   profession?: string | null;
   cohorte?: Cohorte | null;
+  // Champs depuis ApprenantWithUserDto
+  username?: string | null; // Nom complet construit depuis prenom + nom
+  fullName?: string | null; // Nom complet depuis User
+  userEmail?: string | null; // Email depuis User
+  userId?: number | null;
+  avatar?: string | null;
 }
