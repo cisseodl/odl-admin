@@ -210,12 +210,12 @@ export function OdcFormationsList() {
           </div>
         </CardHeader>
         <CardContent>
-          {formations.length === 0 ? (
+          {!formations || formations.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               Aucune formation ODC trouvée
             </div>
           ) : (
-            <DataTable columns={columns} data={formations || []} />
+            <DataTable columns={columns} data={Array.isArray(formations) ? formations : []} />
           )}
         </CardContent>
       </Card>

@@ -22,16 +22,22 @@ export interface OdcFormationRequest {
 
 export class OdcFormationService {
   async getAllFormations(): Promise<any> {
-    const response = await fetchApi<any>("/api/odc-formations/read", { method: "GET" });
-    // Le backend retourne CResponse<List<OdcFormationDto>>
-    if (response && response.data && Array.isArray(response.data)) {
-      return { data: response.data };
+    try {
+      const response = await fetchApi<any>("/api/odc-formations/read", { method: "GET" });
+      // Le backend retourne CResponse<List<OdcFormationDto>>
+      if (response && response.data && Array.isArray(response.data)) {
+        return { data: response.data };
+      }
+      if (response && Array.isArray(response)) {
+        return { data: response };
+      }
+      // Retourner un tableau vide par défaut pour éviter les erreurs
+      return { data: [] };
+    } catch (error) {
+      console.error("Error fetching ODC formations:", error);
+      // Retourner un tableau vide en cas d'erreur
+      return { data: [] };
     }
-    if (response && Array.isArray(response)) {
-      return { data: response };
-    }
-    // Retourner un tableau vide par défaut pour éviter les erreurs
-    return { data: [] };
   }
 
   async getFormationById(id: number): Promise<any> {

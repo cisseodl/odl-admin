@@ -43,8 +43,13 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
+  // S'assurer que data est toujours un tableau pour éviter les erreurs
+  const safeData = React.useMemo(() => {
+    return Array.isArray(data) ? data : []
+  }, [data])
+
   const table = useReactTable({
-    data,
+    data: safeData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: enablePagination ? getPaginationRowModel() : undefined,
