@@ -97,11 +97,14 @@ export function DataTable<TData, TValue>({
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
+                  {row.getVisibleCells().map((cell) => {
+                    const rendered = flexRender(cell.column.columnDef.cell, cell.getContext())
+                    return (
+                      <TableCell key={cell.id}>
+                        {rendered || null}
+                      </TableCell>
+                    )
+                  })}
                 </TableRow>
               ))
             ) : (

@@ -155,7 +155,11 @@ export function InstructorFormationsManager() {
   }
 
   const columns: ColumnDef<FormationDisplay>[] = useMemo(
-    () => [
+    () => {
+      if (!formations || formations.length === 0) {
+        return []
+      }
+      return [
       {
         accessorKey: "title",
         header: "Titre",
