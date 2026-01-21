@@ -45,7 +45,7 @@ const mapFormationToDisplay = (formation: Formation): FormationDisplay => {
   }
 }
 
-export default function InstructorFormationsManager() {
+function InstructorFormationsManager() {
   const { t } = useLanguage()
   const { toast } = useToast()
   const addModal = useModal<FormationDisplay>()
@@ -330,4 +330,6 @@ export default function InstructorFormationsManager() {
     </div>
   )
 }
+
+export default InstructorFormationsManager
 
