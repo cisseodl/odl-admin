@@ -505,6 +505,9 @@ export function ContentManager() {
           ) : (
             <div className="space-y-4">
               {modules.map((module) => {
+                const isExpanded = expandedModules.has(module.id!);
+                const course = courses.find(c => c.id === (module as any).courseId);
+                
                 return (
                   <Card key={module.id} className="overflow-hidden">
                     <CardHeader 
