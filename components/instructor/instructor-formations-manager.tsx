@@ -161,6 +161,9 @@ export function InstructorFormationsManager() {
         header: "Titre",
         cell: ({ row }) => {
           const formation = row.original
+          if (!formation) {
+            return null
+          }
           const title = formation.title || "Sans titre"
           return (
             <div className="flex items-center gap-2">
@@ -174,7 +177,11 @@ export function InstructorFormationsManager() {
         accessorKey: "description",
         header: "Description",
         cell: ({ row }) => {
-          const description = row.original.description
+          const formation = row.original
+          if (!formation) {
+            return null
+          }
+          const description = formation.description
           return (
             <div className="max-w-md truncate text-sm text-muted-foreground">
               {description || "-"}
@@ -186,7 +193,11 @@ export function InstructorFormationsManager() {
         accessorKey: "categorie",
         header: "Catégorie",
         cell: ({ row }) => {
-          const categorie = row.original.categorie
+          const formation = row.original
+          if (!formation) {
+            return null
+          }
+          const categorie = formation.categorie
           return (
             <div className="text-sm">
               {categorie?.title || "-"}
@@ -198,7 +209,11 @@ export function InstructorFormationsManager() {
         accessorKey: "activate",
         header: "Statut",
         cell: ({ row }) => {
-          const activate = row.original.activate
+          const formation = row.original
+          if (!formation) {
+            return null
+          }
+          const activate = formation.activate ?? true
           return <StatusBadge status={activate ? "active" : "inactive"} />
         },
       },
@@ -207,6 +222,9 @@ export function InstructorFormationsManager() {
         header: "Actions",
         cell: ({ row }) => {
           const formation = row.original
+          if (!formation) {
+            return null
+          }
           return (
             <ActionMenu
               actions={[
