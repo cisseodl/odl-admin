@@ -309,7 +309,7 @@ export function CoursesManager() {
             <div className="text-center text-destructive p-4">{error}</div>
           ) : (
             <Tabs defaultValue="all" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-4 bg-[rgb(50,50,50)]/10 dark:bg-[rgb(50,50,50)]/20 border border-[rgb(50,50,50)]/20">
+              <TabsList className="grid w-full grid-cols-3 bg-[rgb(50,50,50)]/10 dark:bg-[rgb(50,50,50)]/20 border border-[rgb(50,50,50)]/20">
                 <TabsTrigger 
                   value="all"
                   className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
@@ -327,12 +327,6 @@ export function CoursesManager() {
                   className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
                 >
                   {t('courses.tabs.draft')} ({courses.filter((c) => c.status === "Brouillon").length})
-                </TabsTrigger>
-                <TabsTrigger
-                  value="review"
-                  className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
-                >
-                  {t('courses.tabs.review')} ({courses.filter((c) => c.status === "En révision").length})
                 </TabsTrigger>
               </TabsList>
 
@@ -377,21 +371,6 @@ export function CoursesManager() {
                 <DataTable
                   columns={columns}
                   data={filteredData.filter((c) => c.status === "Brouillon")}
-                  searchValue={searchQuery}
-                />
-              </TabsContent>
-
-              <TabsContent value="review" className="space-y-4">
-                <div className="mb-4">
-                  <SearchBar
-                    placeholder={t('courses.search_placeholder')}
-                    value={searchQuery}
-                    onChange={setSearchQuery}
-                  />
-                </div>
-                <DataTable
-                  columns={columns}
-                  data={filteredData.filter((c) => c.status === "En révision")}
                   searchValue={searchQuery}
                 />
               </TabsContent>
