@@ -589,14 +589,14 @@ export function ApprenantsList() {
             <PageLoader />
           ) : error ? (
             <div className="text-center text-destructive p-4">{error}</div>
-          ) : filteredData.length === 0 ? (
+          ) : !filteredData || filteredData.length === 0 ? (
             <EmptyState
               icon={GraduationCap}
               title={t('users.learners.list.empty_title')}
               description={t('users.learners.list.empty_description')}
             />
           ) : (
-            <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
+            <DataTable columns={columns} data={filteredData || []} searchValue={searchQuery} />
           )}
         </CardContent>
       </Card>
