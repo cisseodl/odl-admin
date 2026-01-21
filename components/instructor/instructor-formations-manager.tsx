@@ -105,7 +105,9 @@ export function InstructorFormationsManager() {
         categorieId: data.categorieId,
         activate: data.activate ?? true,
       })
-      setFormations((prev) => [...prev, mapFormationToDisplay(createdFormation as Formation)])
+      if (createdFormation) {
+        setFormations((prev) => [...prev, mapFormationToDisplay(createdFormation as Formation)])
+      }
       addModal.close()
       toast({
         title: "Succès",
@@ -133,11 +135,13 @@ export function InstructorFormationsManager() {
         categorieId: data.categorieId,
         activate: data.activate,
       })
-      setFormations((prev) =>
-        prev.map((formation) =>
-          formation.id === editModal.selectedItem!.id ? mapFormationToDisplay(updatedFormation as Formation) : formation
+      if (updatedFormation) {
+        setFormations((prev) =>
+          prev.map((formation) =>
+            formation.id === editModal.selectedItem!.id ? mapFormationToDisplay(updatedFormation as Formation) : formation
+          )
         )
-      )
+      }
       editModal.close()
       toast({
         title: "Succès",
@@ -155,11 +159,7 @@ export function InstructorFormationsManager() {
   }
 
   const columns: ColumnDef<FormationDisplay>[] = useMemo(
-    () => {
-      if (!formations || formations.length === 0) {
-        return []
-      }
-      return [
+    () => [
       {
         accessorKey: "title",
         header: "Titre",
