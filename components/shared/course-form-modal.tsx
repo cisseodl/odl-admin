@@ -117,7 +117,7 @@ export function CourseFormModal({
       <DialogContent className="w-[95vw] max-w-[600px] max-h-[90vh] flex flex-col min-h-0">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          {description && !description.includes('courses.create_description') && (
+          {description && (
             <DialogDescription>{description}</DialogDescription>
           )}
         </DialogHeader>

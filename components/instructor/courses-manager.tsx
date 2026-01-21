@@ -382,7 +382,7 @@ export function CoursesManager() {
         open={addCourseModal.isOpen}
         onOpenChange={addCourseModal.close}
         title={t('courses.actions.create')}
-        description={t('courses.create_description')}
+        description=""
         onSubmit={handleAddCourse}
         submitLabel={t('courses.actions.create')}
         categories={categories}
