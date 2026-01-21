@@ -149,7 +149,7 @@ export function ApprenantsList() {
   const [cohortes, setCohortes] = useState<Cohorte[]>([]);
   
   const { searchQuery, setSearchQuery, filteredData } = useSearch<ApprenantDisplay>({
-    data: apprenants,
+    data: Array.isArray(apprenants) ? apprenants : [],
     searchKeys: ["name", "email", "filiere", "niveauEtude"],
   });
 

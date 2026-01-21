@@ -23,12 +23,15 @@ export function useSearch<T extends Record<string, any>>({
   }, [searchQuery, debounceMs])
 
   const filteredData = useMemo(() => {
-    if (!debouncedQuery) return data
+    // S'assurer que data est toujours un tableau
+    const safeData = Array.isArray(data) ? data : []
+    
+    if (!debouncedQuery) return safeData
 
     const query = debouncedQuery.toLowerCase()
-    const keys = searchKeys || (Object.keys(data[0] || {}) as (keyof T)[])
+    const keys = searchKeys || (safeData.length > 0 ? Object.keys(safeData[0] || {}) as (keyof T)[] : [])
 
-    return data.filter((item) =>
+    return safeData.filter((item) =>
       keys.some((key) => {
         const value = item[key]
         return value?.toString().toLowerCase().includes(query)
