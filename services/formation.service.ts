@@ -17,11 +17,17 @@ export class FormationService {
     try {
       const response = await fetchApi<any>("/api/formations", { method: "GET" });
       // Backend retourne CResponse avec structure { ok, data, message }
-      if (!response || !response.data) {
+      if (!response) {
+        console.warn("getAllFormations: API response is null or undefined");
+        return [];
+      }
+      // Gérer les deux formats possibles : { data: [...] } ou directement [...]
+      const data = response.data || response;
+      if (!data) {
         console.warn("getAllFormations: API response data is empty or null");
         return [];
       }
-      return Array.isArray(response.data) ? response.data : [response.data];
+      return Array.isArray(data) ? data : [data];
     } catch (error: any) {
       console.error("Error fetching formations:", error);
       return [];
@@ -34,11 +40,16 @@ export class FormationService {
   async getFormationById(id: number): Promise<Formation | null> {
     try {
       const response = await fetchApi<any>(`/api/formations/${id}`, { method: "GET" });
-      if (!response || !response.data) {
+      if (!response) {
+        console.warn(`getFormationById: API response is null or undefined for formation ${id}`);
+        return null;
+      }
+      const data = response.data || response;
+      if (!data) {
         console.warn(`getFormationById: API response data is empty or null for formation ${id}`);
         return null;
       }
-      return response.data;
+      return data;
     } catch (error: any) {
       console.error(`Error fetching formation ${id}:`, error);
       return null;
@@ -51,11 +62,17 @@ export class FormationService {
   async getFormationsByCategorieId(categorieId: number): Promise<Formation[]> {
     try {
       const response = await fetchApi<any>(`/api/formations/categorie/${categorieId}`, { method: "GET" });
-      if (!response || !response.data) {
+      if (!response) {
+        console.warn(`getFormationsByCategorieId: API response is null or undefined for categorie ${categorieId}`);
+        return [];
+      }
+      // Gérer les deux formats possibles : { data: [...] } ou directement [...]
+      const data = response.data || response;
+      if (!data) {
         console.warn(`getFormationsByCategorieId: API response data is empty or null for categorie ${categorieId}`);
         return [];
       }
-      return Array.isArray(response.data) ? response.data : [response.data];
+      return Array.isArray(data) ? data : [data];
     } catch (error: any) {
       console.error(`Error fetching formations for categorie ${categorieId}:`, error);
       return [];
@@ -87,7 +104,12 @@ export class FormationService {
         method: "PUT",
         body: formationData,
       });
-      return response?.data || response || null;
+      if (!response) {
+        console.warn(`updateFormation: API response is null or undefined for formation ${id}`);
+        return null;
+      }
+      const data = response.data || response;
+      return data || null;
     } catch (error: any) {
       console.error(`Error updating formation ${id}:`, error);
       throw error;

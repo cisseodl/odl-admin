@@ -34,8 +34,8 @@ type FormationDisplay = {
 
 const mapFormationToDisplay = (formation: Formation): FormationDisplay => {
   return {
-    id: formation.id,
-    title: formation.title,
+    id: formation.id || 0,
+    title: formation.title || "Sans titre",
     description: formation.description || null,
     imagePath: formation.imagePath || null,
     categorie: formation.categorie || null,
@@ -61,10 +61,16 @@ export function InstructorFormationsManager() {
     setError(null)
     try {
       const formationsData = await formationService.getAllFormations()
-      setFormations(formationsData.map(mapFormationToDisplay))
+      if (Array.isArray(formationsData)) {
+        setFormations(formationsData.map(mapFormationToDisplay))
+      } else {
+        setFormations([])
+        console.warn("Formations data is not an array:", formationsData)
+      }
     } catch (err: any) {
       setError(err.message || "Impossible de charger les formations.")
       console.error("Error fetching formations:", err)
+      setFormations([])
     } finally {
       setLoading(false)
     }
@@ -85,9 +91,12 @@ export function InstructorFormationsManager() {
   }, [])
 
   const { searchQuery, setSearchQuery, filteredData } = useSearch<FormationDisplay>({
-    data: formations,
+    data: Array.isArray(formations) ? formations : [],
     searchKeys: ["title", "description"],
   })
+  
+  // Ensure filteredData is always an array
+  const safeFilteredData = Array.isArray(filteredData) ? filteredData : []
 
   const handleAddFormation = async (data: FormationFormData) => {
     setError(null)
@@ -99,7 +108,9 @@ export function InstructorFormationsManager() {
         categorieId: data.categorieId,
         activate: data.activate ?? true,
       })
-      setFormations((prev) => [...prev, mapFormationToDisplay(createdFormation as Formation)])
+      if (createdFormation) {
+        setFormations((prev) => [...prev, mapFormationToDisplay(createdFormation as Formation)])
+      }
       addModal.close()
       toast({
         title: "Succès",
@@ -127,11 +138,13 @@ export function InstructorFormationsManager() {
         categorieId: data.categorieId,
         activate: data.activate,
       })
-      setFormations((prev) =>
-        prev.map((formation) =>
-          formation.id === editModal.selectedItem!.id ? mapFormationToDisplay(updatedFormation as Formation) : formation
+      if (updatedFormation) {
+        setFormations((prev) =>
+          prev.map((formation) =>
+            formation.id === editModal.selectedItem!.id ? mapFormationToDisplay(updatedFormation as Formation) : formation
+          )
         )
-      )
+      }
       editModal.close()
       toast({
         title: "Succès",
@@ -155,10 +168,14 @@ export function InstructorFormationsManager() {
         header: "Titre",
         cell: ({ row }) => {
           const formation = row.original
+          if (!formation) {
+            return null
+          }
+          const title = formation.title || "Sans titre"
           return (
             <div className="flex items-center gap-2">
               <GraduationCap className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">{formation.title}</span>
+              <span className="font-medium">{title}</span>
             </div>
           )
         },
@@ -167,7 +184,11 @@ export function InstructorFormationsManager() {
         accessorKey: "description",
         header: "Description",
         cell: ({ row }) => {
-          const description = row.original.description
+          const formation = row.original
+          if (!formation) {
+            return null
+          }
+          const description = formation.description
           return (
             <div className="max-w-md truncate text-sm text-muted-foreground">
               {description || "-"}
@@ -179,7 +200,11 @@ export function InstructorFormationsManager() {
         accessorKey: "categorie",
         header: "Catégorie",
         cell: ({ row }) => {
-          const categorie = row.original.categorie
+          const formation = row.original
+          if (!formation) {
+            return null
+          }
+          const categorie = formation.categorie
           return (
             <div className="text-sm">
               {categorie?.title || "-"}
@@ -191,7 +216,11 @@ export function InstructorFormationsManager() {
         accessorKey: "activate",
         header: "Statut",
         cell: ({ row }) => {
-          const activate = row.original.activate
+          const formation = row.original
+          if (!formation) {
+            return null
+          }
+          const activate = formation.activate ?? true
           return <StatusBadge status={activate ? "active" : "inactive"} />
         },
       },
@@ -200,6 +229,9 @@ export function InstructorFormationsManager() {
         header: "Actions",
         cell: ({ row }) => {
           const formation = row.original
+          if (!formation) {
+            return null
+          }
           return (
             <ActionMenu
               actions={[
@@ -229,7 +261,7 @@ export function InstructorFormationsManager() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={t("routes.instructor_formations") || "Formations"}
+        title={(t("routes.instructor_formations") || "Formations") || ""}
         description="Gérez vos formations pédagogiques. Les formations organisent vos cours par domaine de compétence."
         action={{
           label: "Ajouter une formation",
@@ -251,7 +283,7 @@ export function InstructorFormationsManager() {
         />
       </div>
 
-      {filteredData.length === 0 ? (
+      {safeFilteredData.length === 0 ? (
         <EmptyState
           title="Aucune formation"
           description="Créez votre première formation pour organiser vos cours par domaine de compétence."
@@ -263,7 +295,7 @@ export function InstructorFormationsManager() {
           }
         />
       ) : (
-        <DataTable columns={columns} data={filteredData} />
+        <DataTable columns={columns} data={safeFilteredData} />
       )}
 
       <FormationFormModal
@@ -283,11 +315,11 @@ export function InstructorFormationsManager() {
           title="Modifier la formation"
           description="Mettez à jour les informations de la formation"
           defaultValues={{
-            title: editModal.selectedItem.title,
+            title: editModal.selectedItem.title || "",
             description: editModal.selectedItem.description || undefined,
             imagePath: editModal.selectedItem.imagePath || undefined,
             categorieId: editModal.selectedItem.categorie_id || undefined,
-            activate: editModal.selectedItem.activate,
+            activate: editModal.selectedItem.activate ?? true,
           }}
           onSubmit={handleUpdateFormation}
           submitLabel="Enregistrer"
