@@ -29,6 +29,8 @@ export interface Evaluation {
   course?: { id: number; title: string };
   instructorId?: number;
   instructor?: { id: number; fullName: string; email: string };
+  lesson?: { id: number; title: string };
+  lessonId?: number;
   tpInstructions?: string | null;
   tpFileUrl?: string | null;
 }
