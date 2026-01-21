@@ -236,7 +236,7 @@ export function InstructorFormationsManager() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={t("routes.instructor_formations") || "Formations"}
+        title={t("routes.instructor_formations") || "Formations" || ""}
         description="Gérez vos formations pédagogiques. Les formations organisent vos cours par domaine de compétence."
         action={{
           label: "Ajouter une formation",
@@ -290,11 +290,11 @@ export function InstructorFormationsManager() {
           title="Modifier la formation"
           description="Mettez à jour les informations de la formation"
           defaultValues={{
-            title: editModal.selectedItem.title,
+            title: editModal.selectedItem.title || "",
             description: editModal.selectedItem.description || undefined,
             imagePath: editModal.selectedItem.imagePath || undefined,
             categorieId: editModal.selectedItem.categorie_id || undefined,
-            activate: editModal.selectedItem.activate,
+            activate: editModal.selectedItem.activate ?? true,
           }}
           onSubmit={handleUpdateFormation}
           submitLabel="Enregistrer"

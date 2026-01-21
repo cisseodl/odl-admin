@@ -15,7 +15,7 @@ export class FormationService {
    */
   async getAllFormations(): Promise<Formation[]> {
     try {
-      const response = await fetchApi<any>("/api/formations", { method: "GET" });
+      const response = await fetchApi<any>("/api/formations/read", { method: "GET" });
       // Backend retourne CResponse avec structure { ok, data, message }
       if (!response || !response.data) {
         console.warn("getAllFormations: API response data is empty or null");
@@ -33,7 +33,7 @@ export class FormationService {
    */
   async getFormationById(id: number): Promise<Formation | null> {
     try {
-      const response = await fetchApi<any>(`/api/formations/${id}`, { method: "GET" });
+      const response = await fetchApi<any>(`/api/formations/read/${id}`, { method: "GET" });
       if (!response || !response.data) {
         console.warn(`getFormationById: API response data is empty or null for formation ${id}`);
         return null;
@@ -50,7 +50,7 @@ export class FormationService {
    */
   async getFormationsByCategorieId(categorieId: number): Promise<Formation[]> {
     try {
-      const response = await fetchApi<any>(`/api/formations/categorie/${categorieId}`, { method: "GET" });
+      const response = await fetchApi<any>(`/api/formations/read/by-category/${categorieId}`, { method: "GET" });
       if (!response || !response.data) {
         console.warn(`getFormationsByCategorieId: API response data is empty or null for categorie ${categorieId}`);
         return [];
