@@ -1,5 +1,5 @@
-import { InstructorFormationsManager } from "@/components/instructor/instructor-formations-manager"
+import { CoursesManager } from "@/components/instructor/courses-manager"
 
 export default function InstructorFormationsPage() {
-  return <InstructorFormationsManager />
+  return <CoursesManager />
 }
