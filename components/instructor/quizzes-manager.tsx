@@ -39,13 +39,13 @@ const mapEvaluationToQuizDisplay = (evaluation: Evaluation): QuizDisplay => {
     title: evaluation.title || "Sans titre",
     description: evaluation.description || "",
     course: evaluation.course?.title || "N/A",
-    lesson: evaluation.lesson?.title || undefined,
+    lesson: (evaluation as any).lesson?.title || undefined,
     uploadDate: evaluation.createdAt 
       ? new Date(evaluation.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })
       : "",
     status: evaluation.activate ? "Publié" : "Brouillon",
     questionsCount: evaluation.questions?.length || 0,
-    lessonId: evaluation.lesson?.id,
+    lessonId: (evaluation as any).lesson?.id || (evaluation as any).lessonId,
     courseId: evaluation.courseId,
   }
 }

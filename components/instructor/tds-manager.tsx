@@ -47,7 +47,7 @@ const mapEvaluationToTDDisplay = (evaluation: Evaluation): TDDisplay => {
     status: evaluation.activate ? "Publié" : "Brouillon",
     tpInstructions: evaluation.tpInstructions || "",
     tpFileUrl: evaluation.tpFileUrl || "",
-    lessonId: evaluation.lesson?.id,
+    lessonId: (evaluation as any).lesson?.id || (evaluation as any).lessonId,
     courseId: evaluation.courseId,
   }
 }
