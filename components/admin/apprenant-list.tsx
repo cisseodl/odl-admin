@@ -357,7 +357,7 @@ export function ApprenantList() {
               description="Aucun apprenant ne correspond à votre recherche"
             />
           ) : (
-            <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
+            <DataTable columns={columns} data={Array.isArray(filteredData) ? filteredData : []} searchValue={searchQuery} />
           )}
         </CardContent>
       </Card>

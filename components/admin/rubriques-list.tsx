@@ -239,7 +239,7 @@ export function RubriquesList() {
               Aucune rubrique trouvée.
             </div>
           ) : (
-            <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
+            <DataTable columns={columns} data={Array.isArray(filteredData) ? filteredData : []} searchValue={searchQuery} />
           )}
         </CardContent>
       </Card>

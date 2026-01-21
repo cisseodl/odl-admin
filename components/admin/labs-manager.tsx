@@ -316,7 +316,7 @@ export function LabsManager() {
               description="Commencez par ajouter un lab à la plateforme"
             />
           ) : (
-            <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
+            <DataTable columns={columns} data={Array.isArray(filteredData) ? filteredData : []} searchValue={searchQuery} />
           )}
         </CardContent>
       </Card>

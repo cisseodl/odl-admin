@@ -278,7 +278,7 @@ export function FormationsManager() {
           }
         />
       ) : (
-        <DataTable columns={columns} data={filteredData} />
+        <DataTable columns={columns} data={Array.isArray(filteredData) ? filteredData : []} />
       )}
 
       <FormationFormModal
