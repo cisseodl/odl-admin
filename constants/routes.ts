@@ -138,11 +138,6 @@ export const instructorRoutes: Route[] = [
     href: "/instructor/lessons",
   },
   {
-    label: "routes.instructor_formations",
-    icon: GraduationCap,
-    href: "/instructor/formations",
-  },
-  {
     label: "routes.labs",
     icon: HardDrive,
     href: "/instructor/labs",
