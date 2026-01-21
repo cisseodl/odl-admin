@@ -212,7 +212,7 @@ export function RubriquesList() {
         {loading ? (
           <PageLoader />
         ) : (
-          <DataTable columns={columns} data={rubriques} />
+          <DataTable columns={columns} data={Array.isArray(rubriques) ? rubriques : []} />
         )}
       </CardContent>
 
