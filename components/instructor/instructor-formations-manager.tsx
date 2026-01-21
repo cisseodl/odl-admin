@@ -331,3 +331,6 @@ function InstructorFormationsManager() {
   )
 }
 
+export default InstructorFormationsManager
+export { InstructorFormationsManager }
+
