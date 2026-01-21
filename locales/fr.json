@@ -1062,8 +1062,8 @@
       }
     },
     "courses": {
-      "title": "Formations",
-      "description": "Gérez vos formations et consultez la liste des formations créées"
+      "title": "Cours",
+      "description": "Créez et gérez vos cours. Choisissez la formation adaptée lors de la création (ex: cours JavaScript → formation Dev Web)."
     },
     "lessons": {
       "title": "Gestion des Modules et Leçons",
