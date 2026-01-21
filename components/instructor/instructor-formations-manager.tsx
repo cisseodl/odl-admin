@@ -229,7 +229,7 @@ export function InstructorFormationsManager() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={t("routes.instructor_courses") || "Formations"}
+        title={t("routes.instructor_formations") || "Formations"}
         description="Gérez vos formations pédagogiques. Les formations organisent vos cours par domaine de compétence."
         action={{
           label: "Ajouter une formation",
