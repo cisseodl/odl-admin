@@ -56,7 +56,6 @@ export function CoursesManager() {
   const editCourseModal = useModal<Course>();
   const viewCourseModal = useModal<Course>();
   const deleteConfirmModal = useModal<Course>();
-  const deleteConfirmModal = useModal<Course>();
 
   const fetchCourses = async () => {
     if (authLoading || !user) {
@@ -255,7 +254,7 @@ export function CoursesManager() {
         },
       },
     ],
-    [t, viewCourseModal]
+    [t, viewCourseModal, editCourseModal, deleteConfirmModal]
   );
 
   return (
@@ -348,11 +347,36 @@ export function CoursesManager() {
         categories={categories}
       />
       
+      {editCourseModal.selectedItem && (
+        <CourseFormModal
+          open={editCourseModal.isOpen}
+          onOpenChange={(open) => !open && editCourseModal.close()}
+          title="Modifier le cours"
+          description="Mettez à jour les informations du cours"
+          defaultValues={editCourseModal.selectedItem}
+          onSubmit={handleUpdateCourse}
+          submitLabel="Enregistrer"
+          categories={categories}
+        />
+      )}
+
       {viewCourseModal.selectedItem && (
         <ViewCourseSimpleModal
           open={viewCourseModal.isOpen}
           onOpenChange={(open) => !open && viewCourseModal.close()}
           course={viewCourseModal.selectedItem}
+        />
+      )}
+
+      {deleteConfirmModal.selectedItem && (
+        <ConfirmDialog
+          open={deleteConfirmModal.isOpen}
+          onOpenChange={(open) => !open && deleteConfirmModal.close()}
+          onConfirm={() => handleDeleteCourse(deleteConfirmModal.selectedItem!.id)}
+          title="Supprimer le cours"
+          description={`Êtes-vous sûr de vouloir supprimer le cours "${deleteConfirmModal.selectedItem?.title}" ? Cette action est irréversible.`}
+          confirmText="Supprimer"
+          variant="destructive"
         />
       )}
     </>
