@@ -151,7 +151,7 @@ export function CoursesManager() {
       
       toast({
         title: "Succès",
-        description: response?.message || "La formation a été créée avec succès.",
+        description: response?.message || "Le cours a été créé avec succès.",
       });
       
       fetchCourses();
@@ -159,10 +159,54 @@ export function CoursesManager() {
       console.error("Error creating course:", err);
       toast({
         title: "Erreur",
-        description: err.message || "Impossible de créer la formation.",
+        description: err.message || "Impossible de créer le cours.",
         variant: "destructive",
       });
       setError(err.message || "Failed to create course.");
+    }
+  };
+
+  const handleUpdateCourse = async (data: CourseFormData) => {
+    if (!editCourseModal.selectedItem) return;
+    try {
+      const { categoryId, ...courseData } = data;
+      await courseService.updateCourse(editCourseModal.selectedItem.id, courseData, undefined);
+      editCourseModal.close();
+      
+      toast({
+        title: "Succès",
+        description: "Le cours a été mis à jour avec succès.",
+      });
+      
+      fetchCourses();
+    } catch (err: any) {
+      console.error("Error updating course:", err);
+      toast({
+        title: "Erreur",
+        description: err.message || "Impossible de mettre à jour le cours.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteCourse = async (courseId: number) => {
+    try {
+      await courseService.deleteCourse(courseId);
+      deleteConfirmModal.close();
+      
+      toast({
+        title: "Succès",
+        description: "Le cours a été supprimé avec succès.",
+      });
+      
+      fetchCourses();
+    } catch (err: any) {
+      console.error("Error deleting course:", err);
+      toast({
+        title: "Erreur",
+        description: err.message || "Impossible de supprimer le cours.",
+        variant: "destructive",
+      });
     }
   };
 
