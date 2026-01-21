@@ -21,18 +21,45 @@ export interface OdcFormationRequest {
 }
 
 export class OdcFormationService {
-  async getAllFormations(): Promise<any> {
+  async getAllFormations(): Promise<{ data: OdcFormation[] }> {
     try {
       const response = await fetchApi<any>("/api/odc-formations/read", { method: "GET" });
+      
       // Le backend retourne CResponse<List<OdcFormationDto>>
-      if (response && response.data && Array.isArray(response.data)) {
-        return { data: response.data };
+      // Vérifier plusieurs structures de réponse possibles
+      let formationsArray: OdcFormation[] = [];
+      
+      if (response) {
+        // Cas 1: response.data est un tableau
+        if (response.data && Array.isArray(response.data)) {
+          formationsArray = response.data;
+        }
+        // Cas 2: response est directement un tableau
+        else if (Array.isArray(response)) {
+          formationsArray = response;
+        }
+        // Cas 3: response.data.data (double enveloppe)
+        else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+          formationsArray = response.data.data;
+        }
+        // Cas 4: response.ok et response.data contient les données
+        else if (response.ok && response.data) {
+          const data = response.data;
+          if (Array.isArray(data)) {
+            formationsArray = data;
+          } else if (data.data && Array.isArray(data.data)) {
+            formationsArray = data.data;
+          }
+        }
       }
-      if (response && Array.isArray(response)) {
-        return { data: response };
+      
+      // S'assurer que formationsArray est toujours un tableau valide
+      if (!Array.isArray(formationsArray)) {
+        console.warn("[ODC Formations] Response is not an array, using empty array:", formationsArray);
+        formationsArray = [];
       }
-      // Retourner un tableau vide par défaut pour éviter les erreurs
-      return { data: [] };
+      
+      return { data: formationsArray };
     } catch (error) {
       console.error("Error fetching ODC formations:", error);
       // Retourner un tableau vide en cas d'erreur

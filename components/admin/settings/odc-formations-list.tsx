@@ -38,9 +38,12 @@ export function OdcFormationsList() {
     setLoading(true);
     try {
       const response = await odcFormationService.getAllFormations();
+      
+      // Le service retourne toujours { data: OdcFormation[] }
       if (response && response.data && Array.isArray(response.data)) {
         setFormations(response.data);
       } else if (Array.isArray(response)) {
+        // Fallback si la réponse est directement un tableau
         setFormations(response);
       } else {
         console.error("Unexpected response structure:", response);
@@ -138,7 +141,7 @@ export function OdcFormationsList() {
     editModal.open(formation);
   };
 
-  const columns = [
+  const columns = useMemo(() => [
     {
       accessorKey: "titre",
       header: "Titre",
@@ -147,7 +150,7 @@ export function OdcFormationsList() {
       accessorKey: "description",
       header: "Description",
       cell: ({ row }: any) => (
-        <div className="max-w-md truncate">{row.original.description || "-"}</div>
+        <div className="max-w-md truncate">{row.original?.description || "-"}</div>
       ),
     },
     {
@@ -155,7 +158,7 @@ export function OdcFormationsList() {
       header: "Lien",
       cell: ({ row }: any) => (
         <a
-          href={row.original.lien}
+          href={row.original?.lien || "#"}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1 text-primary hover:underline"
@@ -168,7 +171,7 @@ export function OdcFormationsList() {
     {
       accessorKey: "adminName",
       header: "Créé par",
-      cell: ({ row }: any) => row.original.adminName || row.original.adminEmail || "-",
+      cell: ({ row }: any) => row.original?.adminName || row.original?.adminEmail || "-",
     },
     {
       id: "actions",
@@ -191,7 +194,7 @@ export function OdcFormationsList() {
         />
       ),
     },
-  ];
+  ], [editModal, deleteModal]);
 
   // S'assurer que formations est toujours un tableau, même pendant le chargement
   const safeFormations = Array.isArray(formations) ? formations : []

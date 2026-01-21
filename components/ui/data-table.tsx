@@ -84,8 +84,14 @@ export function DataTable<TData, TValue>({
     ...(searchKey
       ? {
           globalFilterFn: (row, columnId, filterValue) => {
-            const value = row.getValue(columnId) as string
-            return value?.toLowerCase().includes(filterValue.toLowerCase())
+            try {
+              const value = row.getValue(columnId) as string
+              if (!value || !filterValue) return true
+              return value?.toLowerCase().includes(filterValue.toLowerCase())
+            } catch (error) {
+              console.error("[DataTable] Error in globalFilterFn:", error)
+              return true // Inclure la ligne en cas d'erreur
+            }
           },
         }
       : {}),
@@ -94,6 +100,10 @@ export function DataTable<TData, TValue>({
         pageSize,
       },
     },
+    // Protection supplémentaire : s'assurer que les modèles de données sont toujours valides
+    manualFiltering: false,
+    manualSorting: false,
+    manualPagination: false,
   })
 
   return (
