@@ -42,8 +42,14 @@ const courseFormSchema = z.object({
   language: z.string().min(2, "La langue doit contenir au moins 2 caractères."),
   categoryId: z.number().optional(),
   formationId: z.number().optional(),
-}).refine((data) => data.formationId || data.categoryId, {
-  message: "Vous devez sélectionner soit une Formation, soit une Catégorie",
+}).refine((data) => {
+  // La formation est requise si une catégorie est sélectionnée
+  if (data.categoryId) {
+    return !!data.formationId;
+  }
+  return true;
+}, {
+  message: "Vous devez sélectionner une formation pour cette catégorie",
   path: ["formationId"],
 })
 
@@ -194,13 +200,14 @@ export function CourseFormModal({
               name="categoryId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('course_form.category_label') || "Catégorie"}</FormLabel>
+                  <FormLabel>{t('course_form.category_label') || "Catégorie *"}</FormLabel>
                   <Select 
                     onValueChange={(value) => {
-                      field.onChange(Number(value))
+                      const numValue = value === "__none__" ? undefined : Number(value)
+                      field.onChange(numValue)
                       form.setValue("formationId", undefined) // Réinitialiser la formation
                     }} 
-                    defaultValue={field.value ? String(field.value) : undefined}
+                    value={field.value ? String(field.value) : "__none__"}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -208,6 +215,7 @@ export function CourseFormModal({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      <SelectItem value="__none__" disabled>{t('course_form.category_placeholder') || "Sélectionnez une catégorie"}</SelectItem>
                       {categories && Array.isArray(categories) && categories.length > 0 ? (
                         categories.map((category) => (
                           <SelectItem key={category.id} value={String(category.id)}>
