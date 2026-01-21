@@ -27,7 +27,8 @@ import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
 import { courseService, categorieService } from "@/services"; // Import courseService and categorieService
 import { useModal } from "@/hooks/use-modal";
 import { CourseFormModal, CourseFormData } from "@/components/shared/course-form-modal";
-import { ViewCourseModal } from "@/components/admin/modals/view-course-modal";
+import { ViewCourseSimpleModal } from "@/components/instructor/view-course-simple-modal";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Categorie } from "@/models";
 import { useToast } from "@/hooks/use-toast";
 
@@ -52,7 +53,10 @@ export function CoursesManager() {
   const [loading, setLoading] = useState(true); // Nouveau state
   const [error, setError] = useState<string | null>(null); // Nouveau state
   const addCourseModal = useModal();
+  const editCourseModal = useModal<Course>();
   const viewCourseModal = useModal<Course>();
+  const deleteConfirmModal = useModal<Course>();
+  const deleteConfirmModal = useModal<Course>();
 
   const fetchCourses = async () => {
     if (authLoading || !user) {
@@ -172,7 +176,7 @@ export function CoursesManager() {
     () => [
       {
         accessorKey: "title",
-        header: t('courses.list.header_course'),
+        header: "Formation",
         cell: ({ row }) => {
           const course = row.original;
           // Afficher la hiérarchie : Catégorie → Formation → Cours
@@ -205,7 +209,7 @@ export function CoursesManager() {
       },
       {
         accessorKey: "modules",
-        header: t('courses.modules'),
+        header: "Modules",
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
             <FileText className="h-4 w-4 text-muted-foreground" />
@@ -214,42 +218,8 @@ export function CoursesManager() {
         ),
       },
       {
-        accessorKey: "chapters",
-        header: t('courses.chapters'),
-      },
-      {
-        accessorKey: "videos",
-        header: t('courses.videos'),
-        cell: ({ row }) => (
-          <div className="flex items-center gap-1">
-            <Video className="h-4 w-4 text-muted-foreground" />
-            {row.original.videos}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "students",
-        header: t('courses.list.header_students'),
-        cell: ({ row }) => (
-          <div className="flex items-center gap-1">
-            <Users className="h-4 w-4 text-muted-foreground" />
-            {row.original.students}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "rating",
-        header: t('courses.list.header_rating'),
-        cell: ({ row }) => (
-          <div className="flex items-center gap-1">
-            <Star className="h-4 w-4 fill-primary text-primary" />
-            {row.original.rating}
-          </div>
-        ),
-      },
-      {
         accessorKey: "status",
-        header: t('courses.list.header_status'),
+        header: "Statut",
         cell: ({ row }) => {
           const status = row.original.status || "Brouillon";
           return <StatusBadge status={status} />;
@@ -257,37 +227,27 @@ export function CoursesManager() {
       },
       {
         id: "actions",
-        header: t('common.actions'),
+        header: "Actions",
         cell: ({ row }) => {
           const course = row.original;
-          // Convertir le Course local en Course du modèle pour la modal
-          const courseForModal: any = {
-            id: course.id,
-            title: course.title,
-            subtitle: "",
-            description: "",
-            imagePath: "",
-            duration: 0,
-            level: "",
-            language: "",
-            bestseller: false,
-            objectives: [],
-            features: [],
-            modules: [],
-            status: course.status === "Publié" ? "PUBLISHED" : course.status === "Brouillon" ? "DRAFT" : "IN_REVIEW",
-            price: 0,
-            categorie: null,
-            instructor: null,
-            students: course.students,
-            rating: course.rating,
-          };
           return (
             <ActionMenu
               actions={[
                 {
-                  label: t('common.view'),
+                  label: "Voir",
                   icon: <Eye className="h-4 w-4" />,
-                  onClick: () => viewCourseModal.open(courseForModal),
+                  onClick: () => viewCourseModal.open(course),
+                },
+                {
+                  label: "Modifier",
+                  icon: <Edit className="h-4 w-4" />,
+                  onClick: () => editCourseModal.open(course),
+                },
+                {
+                  label: "Supprimer",
+                  icon: <X className="h-4 w-4" />,
+                  onClick: () => deleteConfirmModal.open(course),
+                  variant: "destructive",
                 },
               ]}
             />
@@ -314,19 +274,19 @@ export function CoursesManager() {
                   value="all"
                   className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
                 >
-                  {t('courses.tabs.all')} ({courses.length})
+                  Tous les cours ({courses.length})
                 </TabsTrigger>
                 <TabsTrigger
                   value="published"
                   className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
                 >
-                  {t('courses.tabs.published')} ({courses.filter((c) => c.status === "Publié").length})
+                  Les cours publiés ({courses.filter((c) => c.status === "Publié").length})
                 </TabsTrigger>
                 <TabsTrigger
                   value="draft"
                   className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
                 >
-                  {t('courses.tabs.draft')} ({courses.filter((c) => c.status === "Brouillon").length})
+                  Les cours non publiés ({courses.filter((c) => c.status === "Brouillon").length})
                 </TabsTrigger>
               </TabsList>
 
@@ -389,7 +349,7 @@ export function CoursesManager() {
       />
       
       {viewCourseModal.selectedItem && (
-        <ViewCourseModal
+        <ViewCourseSimpleModal
           open={viewCourseModal.isOpen}
           onOpenChange={(open) => !open && viewCourseModal.close()}
           course={viewCourseModal.selectedItem}
