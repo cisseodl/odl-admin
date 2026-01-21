@@ -20,6 +20,7 @@ export interface EvaluationRequest {
   description?: string;
   courseId: number;
   type: EvaluationType;
+  lessonId?: number; // ID de la leçon associée
   tpInstructions?: string;
   tpFileUrl?: string;
   questions?: QuestionRequest[]; // Questions pour les QUIZ
