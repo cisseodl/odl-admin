@@ -86,7 +86,7 @@ export function FormationsManager() {
   }, [])
 
   const { searchQuery, setSearchQuery, filteredData } = useSearch<FormationDisplay>({
-    data: formations,
+    data: Array.isArray(formations) ? formations : [],
     searchKeys: ["title", "description"],
   })
 

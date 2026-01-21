@@ -111,7 +111,7 @@ export function LabsManager() {
 
 
   const { searchQuery, setSearchQuery, filteredData } = useSearch<ContentDisplay>({
-    data: content,
+    data: Array.isArray(content) ? content : [],
     searchKeys: ["title", "course", "type"],
   })
 
