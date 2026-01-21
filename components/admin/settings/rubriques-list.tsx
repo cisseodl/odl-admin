@@ -35,9 +35,11 @@ export function RubriquesList() {
       const response = await rubriqueService.getAllRubriques();
       if (response && Array.isArray(response.data)) {
         setRubriques(response.data);
+      } else if (Array.isArray(response)) {
+        setRubriques(response);
       } else {
         console.error("Unexpected response structure:", response);
-        setRubriques([]);
+        setRubriques([]); // Toujours définir un tableau vide
         toast({
           title: t('rubriques.toasts.error_data'),
           description: t('rubriques.toasts.error_unexpected_response'),
@@ -46,6 +48,7 @@ export function RubriquesList() {
       }
     } catch (error) {
       console.error("Failed to fetch rubriques:", error);
+      setRubriques([]); // Toujours définir un tableau vide en cas d'erreur
       toast({
         title: t('common.error'),
         description: t('rubriques.toasts.error_fetch'),
@@ -54,7 +57,7 @@ export function RubriquesList() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, t]);
 
   useEffect(() => {
     fetchRubriques();
