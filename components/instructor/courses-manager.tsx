@@ -300,14 +300,6 @@ export function CoursesManager() {
 
   return (
     <>
-      <PageHeader
-        title={t('instructor.courses.title')}
-        description={t('instructor.courses.description')}
-        action={{
-          label: t('courses.actions.create'),
-          onClick: addCourseModal.open,
-        }}
-      />
 
       <Card className="mt-6">
         <CardContent>
