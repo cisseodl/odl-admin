@@ -239,10 +239,11 @@ export function CourseFormModal({
                 name="formationId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('course_form.formation_label') || "Formation (optionnel)"}</FormLabel>
+                    <FormLabel>{t('course_form.formation_label') || "Formation *"}</FormLabel>
                     <Select 
                       onValueChange={(value) => field.onChange(value && value !== "__none__" ? Number(value) : undefined)} 
                       value={field.value ? String(field.value) : "__none__"}
+                      required
                       disabled={loadingFormations}
                     >
                       <FormControl>
@@ -251,7 +252,7 @@ export function CourseFormModal({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="__none__">{t('course_form.no_formation') || "Aucune formation (utiliser catégorie)"}</SelectItem>
+                        <SelectItem value="__none__" disabled>{t('course_form.formation_placeholder') || "Sélectionnez une formation"}</SelectItem>
                         {formations.length > 0 ? (
                           formations.map((formation) => (
                             <SelectItem key={formation.id} value={String(formation.id)}>
@@ -268,9 +269,16 @@ export function CourseFormModal({
                       </SelectContent>
                     </Select>
                     <FormMessage />
-                    <p className="text-xs text-muted-foreground">
-                      {t('course_form.formation_hint') || "Sélectionnez une formation pour organiser votre cours. Si aucune formation n'est sélectionnée, le cours sera directement lié à la catégorie."}
-                    </p>
+                    {!loadingFormations && formations.length === 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Aucune formation disponible pour cette catégorie. Vous devez d'abord créer une formation avant de créer un cours.
+                      </p>
+                    )}
+                    {formations.length > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Sélectionnez la formation adaptée à votre cours. Par exemple, le cours "JavaScript" sera lié à la formation "Développement Web".
+                      </p>
+                    )}
                   </FormItem>
                 )}
               />
