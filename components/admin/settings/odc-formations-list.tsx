@@ -1,7 +1,7 @@
 // components/admin/settings/odc-formations-list.tsx
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useLanguage } from "@/contexts/language-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
@@ -193,6 +193,9 @@ export function OdcFormationsList() {
     },
   ];
 
+  // S'assurer que formations est toujours un tableau, même pendant le chargement
+  const safeFormations = Array.isArray(formations) ? formations : []
+
   if (loading) {
     return <PageLoader />;
   }
@@ -210,12 +213,12 @@ export function OdcFormationsList() {
           </div>
         </CardHeader>
         <CardContent>
-          {!formations || formations.length === 0 ? (
+          {safeFormations.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               Aucune formation ODC trouvée
             </div>
           ) : (
-            <DataTable columns={columns} data={Array.isArray(formations) ? formations : []} />
+            <DataTable columns={columns} data={safeFormations} />
           )}
         </CardContent>
       </Card>

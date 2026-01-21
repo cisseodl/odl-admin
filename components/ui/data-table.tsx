@@ -45,12 +45,27 @@ export function DataTable<TData, TValue>({
 
   // S'assurer que data est toujours un tableau pour éviter les erreurs
   const safeData = React.useMemo(() => {
-    return Array.isArray(data) ? data : []
+    if (!data) return []
+    if (!Array.isArray(data)) {
+      console.warn("[DataTable] data is not an array, converting to empty array:", typeof data, data)
+      return []
+    }
+    return data
   }, [data])
+
+  // S'assurer que columns est toujours un tableau
+  const safeColumns = React.useMemo(() => {
+    if (!columns) return []
+    if (!Array.isArray(columns)) {
+      console.warn("[DataTable] columns is not an array, converting to empty array:", typeof columns, columns)
+      return []
+    }
+    return columns
+  }, [columns])
 
   const table = useReactTable({
     data: safeData,
-    columns,
+    columns: safeColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: enablePagination ? getPaginationRowModel() : undefined,
     onSortingChange: setSorting,
