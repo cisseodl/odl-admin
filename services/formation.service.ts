@@ -15,7 +15,7 @@ export class FormationService {
    */
   async getAllFormations(): Promise<Formation[]> {
     try {
-      const response = await fetchApi<any>("/api/formations/read", { method: "GET" });
+      const response = await fetchApi<any>("/api/formations", { method: "GET" });
       // Backend retourne CResponse avec structure { ok, data, message }
       if (!response) {
         console.warn("getAllFormations: API response is null or undefined");
@@ -39,12 +39,17 @@ export class FormationService {
    */
   async getFormationById(id: number): Promise<Formation | null> {
     try {
-      const response = await fetchApi<any>(`/api/formations/read/${id}`, { method: "GET" });
-      if (!response || !response.data) {
+      const response = await fetchApi<any>(`/api/formations/${id}`, { method: "GET" });
+      if (!response) {
+        console.warn(`getFormationById: API response is null or undefined for formation ${id}`);
+        return null;
+      }
+      const data = response.data || response;
+      if (!data) {
         console.warn(`getFormationById: API response data is empty or null for formation ${id}`);
         return null;
       }
-      return response.data;
+      return data;
     } catch (error: any) {
       console.error(`Error fetching formation ${id}:`, error);
       return null;
@@ -56,7 +61,7 @@ export class FormationService {
    */
   async getFormationsByCategorieId(categorieId: number): Promise<Formation[]> {
     try {
-      const response = await fetchApi<any>(`/api/formations/read/by-category/${categorieId}`, { method: "GET" });
+      const response = await fetchApi<any>(`/api/formations/categorie/${categorieId}`, { method: "GET" });
       if (!response) {
         console.warn(`getFormationsByCategorieId: API response is null or undefined for categorie ${categorieId}`);
         return [];
@@ -99,7 +104,12 @@ export class FormationService {
         method: "PUT",
         body: formationData,
       });
-      return response?.data || response || null;
+      if (!response) {
+        console.warn(`updateFormation: API response is null or undefined for formation ${id}`);
+        return null;
+      }
+      const data = response.data || response;
+      return data || null;
     } catch (error: any) {
       console.error(`Error updating formation ${id}:`, error);
       throw error;
