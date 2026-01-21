@@ -100,8 +100,21 @@ export class ApprenantService {
   }
 
   async getApprenantDashboardSummary(apprenantId: number): Promise<{ coursesEnrolled: number; completedCourses: number; totalCertificates: number; }> {
-    console.warn(`ApprenantService: getApprenantDashboardSummary endpoint for apprenantId ${apprenantId} is not defined in t.txt. Returning default empty object.`);
-    return { coursesEnrolled: 0, completedCourses: 0, totalCertificates: 0 };
+    try {
+      const response = await fetchApi<any>(`/api/apprenants/${apprenantId}/stats`, { method: "GET" });
+      if (response.ok && response.data) {
+        return {
+          coursesEnrolled: response.data.coursesEnrolled || 0,
+          completedCourses: response.data.completedCourses || 0,
+          totalCertificates: response.data.totalCertificates || 0,
+        };
+      }
+      console.warn(`ApprenantService: getApprenantDashboardSummary failed for apprenantId ${apprenantId}`);
+      return { coursesEnrolled: 0, completedCourses: 0, totalCertificates: 0 };
+    } catch (error) {
+      console.error(`ApprenantService: Error fetching stats for apprenantId ${apprenantId}:`, error);
+      return { coursesEnrolled: 0, completedCourses: 0, totalCertificates: 0 };
+    }
   }
 
   async getApprenantDetailedProgression(apprenantId: number): Promise<any[]> {

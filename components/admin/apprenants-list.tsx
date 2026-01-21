@@ -114,8 +114,17 @@ const mapApprenantDisplayToUserDisplay = (apprenant: ApprenantDisplay): UserDisp
     role: "Apprenant",
     status: apprenant.status,
     joinedDate: apprenant.joinedDate,
-    courses: apprenant.coursesEnrolled,
+    courses: apprenant.coursesEnrolled, // Pour "Formations suivies"
     avatar: apprenant.avatar,
+    phone: apprenant.numero,
+    numero: apprenant.numero,
+    profession: apprenant.profession,
+    niveauEtude: apprenant.niveauEtude,
+    filiere: apprenant.filiere,
+    cohorte: apprenant.cohorte,
+    coursesEnrolled: apprenant.coursesEnrolled,
+    completedCourses: apprenant.completedCourses,
+    totalCertificates: apprenant.totalCertificates,
   };
 };
 
