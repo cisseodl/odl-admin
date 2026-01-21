@@ -331,6 +331,8 @@ function InstructorFormationsManager() {
   )
 }
 
-export default InstructorFormationsManager
+// Export both default and named for maximum compatibility
+const Component = InstructorFormationsManager
+export default Component
 export { InstructorFormationsManager }
 
