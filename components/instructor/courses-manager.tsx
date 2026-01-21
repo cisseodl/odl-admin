@@ -14,12 +14,9 @@ import type { ColumnDef } from "@tanstack/react-table";
 import {
   Eye,
   BookOpen,
-  Users,
-  Clock,
-  Star,
   FileText,
-  Video,
-  Play,
+  Edit,
+  X,
 } from "lucide-react";
 
 import { useAuth } from "@/contexts/auth-context"; // Import useAuth
