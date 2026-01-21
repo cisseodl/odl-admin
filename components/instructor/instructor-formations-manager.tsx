@@ -91,9 +91,12 @@ export function InstructorFormationsManager() {
   }, [])
 
   const { searchQuery, setSearchQuery, filteredData } = useSearch<FormationDisplay>({
-    data: formations,
+    data: Array.isArray(formations) ? formations : [],
     searchKeys: ["title", "description"],
   })
+  
+  // Ensure filteredData is always an array
+  const safeFilteredData = Array.isArray(filteredData) ? filteredData : []
 
   const handleAddFormation = async (data: FormationFormData) => {
     setError(null)
@@ -280,7 +283,7 @@ export function InstructorFormationsManager() {
         />
       </div>
 
-      {!filteredData || filteredData.length === 0 ? (
+      {safeFilteredData.length === 0 ? (
         <EmptyState
           title="Aucune formation"
           description="Créez votre première formation pour organiser vos cours par domaine de compétence."
@@ -292,7 +295,7 @@ export function InstructorFormationsManager() {
           }
         />
       ) : (
-        <DataTable columns={columns} data={filteredData || []} />
+        <DataTable columns={columns} data={safeFilteredData} />
       )}
 
       <FormationFormModal
