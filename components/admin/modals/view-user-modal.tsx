@@ -62,21 +62,21 @@ export function ViewUserModal({ open, onOpenChange, user }: ViewUserModalProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="max-w-[95vw] sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl flex items-center gap-3">
-            <Avatar>
+          <DialogTitle className="text-xl sm:text-2xl flex items-center gap-2 sm:gap-3 flex-wrap">
+            <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
               <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
-              <AvatarFallback>{user.name.slice(0, 2)}</AvatarFallback>
+              <AvatarFallback className="text-xs sm:text-sm">{user.name.slice(0, 2)}</AvatarFallback>
             </Avatar>
-            {user.name}
+            <span className="break-words">{user.name}</span>
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-6">
-          <div className="flex items-center gap-2">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="flex items-center gap-2 flex-wrap">
             <Badge
               variant={user.role === "Admin" ? "default" : user.role === "Formateur" ? "secondary" : "outline"}
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 text-xs sm:text-sm"
             >
               {getRoleIcon()}
               {user.role}
@@ -85,7 +85,7 @@ export function ViewUserModal({ open, onOpenChange, user }: ViewUserModalProps) 
               variant={
                 user.status === "Actif" ? "default" : user.status === "Suspendu" ? "destructive" : "secondary"
               }
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 text-xs sm:text-sm"
             >
               {getStatusIcon()}
               {user.status}
@@ -94,44 +94,44 @@ export function ViewUserModal({ open, onOpenChange, user }: ViewUserModalProps) 
 
           <Separator />
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-3">
-              <Mail className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">Email</p>
-                <p className="font-medium">{user.email}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground">Email</p>
+                <p className="font-medium text-sm sm:text-base break-words">{user.email}</p>
               </div>
             </div>
             {(user.phone || user.numero) && (
-              <div className="flex items-center gap-3">
-                <Phone className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Téléphone</p>
-                  <p className="font-medium">{user.phone || user.numero}</p>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm text-muted-foreground">Téléphone</p>
+                  <p className="font-medium text-sm sm:text-base">{user.phone || user.numero}</p>
                 </div>
               </div>
             )}
-            <div className="flex items-center gap-3">
-              <Calendar className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">Date d'inscription</p>
-                <p className="font-medium">{user.joinedDate}</p>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground">Date d'inscription</p>
+                <p className="font-medium text-sm sm:text-base">{user.joinedDate}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <BookOpen className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   {user.role === "Formateur" ? "Formations gérées" : user.role === "Admin" ? "Cours gérés" : "Formations suivies"}
                 </p>
-                <p className="font-bold text-lg">{user.courses}</p>
+                <p className="font-bold text-base sm:text-lg">{user.courses}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <User className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">ID Utilisateur</p>
-                <p className="font-medium">#{user.id}</p>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <User className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground">ID Utilisateur</p>
+                <p className="font-medium text-sm sm:text-base">#{user.id}</p>
               </div>
             </div>
           </div>
@@ -139,28 +139,28 @@ export function ViewUserModal({ open, onOpenChange, user }: ViewUserModalProps) 
           {user.role === "Formateur" && (
             <>
               <Separator />
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div>
-                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                    <GraduationCap className="h-5 w-5" />
+                  <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3 flex items-center gap-2">
+                    <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5" />
                     Informations formateur
                   </h3>
-                  <div className="grid grid-cols-1 gap-4">
+                  <div className="grid grid-cols-1 gap-3 sm:gap-4">
                     {user.specialization && (
-                      <div className="flex items-start gap-3">
-                        <BookOpen className="h-5 w-5 text-muted-foreground mt-0.5" />
-                        <div>
-                          <p className="text-sm text-muted-foreground">Spécialisation</p>
-                          <p className="font-medium">{user.specialization}</p>
+                      <div className="flex items-start gap-2 sm:gap-3">
+                        <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs sm:text-sm text-muted-foreground">Spécialisation</p>
+                          <p className="font-medium text-sm sm:text-base break-words">{user.specialization}</p>
                         </div>
                       </div>
                     )}
                     {user.biography && (
-                      <div className="flex items-start gap-3">
-                        <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
-                        <div className="flex-1">
-                          <p className="text-sm text-muted-foreground mb-1">Biographie</p>
-                          <p className="text-sm">{user.biography}</p>
+                      <div className="flex items-start gap-2 sm:gap-3">
+                        <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs sm:text-sm text-muted-foreground mb-1">Biographie</p>
+                          <p className="text-xs sm:text-sm break-words">{user.biography}</p>
                         </div>
                       </div>
                     )}
@@ -173,25 +173,25 @@ export function ViewUserModal({ open, onOpenChange, user }: ViewUserModalProps) 
           {user.role === "Admin" && (
             <>
               <Separator />
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div>
-                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                    <Shield className="h-5 w-5" />
+                  <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3 flex items-center gap-2">
+                    <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
                     Informations administrateur
                   </h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-3">
-                      <Shield className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Rôle</p>
-                        <p className="font-medium">Administrateur</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs sm:text-sm text-muted-foreground">Rôle</p>
+                        <p className="font-medium text-sm sm:text-base">Administrateur</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <BookOpen className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Cours gérés</p>
-                        <p className="font-bold text-lg">{user.courses}</p>
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs sm:text-sm text-muted-foreground">Cours gérés</p>
+                        <p className="font-bold text-base sm:text-lg">{user.courses}</p>
                       </div>
                     </div>
                   </div>
@@ -203,53 +203,53 @@ export function ViewUserModal({ open, onOpenChange, user }: ViewUserModalProps) 
           {user.role === "Apprenant" && (
             <>
               <Separator />
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center gap-3">
-                  <Briefcase className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Profession</p>
-                    <p className="font-medium">{user.profession || "N/A"}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Briefcase className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm text-muted-foreground">Profession</p>
+                    <p className="font-medium text-sm sm:text-base break-words">{user.profession || "N/A"}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <School className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Niveau d'étude</p>
-                    <p className="font-medium">{user.niveauEtude || "N/A"}</p>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <School className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm text-muted-foreground">Niveau d'étude</p>
+                    <p className="font-medium text-sm sm:text-base break-words">{user.niveauEtude || "N/A"}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <BookOpen className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Filière</p>
-                    <p className="font-medium">{user.filiere || "N/A"}</p>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm text-muted-foreground">Filière</p>
+                    <p className="font-medium text-sm sm:text-base break-words">{user.filiere || "N/A"}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Users className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Cohorte</p>
-                    <p className="font-medium">{user.cohorte?.nom || "N/A"}</p>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm text-muted-foreground">Cohorte</p>
+                    <p className="font-medium text-sm sm:text-base break-words">{user.cohorte?.nom || "N/A"}</p>
                   </div>
                 </div>
               </div>
 
               <Separator />
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <BookOpen className="h-6 w-6 text-muted-foreground mx-auto mb-1" />
-                  <p className="text-sm text-muted-foreground">Cours inscrits</p>
-                  <p className="font-bold text-lg">{user.coursesEnrolled ?? 0}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center">
+                <div className="p-2 sm:p-0">
+                  <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground mx-auto mb-1" />
+                  <p className="text-xs sm:text-sm text-muted-foreground">Cours inscrits</p>
+                  <p className="font-bold text-base sm:text-lg">{user.coursesEnrolled ?? 0}</p>
                 </div>
-                <div>
-                  <CheckCircle2 className="h-6 w-6 text-muted-foreground mx-auto mb-1" />
-                  <p className="text-sm text-muted-foreground">Cours complétés</p>
-                  <p className="font-bold text-lg">{user.completedCourses ?? 0}</p>
+                <div className="p-2 sm:p-0">
+                  <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground mx-auto mb-1" />
+                  <p className="text-xs sm:text-sm text-muted-foreground">Cours complétés</p>
+                  <p className="font-bold text-base sm:text-lg">{user.completedCourses ?? 0}</p>
                 </div>
-                <div>
-                  <Award className="h-6 w-6 text-muted-foreground mx-auto mb-1" />
-                  <p className="text-sm text-muted-foreground">Certificats</p>
-                  <p className="font-bold text-lg">{user.totalCertificates ?? 0}</p>
+                <div className="p-2 sm:p-0">
+                  <Award className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground mx-auto mb-1" />
+                  <p className="text-xs sm:text-sm text-muted-foreground">Certificats</p>
+                  <p className="font-bold text-base sm:text-lg">{user.totalCertificates ?? 0}</p>
                 </div>
               </div>
 
