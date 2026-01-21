@@ -125,24 +125,32 @@ export function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {table.getRowModel()?.rows?.length ? (
-              (table.getRowModel()?.rows || []).map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                  {row.getVisibleCells().map((cell) => {
-                    const rendered = flexRender(cell.column.columnDef.cell, cell.getContext())
-                    return (
-                      <TableCell key={cell.id}>
-                        {rendered || null}
-                      </TableCell>
-                    )
-                  })}
-                </TableRow>
-              ))
+              (table.getRowModel()?.rows || []).map((row) => {
+                if (!row || !row.original) {
+                  return null
+                }
+                return (
+                  <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                    {row.getVisibleCells().map((cell) => {
+                      if (!cell) {
+                        return null
+                      }
+                      const rendered = flexRender(cell.column.columnDef.cell, cell.getContext())
+                      return (
+                        <TableCell key={cell.id}>
+                          {rendered ?? null}
+                        </TableCell>
+                      )
+                    })}
+                  </TableRow>
+                )
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
                   <div className="flex flex-col items-center justify-center py-8">
-                    <p className="text-sm font-medium text-muted-foreground">{t('table.no_results')}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{t('table.no_results_description')}</p>
+                    <p className="text-sm font-medium text-muted-foreground">{t('table.no_results') || 'Aucun résultat'}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t('table.no_results_description') || 'Aucune donnée disponible'}</p>
                   </div>
                 </TableCell>
               </TableRow>
