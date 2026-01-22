@@ -25,19 +25,19 @@ export class LabDefinitionService {
       ...rest 
     } = labDefinition;
     
-    // Convertir en nombres et valider
-    const estimatedDuration = Number(estimated_duration_minutes);
-    const maxDuration = Number(max_duration_minutes);
-    const lessonId = Number(lesson_id);
+    // Convertir en nombres entiers et valider
+    const estimatedDuration = Math.floor(Number(estimated_duration_minutes));
+    const maxDuration = Math.floor(Number(max_duration_minutes));
+    const lessonId = Math.floor(Number(lesson_id));
     
     // S'assurer que les champs requis sont présents et valides
-    if (!estimated_duration_minutes || isNaN(estimatedDuration) || estimatedDuration <= 0) {
+    if (estimated_duration_minutes === undefined || estimated_duration_minutes === null || isNaN(estimatedDuration) || estimatedDuration <= 0) {
       throw new Error("La durée estimée est requise et doit être supérieure à 0");
     }
-    if (!max_duration_minutes || isNaN(maxDuration) || maxDuration <= 0) {
+    if (max_duration_minutes === undefined || max_duration_minutes === null || isNaN(maxDuration) || maxDuration <= 0) {
       throw new Error("La durée maximale est requise et doit être supérieure à 0");
     }
-    if (!lesson_id || isNaN(lessonId) || lessonId <= 0) {
+    if (lesson_id === undefined || lesson_id === null || isNaN(lessonId) || lessonId <= 0) {
       throw new Error("La leçon est requise");
     }
     
