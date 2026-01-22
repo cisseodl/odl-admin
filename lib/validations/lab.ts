@@ -15,9 +15,14 @@ export const labSchema = z.object({
   // Utiliser coerce pour convertir automatiquement string -> number depuis les inputs HTML
   estimatedDurationMinutes: z.preprocess(
     (val) => {
-      if (val === "" || val === null || val === undefined) return undefined;
+      if (val === "" || val === null || val === undefined) {
+        return undefined; // Laisser Zod gérer l'erreur required
+      }
       const num = Number(val);
-      return isNaN(num) ? undefined : Math.floor(num);
+      if (isNaN(num)) {
+        return undefined; // Laisser Zod gérer l'erreur invalid_type
+      }
+      return Math.floor(num); // Convertir en entier
     },
     z.number({
       required_error: "La durée estimée est requise",
@@ -26,9 +31,14 @@ export const labSchema = z.object({
   ),
   maxDurationMinutes: z.preprocess(
     (val) => {
-      if (val === "" || val === null || val === undefined) return undefined;
+      if (val === "" || val === null || val === undefined) {
+        return undefined; // Laisser Zod gérer l'erreur required
+      }
       const num = Number(val);
-      return isNaN(num) ? undefined : Math.floor(num);
+      if (isNaN(num)) {
+        return undefined; // Laisser Zod gérer l'erreur invalid_type
+      }
+      return Math.floor(num); // Convertir en entier
     },
     z.number({
       required_error: "La durée maximale est requise",
