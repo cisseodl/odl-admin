@@ -86,11 +86,6 @@ export const adminRoutes: Route[] = [
     href: "/admin/content",
   },
   {
-    label: "routes.formations",
-    icon: GraduationCap,
-    href: "/admin/formations",
-  },
-  {
     label: "routes.cohorts", // Replaced Modération
     icon: Users, // Icon for Cohortes (can be changed if needed)
     href: "/admin/cohortes", // New href for Cohortes
