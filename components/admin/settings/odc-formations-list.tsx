@@ -13,7 +13,7 @@ import { Plus, Edit, Trash2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useModal } from "@/hooks/use-modal";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -242,6 +242,9 @@ export function OdcFormationsList() {
             <DialogTitle>
               {editModal.isOpen ? "Modifier la formation ODC" : "Nouvelle formation ODC"}
             </DialogTitle>
+            <DialogDescription>
+              {editModal.isOpen ? "Modifiez les informations de la formation ODC" : "Remplissez les informations pour créer une nouvelle formation ODC"}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
