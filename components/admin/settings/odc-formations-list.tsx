@@ -245,10 +245,6 @@ export function OdcFormationsList() {
     return formations.filter((f) => f && typeof f === 'object')
   }, [formations])
 
-  if (loading) {
-    return <PageLoader />;
-  }
-
   // Vérifier que les colonnes sont valides avant de rendre
   const safeColumns = useMemo(() => {
     if (!columns || !Array.isArray(columns) || columns.length === 0) {
@@ -257,6 +253,10 @@ export function OdcFormationsList() {
     }
     return columns
   }, [columns])
+
+  if (loading) {
+    return <PageLoader />;
+  }
 
   return (
     <>
