@@ -14,6 +14,8 @@ import {
   Shield,
   Bell,
   HardDrive, // Added HardDrive for Labs
+  ClipboardList, // For TD (Travaux Dirigés)
+  HelpCircle, // For Quiz
 } from "lucide-react"
 import type { Route } from "@/types"
 
@@ -138,14 +140,19 @@ export const instructorRoutes: Route[] = [
     href: "/instructor/lessons",
   },
   {
-    label: "routes.instructor_formations",
-    icon: GraduationCap,
-    href: "/instructor/formations",
-  },
-  {
     label: "routes.labs",
     icon: HardDrive,
     href: "/instructor/labs",
+  },
+  {
+    label: "routes.tds",
+    icon: ClipboardList,
+    href: "/instructor/tds",
+  },
+  {
+    label: "routes.quizzes",
+    icon: HelpCircle,
+    href: "/instructor/quizzes",
   },
   {
     label: "routes.evaluations",

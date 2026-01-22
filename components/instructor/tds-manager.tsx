@@ -11,16 +11,16 @@ import { useModal } from "@/hooks/use-modal"
 import { useSearch } from "@/hooks/use-search"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import type { ColumnDef } from "@tanstack/react-table"
-import { Edit, Trash2, HelpCircle, Clock, Calendar } from "lucide-react"
+import { Edit, Trash2, ClipboardList, Clock, Calendar } from "lucide-react"
 import { Evaluation, EvaluationType } from "@/models/evaluation.model"
 import { evaluationService } from "@/services"
 import { PageLoader } from "@/components/ui/page-loader"
 import { EmptyState } from "@/components/admin/empty-state"
-import { QuizFormModal } from "@/components/shared/quiz-form-modal"
+import { TDFormModal } from "@/components/shared/td-form-modal"
 import { useLanguage } from "@/contexts/language-context"
 import { useToast } from "@/hooks/use-toast"
 
-type QuizDisplay = {
+type TDDisplay = {
   id: number
   title: string
   description?: string
@@ -28,57 +28,59 @@ type QuizDisplay = {
   lesson?: string
   uploadDate: string
   status: "Publié" | "Brouillon"
-  questionsCount?: number
+  tpInstructions?: string
+  tpFileUrl?: string
   lessonId?: number
   courseId?: number
 }
 
-const mapEvaluationToQuizDisplay = (evaluation: Evaluation): QuizDisplay => {
+const mapEvaluationToTDDisplay = (evaluation: Evaluation): TDDisplay => {
   return {
     id: evaluation.id || 0,
     title: evaluation.title || "Sans titre",
     description: evaluation.description || "",
     course: evaluation.course?.title || "N/A",
-    lesson: (evaluation as any).lesson?.title || undefined,
+    lesson: evaluation.lesson?.title || undefined,
     uploadDate: evaluation.createdAt 
       ? new Date(evaluation.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })
       : "",
     status: evaluation.activate ? "Publié" : "Brouillon",
-    questionsCount: evaluation.questions?.length || 0,
+    tpInstructions: evaluation.tpInstructions || "",
+    tpFileUrl: evaluation.tpFileUrl || "",
     lessonId: (evaluation as any).lesson?.id || (evaluation as any).lessonId,
     courseId: evaluation.courseId,
   }
 }
 
-export function QuizzesManager() {
+export function TDsManager() {
   const { t } = useLanguage()
   const { toast } = useToast()
-  const addModal = useModal<QuizDisplay>()
-  const editModal = useModal<QuizDisplay>()
-  const deleteModal = useModal<QuizDisplay>()
+  const addModal = useModal<TDDisplay>()
+  const editModal = useModal<TDDisplay>()
+  const deleteModal = useModal<TDDisplay>()
 
-  const [quizzes, setQuizzes] = useState<QuizDisplay[]>([])
+  const [tds, setTds] = useState<TDDisplay[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchQuizzes()
+    fetchTDs()
   }, [])
 
-  const fetchQuizzes = async () => {
+  const fetchTDs = async () => {
     setLoading(true)
     setError(null)
     try {
       const response = await evaluationService.getAllEvaluations()
-      // Filtrer seulement les évaluations de type QUIZ
-      const quizEvaluations = response.filter((e: Evaluation) => e.type === EvaluationType.QUIZ)
-      setQuizzes(quizEvaluations.map(mapEvaluationToQuizDisplay))
+      // Filtrer seulement les évaluations de type TP
+      const tpEvaluations = response.filter((e: Evaluation) => e.type === EvaluationType.TP)
+      setTds(tpEvaluations.map(mapEvaluationToTDDisplay))
     } catch (err: any) {
-      setError(err.message || "Failed to fetch quizzes.")
-      console.error("Error fetching quizzes:", err)
+      setError(err.message || "Failed to fetch TDs.")
+      console.error("Error fetching TDs:", err)
       toast({
         title: "Erreur",
-        description: "Impossible de charger les quiz.",
+        description: "Impossible de charger les TDs.",
         variant: "destructive",
       })
     } finally {
@@ -86,107 +88,109 @@ export function QuizzesManager() {
     }
   }
 
-  const { searchQuery, setSearchQuery, filteredData } = useSearch<QuizDisplay>({
-    data: quizzes,
+  const { searchQuery, setSearchQuery, filteredData } = useSearch<TDDisplay>({
+    data: tds,
     searchKeys: ["title", "description", "course", "lesson"],
   })
 
-  const handleAddQuiz = async (data: any) => {
+  const handleAddTD = async (data: any) => {
     setError(null)
     try {
-      const newQuizData = {
+      const newTDData = {
         title: data.title,
         description: data.description || "",
         courseId: data.courseId,
         lessonId: data.lessonId,
-        type: EvaluationType.QUIZ,
-        questions: data.questions || [],
+        type: EvaluationType.TP,
+        tpInstructions: data.tpInstructions || "",
+        tpFileUrl: data.tpFileUrl || "",
       }
-      const createdQuiz = await evaluationService.createEvaluation(newQuizData)
-      setQuizzes((prev) => [...prev, mapEvaluationToQuizDisplay(createdQuiz)])
+      const createdTD = await evaluationService.createEvaluation(newTDData)
+      setTds((prev) => [...prev, mapEvaluationToTDDisplay(createdTD)])
       addModal.close()
       toast({
         title: "Succès",
-        description: "Le quiz a été créé avec succès.",
+        description: "Le TD a été créé avec succès.",
       })
-      fetchQuizzes()
+      fetchTDs()
     } catch (err: any) {
-      setError(err.message || "Failed to add quiz.")
-      console.error("Error adding quiz:", err)
+      setError(err.message || "Failed to add TD.")
+      console.error("Error adding TD:", err)
       toast({
         title: "Erreur",
-        description: err.message || "Impossible de créer le quiz.",
+        description: err.message || "Impossible de créer le TD.",
         variant: "destructive",
       })
     }
   }
 
-  const handleUpdateQuiz = async (data: any) => {
+  const handleUpdateTD = async (data: any) => {
     setError(null)
     if (editModal.selectedItem) {
       try {
-        const updatedQuizData = {
+        const updatedTDData = {
           title: data.title,
           description: data.description || "",
+          tpInstructions: data.tpInstructions || "",
+          tpFileUrl: data.tpFileUrl || "",
           courseId: data.courseId,
           lessonId: data.lessonId,
-          questions: data.questions || [],
         }
-        const updatedQuiz = await evaluationService.updateEvaluation(editModal.selectedItem.id, updatedQuizData)
-        setQuizzes((prev) =>
+        const updatedTD = await evaluationService.updateEvaluation(editModal.selectedItem.id, updatedTDData)
+        setTds((prev) =>
           prev.map((item) =>
-            item.id === editModal.selectedItem!.id ? mapEvaluationToQuizDisplay(updatedQuiz) : item
+            item.id === editModal.selectedItem!.id ? mapEvaluationToTDDisplay(updatedTD) : item
           )
         )
         editModal.close()
         toast({
           title: "Succès",
-          description: "Le quiz a été mis à jour avec succès.",
+          description: "Le TD a été mis à jour avec succès.",
         })
-        fetchQuizzes()
+        fetchTDs()
       } catch (err: any) {
-        setError(err.message || "Failed to update quiz.")
-        console.error("Error updating quiz:", err)
+        setError(err.message || "Failed to update TD.")
+        console.error("Error updating TD:", err)
         toast({
           title: "Erreur",
-          description: err.message || "Impossible de mettre à jour le quiz.",
+          description: err.message || "Impossible de mettre à jour le TD.",
           variant: "destructive",
         })
       }
     }
   }
 
-  const handleDeleteQuiz = async () => {
+  const handleDeleteTD = async () => {
     setError(null)
     if (deleteModal.selectedItem) {
       try {
         await evaluationService.deleteEvaluation(deleteModal.selectedItem.id)
-        setQuizzes((prev) => prev.filter((item) => item.id !== deleteModal.selectedItem!.id))
+        setTds((prev) => prev.filter((item) => item.id !== deleteModal.selectedItem!.id))
         deleteModal.close()
         toast({
           title: "Succès",
-          description: "Le quiz a été supprimé avec succès.",
+          description: "Le TD a été supprimé avec succès.",
         })
       } catch (err: any) {
-        setError(err.message || "Failed to delete quiz.")
-        console.error("Error deleting quiz:", err)
+        setError(err.message || "Failed to delete TD.")
+        console.error("Error deleting TD:", err)
         toast({
           title: "Erreur",
-          description: err.message || "Impossible de supprimer le quiz.",
+          description: err.message || "Impossible de supprimer le TD.",
           variant: "destructive",
         })
       }
     }
   }
 
-  const columns: ColumnDef<QuizDisplay>[] = useMemo(
+  const columns: ColumnDef<TDDisplay>[] = useMemo(
     () => [
       {
         accessorKey: "title",
         header: "Titre",
         cell: ({ row }) => (
           <div className="font-medium flex items-center gap-2">
-            <HelpCircle className="h-4 w-4" />
+            <ClipboardList className="h-4 w-4" />
             {row.original.title}
           </div>
         ),
@@ -199,15 +203,6 @@ export function QuizzesManager() {
         accessorKey: "lesson",
         header: "Leçon",
         cell: ({ row }) => row.original.lesson || "-",
-      },
-      {
-        accessorKey: "questionsCount",
-        header: "Questions",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-1">
-            <span>{row.original.questionsCount || 0}</span>
-          </div>
-        ),
       },
       {
         accessorKey: "uploadDate",
@@ -255,10 +250,10 @@ export function QuizzesManager() {
   return (
     <>
       <PageHeader
-        title="Gestion des Quiz"
-        description="Gérez tous les quiz liés à vos leçons"
+        title="Gestion des TDs"
+        description="Gérez tous les TDs (Travaux Dirigés) liés à vos leçons"
         action={{
-          label: "Ajouter un quiz",
+          label: "Ajouter un TD",
           onClick: () => addModal.open(),
         }}
       />
@@ -267,7 +262,7 @@ export function QuizzesManager() {
         <CardContent>
           <div className="mb-4">
             <SearchBar
-              placeholder="Rechercher un quiz..."
+              placeholder="Rechercher un TD..."
               value={searchQuery}
               onChange={setSearchQuery}
             />
@@ -279,9 +274,9 @@ export function QuizzesManager() {
             <div className="text-center text-destructive p-4">{error}</div>
           ) : filteredData.length === 0 ? (
             <EmptyState
-              icon={HelpCircle}
-              title="Aucun quiz"
-              description="Commencez par ajouter un quiz pour une leçon"
+              icon={ClipboardList}
+              title="Aucun TD"
+              description="Commencez par ajouter un TD pour une leçon"
             />
           ) : (
             <DataTable columns={columns} data={Array.isArray(filteredData) ? filteredData : []} searchValue={searchQuery} />
@@ -289,29 +284,30 @@ export function QuizzesManager() {
         </CardContent>
       </Card>
 
-      <QuizFormModal
+      <TDFormModal
         open={addModal.isOpen}
         onOpenChange={(open) => !open && addModal.close()}
-        title="Ajouter un quiz"
-        description="Créez un nouveau quiz pour une leçon"
-        onSubmit={handleAddQuiz}
-        submitLabel="Créer le quiz"
+        title="Ajouter un TD"
+        description="Créez un nouveau TD pour une leçon"
+        onSubmit={handleAddTD}
+        submitLabel="Créer le TD"
       />
 
       {editModal.selectedItem && (
-        <QuizFormModal
+        <TDFormModal
           open={editModal.isOpen}
           onOpenChange={(open) => !open && editModal.close()}
-          title="Modifier le quiz"
-          description="Modifiez les informations du quiz"
+          title="Modifier le TD"
+          description="Modifiez les informations du TD"
           defaultValues={{
             title: editModal.selectedItem.title,
             description: editModal.selectedItem.description || "",
+            tpInstructions: editModal.selectedItem.tpInstructions || "",
+            tpFileUrl: editModal.selectedItem.tpFileUrl || "",
             courseId: editModal.selectedItem.courseId,
             lessonId: editModal.selectedItem.lessonId,
-            questions: [], // Les questions seront chargées depuis l'évaluation lors de l'édition
           }}
-          onSubmit={handleUpdateQuiz}
+          onSubmit={handleUpdateTD}
           submitLabel="Enregistrer les modifications"
         />
       )}
@@ -319,8 +315,8 @@ export function QuizzesManager() {
       <ConfirmDialog
         open={deleteModal.isOpen}
         onOpenChange={(open) => !open && deleteModal.close()}
-        onConfirm={handleDeleteQuiz}
-        title="Supprimer le quiz"
+        onConfirm={handleDeleteTD}
+        title="Supprimer le TD"
         description={`Êtes-vous sûr de vouloir supprimer "${deleteModal.selectedItem?.title}" ? Cette action est irréversible.`}
         confirmText="Supprimer"
         variant="destructive"
@@ -328,3 +324,4 @@ export function QuizzesManager() {
     </>
   )
 }
+

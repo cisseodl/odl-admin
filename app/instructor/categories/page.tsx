@@ -18,7 +18,7 @@ import type { CategoryFormData } from "@/lib/validations/category"
 import { Categorie } from "@/models"
 import { categorieService } from "@/services"
 import { PageLoader } from "@/components/ui/page-loader"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 
 type CategoryDisplay = {
   id: number
@@ -224,19 +224,22 @@ export default function InstructorCategoriesPage() {
     [viewModal, editModal, deleteModal, t]
   )
 
-  if (loading) {
-    return <PageLoader />
-  }
-
-  if (error && categories.length === 0) {
+  if (error && categories.length === 0 && !loading) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('instructor.categories.title')}</h1>
-          <p className="text-muted-foreground mt-2">{t('instructor.categories.description')}</p>
-        </div>
-        <div className="text-center text-destructive p-4">{error}</div>
-      </div>
+      <>
+        <PageHeader
+          title={t('instructor.categories.title') || "Catégories"}
+          action={{
+            label: t('categories.list.add_button') || "Ajouter une catégorie",
+            onClick: () => addModal.open(),
+          }}
+        />
+        <Card className="mt-6">
+          <CardContent>
+            <div className="text-center text-destructive p-4">{error}</div>
+          </CardContent>
+        </Card>
+      </>
     )
   }
 
@@ -250,19 +253,29 @@ export default function InstructorCategoriesPage() {
         }}
       />
 
-      <div className="space-y-4">
-        <SearchBar
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder={t('categories.list.search_placeholder') || "Rechercher une catégorie..."}
-        />
-
-        <DataTable
-          data={filteredData}
-          columns={columns}
-          emptyMessage={t('categories.list.empty') || "Aucune catégorie trouvée"}
-        />
-      </div>
+      <Card className="mt-6">
+        <CardContent>
+          <div className="mb-4">
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder={t('categories.list.search_placeholder') || "Rechercher une catégorie..."}
+            />
+          </div>
+          {loading ? (
+            <PageLoader />
+          ) : error ? (
+            <div className="text-center text-destructive p-4">{error}</div>
+          ) : (
+            <DataTable
+              data={filteredData}
+              columns={columns}
+              searchValue={searchQuery}
+              emptyMessage={t('categories.list.empty') || "Aucune catégorie trouvée"}
+            />
+          )}
+        </CardContent>
+      </Card>
 
       {/* Add Category Modal */}
       <CategoryFormModal

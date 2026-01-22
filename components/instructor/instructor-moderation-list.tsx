@@ -9,20 +9,9 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { PageLoader } from "@/components/ui/page-loader";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { CourseFormModal, CourseFormData } from "@/components/shared/course-form-modal";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Check, X, Edit, BookOpen, Tag } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { Edit, BookOpen, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { courseService, categorieService } from "@/services";
 import { Course as CourseModel, Categorie } from "@/models";
@@ -41,9 +30,6 @@ export function InstructorModerationList() {
   const [categories, setCategories] = useState<Categorie[]>([]);
 
   const editModal = useModal<CourseForModeration>();
-  const [validateDialog, setValidateDialog] = useState<{ isOpen: boolean; courseId?: number }>({ isOpen: false });
-  const [rejectDialog, setRejectDialog] = useState<{ isOpen: boolean; courseId?: number; reason?: string }>({ isOpen: false });
-  const [rejectionReason, setRejectionReason] = useState("");
 
   const fetchModerationCourses = useCallback(async () => {
     if (authLoading || !user) {
@@ -106,28 +92,6 @@ export function InstructorModerationList() {
     }
   };
 
-  const handleValidation = async (courseId: number, action: "APPROVE" | "REJECT", reason?: string) => {
-    try {
-      await courseService.validateCourse(courseId, action, reason);
-      toast({
-        title: t('common.success'),
-        description: action === "APPROVE" 
-          ? t('instructor.moderation.toasts.success_approve') 
-          : t('instructor.moderation.toasts.success_reject'),
-      });
-      await fetchModerationCourses();
-    } catch (error: any) {
-      toast({
-        title: t('common.error'),
-        description: error.message || t('instructor.moderation.toasts.error_moderation'),
-        variant: "destructive",
-      });
-    } finally {
-      setValidateDialog({ isOpen: false });
-      setRejectDialog({ isOpen: false, reason: undefined });
-      setRejectionReason("");
-    }
-  };
 
   const columns: ColumnDef<CourseForModeration>[] = useMemo(
     () => [
@@ -173,20 +137,9 @@ export function InstructorModerationList() {
             <ActionMenu
               actions={[
                 {
-                  label: t('instructor.moderation.list.action_approve'),
-                  icon: <Check className="h-4 w-4" />,
-                  onClick: () => setValidateDialog({ isOpen: true, courseId: course.id }),
-                },
-                {
                   label: t('instructor.moderation.list.action_edit'),
                   icon: <Edit className="h-4 w-4" />,
                   onClick: () => editModal.open(course),
-                },
-                {
-                  label: t('instructor.moderation.list.action_reject'),
-                  icon: <X className="h-4 w-4" />,
-                  onClick: () => setRejectDialog({ isOpen: true, courseId: course.id }),
-                  variant: "destructive",
                 },
               ]}
             />
@@ -230,76 +183,6 @@ export function InstructorModerationList() {
           categories={categories || []}
         />
       )}
-
-      <ConfirmDialog
-        open={validateDialog.isOpen}
-        onOpenChange={(isOpen) => setValidateDialog({ isOpen, courseId: validateDialog.courseId })}
-        onConfirm={() => handleValidation(validateDialog.courseId!, "APPROVE")}
-        title={t('instructor.moderation.modals.approve_title')}
-        description={t('instructor.moderation.modals.approve_description')}
-        confirmText={t('instructor.moderation.modals.approve_confirm')}
-      />
-
-      {/* Dialog de rejet avec champ de raison */}
-      <Dialog
-        open={rejectDialog.isOpen}
-        onOpenChange={(isOpen) => {
-          setRejectDialog({ isOpen, courseId: rejectDialog.courseId });
-          if (!isOpen) {
-            setRejectionReason("");
-          }
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('instructor.moderation.modals.reject_title')}</DialogTitle>
-            <DialogDescription>
-              {t('instructor.moderation.modals.reject_description')}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="rejection-reason">{t('instructor.moderation.modals.reject_reason_label')}</Label>
-              <Textarea
-                id="rejection-reason"
-                placeholder={t('instructor.moderation.modals.reject_reason_placeholder')}
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                className="min-h-[100px]"
-                required
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setRejectDialog({ isOpen: false });
-                setRejectionReason("");
-              }}
-            >
-              {t('instructor.moderation.modals.reject_cancel')}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                if (rejectionReason.trim()) {
-                  handleValidation(rejectDialog.courseId!, "REJECT", rejectionReason.trim());
-                } else {
-                  toast({
-                    title: t('common.error'),
-                    description: t('instructor.moderation.modals.reject_error'),
-                    variant: "destructive",
-                  });
-                }
-              }}
-              disabled={!rejectionReason.trim()}
-            >
-              {t('instructor.moderation.modals.reject_confirm')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

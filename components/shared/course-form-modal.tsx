@@ -117,7 +117,9 @@ export function CourseFormModal({
       <DialogContent className="w-[95vw] max-w-[600px] max-h-[90vh] flex flex-col min-h-0">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          {description && (
+            <DialogDescription>{description}</DialogDescription>
+          )}
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 overflow-y-auto flex-1 pr-2">
@@ -126,7 +128,7 @@ export function CourseFormModal({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('course_form.title_label') || "Titre"}</FormLabel>
+                  <FormLabel>Titre du cours *</FormLabel>
                   <FormControl>
                     <Input placeholder={t('course_form.title_placeholder') || "Introduction à..."} {...field} />
                   </FormControl>

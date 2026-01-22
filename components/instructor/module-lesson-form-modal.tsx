@@ -36,9 +36,8 @@ import { useLanguage } from "@/contexts/language-context";
 
 export enum LessonType {
   VIDEO = "VIDEO",
-  QUIZ = "QUIZ",
   DOCUMENT = "DOCUMENT",
-  LAB = "LAB", // Ajout du type LAB conforme au backend
+  IMAGE = "IMAGE",
 }
 
 const lessonSchema = z.object({
@@ -78,7 +77,6 @@ const lessonSchema = z.object({
     { message: "Le fichier doit être un objet File valide" }
   ), // Fichier à uploader
   duration: z.number().optional(), // en minutes (conforme au DTO backend LessonCreationRequest)
-  quizId: z.number().optional(), // For QUIZ type lessons (non utilisé dans le DTO backend)
 });
 
 const moduleFormSchema = z.object({
@@ -138,9 +136,9 @@ export function ModuleLessonFormModal({
         data.lessons.map(async (lesson, index) => {
           console.log(`[ModuleLessonFormModal] Traitement de la leçon ${index}:`, lesson);
           
-          if (lesson.contentFile && (lesson.type === LessonType.VIDEO || lesson.type === LessonType.DOCUMENT || lesson.type === LessonType.LAB)) {
+          if (lesson.contentFile && (lesson.type === LessonType.VIDEO || lesson.type === LessonType.DOCUMENT || lesson.type === LessonType.IMAGE)) {
             try {
-              const folderName = lesson.type === LessonType.VIDEO ? "videos" : lesson.type === LessonType.DOCUMENT ? "documents" : "labs";
+              const folderName = lesson.type === LessonType.VIDEO ? "videos" : lesson.type === LessonType.DOCUMENT ? "documents" : "images";
               console.log(`[ModuleLessonFormModal] Upload du fichier pour la leçon ${index} dans le dossier: ${folderName}`);
               
               const uploadedUrl = await fileUploadService.uploadFile(lesson.contentFile, folderName);
@@ -299,8 +297,7 @@ export function ModuleLessonFormModal({
                           <SelectContent>
                             <SelectItem value={LessonType.VIDEO}>{t('content.lesson_types.video') || "Vidéo"}</SelectItem>
                             <SelectItem value={LessonType.DOCUMENT}>{t('content.lesson_types.document') || "Document"}</SelectItem>
-                            <SelectItem value={LessonType.QUIZ}>Quiz</SelectItem>
-                            <SelectItem value={LessonType.LAB}>Lab</SelectItem>
+                            <SelectItem value={LessonType.IMAGE}>Image</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -408,34 +405,19 @@ export function ModuleLessonFormModal({
                       />
                     </>
                   )}
-                  {form.watch(`lessons.${index}.type`) === LessonType.QUIZ && (
-                    <FormField
-                      control={form.control}
-                      name={`lessons.${index}.quizId`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>ID du Quiz</FormLabel>
-                          <FormControl>
-                            <Input type="number" placeholder="123" {...field} onChange={event => field.onChange(Number(event.target.value))} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                  {form.watch(`lessons.${index}.type`) === LessonType.LAB && (
+                  {form.watch(`lessons.${index}.type`) === LessonType.IMAGE && (
                     <>
                       <FormField
                         control={form.control}
                         name={`lessons.${index}.contentFile`}
                         render={({ field: { value, onChange, ...field } }) => (
                           <FormItem>
-                            <FormLabel>{t('content.modals.form.lesson_file') || "Fichier lab"}</FormLabel>
+                            <FormLabel>Fichier image</FormLabel>
                             <FormControl>
                               <div className="flex items-center gap-2">
                                 <Input
                                   type="file"
-                                  accept=".zip,.tar,.gz,.json"
+                                  accept="image/*"
                                   onChange={(e) => {
                                     const file = e.target.files?.[0];
                                     if (file) {
@@ -453,7 +435,7 @@ export function ModuleLessonFormModal({
                                 )}
                               </div>
                             </FormControl>
-                            <p className="text-xs text-muted-foreground">Téléchargez un fichier lab (ZIP, TAR, GZ, JSON)</p>
+                            <p className="text-xs text-muted-foreground">Téléchargez une image (JPG, PNG, GIF, etc.)</p>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -463,9 +445,9 @@ export function ModuleLessonFormModal({
                         name={`lessons.${index}.duration`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Durée (minutes)</FormLabel>
+                            <FormLabel>{t('content.modals.form.lesson_duration') || "Durée (minutes)"}</FormLabel>
                             <FormControl>
-                              <Input type="number" placeholder="30" {...field} onChange={event => field.onChange(Number(event.target.value))} />
+                              <Input type="number" placeholder="10" {...field} onChange={event => field.onChange(Number(event.target.value))} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

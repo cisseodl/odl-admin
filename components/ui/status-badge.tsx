@@ -27,6 +27,10 @@ const statusVariantMap: Record<string, VariantProps<typeof Badge>["variant"]> = 
 }
 
 export function StatusBadge({ status, variant, className }: StatusBadgeProps) {
+  if (!status) {
+    return null
+  }
+  
   const badgeVariant = variant || statusVariantMap[status] || "secondary"
 
   return (
