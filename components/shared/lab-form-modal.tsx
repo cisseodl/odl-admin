@@ -65,15 +65,16 @@ export function LabFormModal({
 
   // Initialiser le formulaire avec les valeurs par défaut
   const formDefaults: Partial<LabFormData> = {
+    ...defaultValues,
     labType: defaultValues?.uploadedFiles && defaultValues.uploadedFiles !== "" && defaultValues.uploadedFiles !== "[]" 
       ? "file" 
       : defaultValues?.resourceLinks && defaultValues.resourceLinks !== "" && defaultValues.resourceLinks !== "[]"
       ? "link"
       : "instructions",
-    activate: true,
-    estimatedDurationMinutes: defaultValues?.estimatedDurationMinutes || 60,
-    maxDurationMinutes: defaultValues?.maxDurationMinutes || 90,
-    ...defaultValues,
+    activate: defaultValues?.activate !== undefined ? defaultValues.activate : true,
+    // S'assurer que les durées sont toujours des nombres valides
+    estimatedDurationMinutes: defaultValues?.estimatedDurationMinutes ? Number(defaultValues.estimatedDurationMinutes) : 60,
+    maxDurationMinutes: defaultValues?.maxDurationMinutes ? Number(defaultValues.maxDurationMinutes) : 90,
   }
 
   // Charger les cours de l'instructeur
