@@ -141,67 +141,122 @@ export function OdcFormationsList() {
     editModal.open(formation);
   };
 
-  const columns = useMemo(() => [
-    {
-      accessorKey: "titre",
-      header: "Titre",
-    },
-    {
-      accessorKey: "description",
-      header: "Description",
-      cell: ({ row }: any) => (
-        <div className="max-w-md truncate">{row.original?.description || "-"}</div>
-      ),
-    },
-    {
-      accessorKey: "lien",
-      header: "Lien",
-      cell: ({ row }: any) => (
-        <a
-          href={row.original?.lien || "#"}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1 text-primary hover:underline"
-        >
-          Ouvrir
-          <ExternalLink className="h-3 w-3" />
-        </a>
-      ),
-    },
-    {
-      accessorKey: "adminName",
-      header: "Créé par",
-      cell: ({ row }: any) => row.original?.adminName || row.original?.adminEmail || "-",
-    },
-    {
-      id: "actions",
-      header: "Actions",
-      cell: ({ row }: any) => (
-        <ActionMenu
-          items={[
-            {
-              label: "Modifier",
-              icon: Edit,
-              onClick: () => openEditModal(row.original),
-            },
-            {
-              label: "Supprimer",
-              icon: Trash2,
-              onClick: () => deleteModal.open(row.original),
-              variant: "destructive",
-            },
-          ]}
-        />
-      ),
-    },
-  ], [editModal, deleteModal]);
+  const columns = useMemo(() => {
+    // S'assurer que les colonnes sont toujours un tableau valide
+    const cols = [
+      {
+        accessorKey: "titre",
+        header: "Titre",
+      },
+      {
+        accessorKey: "description",
+        header: "Description",
+        cell: ({ row }: any) => {
+          try {
+            return (
+              <div className="max-w-md truncate">{row?.original?.description || "-"}</div>
+            )
+          } catch (error) {
+            console.error("[ODC Formations] Error rendering description cell:", error)
+            return <div>-</div>
+          }
+        },
+      },
+      {
+        accessorKey: "lien",
+        header: "Lien",
+        cell: ({ row }: any) => {
+          try {
+            return (
+              <a
+                href={row?.original?.lien || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-primary hover:underline"
+              >
+                Ouvrir
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            )
+          } catch (error) {
+            console.error("[ODC Formations] Error rendering lien cell:", error)
+            return <span>-</span>
+          }
+        },
+      },
+      {
+        accessorKey: "adminName",
+        header: "Créé par",
+        cell: ({ row }: any) => {
+          try {
+            return row?.original?.adminName || row?.original?.adminEmail || "-"
+          } catch (error) {
+            console.error("[ODC Formations] Error rendering adminName cell:", error)
+            return "-"
+          }
+        },
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }: any) => {
+          try {
+            if (!row?.original) return null
+            return (
+              <ActionMenu
+                items={[
+                  {
+                    label: "Modifier",
+                    icon: Edit,
+                    onClick: () => openEditModal(row.original),
+                  },
+                  {
+                    label: "Supprimer",
+                    icon: Trash2,
+                    onClick: () => deleteModal.open(row.original),
+                    variant: "destructive",
+                  },
+                ]}
+              />
+            )
+          } catch (error) {
+            console.error("[ODC Formations] Error rendering actions cell:", error)
+            return null
+          }
+        },
+      },
+    ]
+    // Vérifier que toutes les colonnes sont valides
+    if (!Array.isArray(cols) || cols.length === 0) {
+      console.error("[ODC Formations] Invalid columns structure")
+      return []
+    }
+    return cols
+  }, [editModal, deleteModal]);
 
   // S'assurer que formations est toujours un tableau, même pendant le chargement
-  const safeFormations = Array.isArray(formations) ? formations : []
+  const safeFormations = useMemo(() => {
+    if (!formations) return []
+    if (!Array.isArray(formations)) {
+      console.warn("[ODC Formations] formations is not an array:", typeof formations, formations)
+      return []
+    }
+    // S'assurer que chaque élément est un objet valide
+    return formations.filter((f) => f && typeof f === 'object')
+  }, [formations])
 
   if (loading) {
     return <PageLoader />;
   }
+
+  // Vérifier que les colonnes sont valides avant de rendre
+  const safeColumns = useMemo(() => {
+    if (!columns || !Array.isArray(columns) || columns.length === 0) {
+      console.error("[ODC Formations] Invalid columns, using empty array")
+      return []
+    }
+    return columns
+  }, [columns])
 
   return (
     <>
@@ -221,7 +276,7 @@ export function OdcFormationsList() {
               Aucune formation ODC trouvée
             </div>
           ) : (
-            <DataTable columns={columns} data={safeFormations} />
+            <DataTable columns={safeColumns} data={safeFormations} />
           )}
         </CardContent>
       </Card>
