@@ -158,14 +158,34 @@ export function LearnerProgressList() {
         accessorKey: "nom",
         header: t('analytics.learnerProgress.list.headerLearner'),
         cell: ({ row }) => {
-          const fullName = `${row.original.prenom || ''} ${row.original.nom || ''}`.trim() || row.original.email || t('analytics.learnerProgress.list.noNameUser');
+          const apprenant = row.original;
+          // Construire le nom : utiliser username ou fullName en priorité, sinon construire depuis prenom + nom
+          let fullName = "";
+          if (apprenant.username && apprenant.username.trim()) {
+            fullName = apprenant.username.trim();
+          } else if (apprenant.fullName && apprenant.fullName.trim()) {
+            fullName = apprenant.fullName.trim();
+          } else {
+            fullName = `${apprenant.prenom || ''} ${apprenant.nom || ''}`.trim();
+          }
+          
+          // Si le nom est toujours vide, utiliser l'email comme fallback
+          if (!fullName) {
+            fullName = apprenant.userEmail || apprenant.email || t('analytics.learnerProgress.list.noNameUser');
+          }
+
+          // Utiliser userEmail en priorité, sinon email
+          const email = apprenant.userEmail || apprenant.email || "";
+
           return (
             <div>
               <div className="font-medium">{fullName}</div>
-              <div className="text-xs text-muted-foreground flex items-center gap-1">
-                <Mail className="h-3 w-3" />
-                {row.original.email}
-              </div>
+              {email && (
+                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Mail className="h-3 w-3" />
+                  {email}
+                </div>
+              )}
             </div>
           );
         },
@@ -173,7 +193,11 @@ export function LearnerProgressList() {
       {
         accessorKey: "email",
         header: t('analytics.learnerProgress.list.headerEmail'),
-        cell: ({ row }) => row.original.email,
+        cell: ({ row }) => {
+          const apprenant = row.original;
+          // Utiliser userEmail en priorité, sinon email
+          return apprenant.userEmail || apprenant.email || "";
+        },
       },
       {
         id: "actions",
