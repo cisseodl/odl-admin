@@ -85,6 +85,7 @@ export function DataTable<TData, TValue>({
       ? {
           globalFilterFn: (row, columnId, filterValue) => {
             try {
+              if (!row || !row.original) return true
               const value = row.getValue(columnId) as string
               if (!value || !filterValue) return true
               return value?.toLowerCase().includes(filterValue.toLowerCase())
@@ -106,6 +107,42 @@ export function DataTable<TData, TValue>({
     manualPagination: false,
   })
 
+  // Protection supplémentaire : s'assurer que getRowModel() retourne toujours un objet valide
+  const rowModel = React.useMemo(() => {
+    try {
+      const model = table.getRowModel()
+      if (!model || !model.rows) {
+        return { rows: [] }
+      }
+      if (!Array.isArray(model.rows)) {
+        console.warn("[DataTable] getRowModel().rows is not an array:", typeof model.rows)
+        return { rows: [] }
+      }
+      return model
+    } catch (error) {
+      console.error("[DataTable] Error getting row model:", error)
+      return { rows: [] }
+    }
+  }, [table])
+
+  // Protection supplémentaire : s'assurer que getFilteredRowModel() retourne toujours un objet valide
+  const filteredRowModel = React.useMemo(() => {
+    try {
+      const model = table.getFilteredRowModel()
+      if (!model || !model.rows) {
+        return { rows: [] }
+      }
+      if (!Array.isArray(model.rows)) {
+        console.warn("[DataTable] getFilteredRowModel().rows is not an array:", typeof model.rows)
+        return { rows: [] }
+      }
+      return model
+    } catch (error) {
+      console.error("[DataTable] Error getting filtered row model:", error)
+      return { rows: [] }
+    }
+  }, [table])
+
   return (
     <div className={cn("space-y-4", className)}>
       <div className="rounded-md border overflow-x-auto">
@@ -124,23 +161,36 @@ export function DataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel()?.rows && Array.isArray(table.getRowModel()?.rows) && table.getRowModel()?.rows.length > 0 ? (
-              (table.getRowModel()?.rows || []).map((row) => {
+            {rowModel.rows && Array.isArray(rowModel.rows) && rowModel.rows.length > 0 ? (
+              rowModel.rows.map((row) => {
                 if (!row || !row.original) {
+                  return null
+                }
+                const visibleCells = row.getVisibleCells()
+                if (!visibleCells || !Array.isArray(visibleCells)) {
                   return null
                 }
                 return (
                   <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                    {row.getVisibleCells().map((cell) => {
+                    {visibleCells.map((cell) => {
                       if (!cell) {
                         return null
                       }
-                      const rendered = flexRender(cell.column.columnDef.cell, cell.getContext())
-                      return (
-                        <TableCell key={cell.id}>
-                          {rendered ?? null}
-                        </TableCell>
-                      )
+                      try {
+                        const rendered = flexRender(cell.column.columnDef.cell, cell.getContext())
+                        return (
+                          <TableCell key={cell.id}>
+                            {rendered ?? null}
+                          </TableCell>
+                        )
+                      } catch (error) {
+                        console.error("[DataTable] Error rendering cell:", error)
+                        return (
+                          <TableCell key={cell.id}>
+                            -
+                          </TableCell>
+                        )
+                      }
                     })}
                   </TableRow>
                 )
@@ -161,7 +211,7 @@ export function DataTable<TData, TValue>({
       {enablePagination && (
         <div className="flex items-center justify-between px-2">
           <div className="flex-1 text-sm text-muted-foreground">
-            {t('table.total_results', { count: table.getFilteredRowModel()?.rows?.length || safeData.length || 0 })}
+            {t('table.total_results', { count: filteredRowModel.rows?.length || safeData.length || 0 })}
           </div>
           <div className="flex items-center space-x-2">
             <Button
