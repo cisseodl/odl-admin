@@ -63,7 +63,9 @@ export function CoursesManager() {
     setLoading(true);
     setError(null);
     try {
+      console.log("Fetching courses for instructor ID:", user.id);
       const coursesData = await courseService.getCoursesByInstructorId(Number(user.id));
+      console.log("Courses data received:", coursesData);
       // getCoursesByInstructorId retourne directement un tableau
       if (Array.isArray(coursesData)) {
         const mapped: Course[] = coursesData.map((c: any) => ({
@@ -102,6 +104,7 @@ export function CoursesManager() {
           imagePath: c.imageUrl || c.imagePath || c.image,
           activate: c.activate ?? true,
         }));
+        console.log("Mapped courses:", mapped);
         setCourses(mapped);
       } else {
         setCourses([]);
