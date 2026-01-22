@@ -42,6 +42,7 @@ type ContentDisplay = {
   maxDurationMinutes?: number;
   instructions?: string;
   activate?: boolean;
+  lessonId?: number | null; // ID de la leçon associée
 }
 
   // Helper function to map LabDefinition to ContentDisplay
@@ -63,6 +64,7 @@ const mapLabDefinitionToContentDisplay = (lab: LabDefinition): ContentDisplay =>
     maxDurationMinutes: lab.max_duration_minutes,
     instructions: lab.instructions || "",
     activate: lab.activate,
+    lessonId: lab.lesson_id || null,
   };
 };
 
@@ -77,6 +79,7 @@ const mapContentDisplayToLabFormData = (content: ContentDisplay): LabFormData =>
     maxDurationMinutes: content.maxDurationMinutes || 90,
     instructions: content.instructions || "",
     activate: content.activate ?? true,
+    lessonId: content.lessonId || undefined,
     labType: content.uploadedFiles && content.uploadedFiles !== "" && content.uploadedFiles !== "[]" ? "file" :
              content.resourceLinks && content.resourceLinks !== "" && content.resourceLinks !== "[]" ? "link" : "instructions",
   };
@@ -119,6 +122,12 @@ export function LabsManager() {
     console.log("handleAddLab called with data:", data)
     setError(null);
     try {
+      // Valider que lessonId est fourni
+      if (!data.lessonId || data.lessonId <= 0) {
+        setError("La leçon est requise pour créer un lab");
+        return;
+      }
+      
       // Préparer les données selon le type de lab choisi
       const newLabDefinition: Omit<LabDefinition, 'id'> = {
         title: data.title,
@@ -128,7 +137,7 @@ export function LabsManager() {
         estimated_duration_minutes: data.estimatedDurationMinutes,
         max_duration_minutes: data.maxDurationMinutes || data.estimatedDurationMinutes,
         instructions: data.labType === "instructions" ? (data.instructions || "") : (data.instructions || ""),
-        lesson_id: data.lessonId || null,
+        lesson_id: data.lessonId,
         activate: data.activate ?? true,
       };
       console.log("Creating lab with:", newLabDefinition)
@@ -147,6 +156,12 @@ export function LabsManager() {
     setError(null);
     if (editModal.selectedItem) {
       try {
+        // Valider que lessonId est fourni
+        if (!data.lessonId || data.lessonId <= 0) {
+          setError("La leçon est requise pour mettre à jour un lab");
+          return;
+        }
+        
         const updatedLabDefinition: Partial<LabDefinition> = {
           title: data.title,
           description: data.description,
@@ -155,7 +170,7 @@ export function LabsManager() {
           estimated_duration_minutes: data.estimatedDurationMinutes,
           max_duration_minutes: data.maxDurationMinutes || data.estimatedDurationMinutes,
           instructions: data.labType === "instructions" ? (data.instructions || "") : (data.instructions || ""),
-          lesson_id: data.lessonId || null,
+          lesson_id: data.lessonId,
           activate: data.activate ?? true,
         };
         const updatedLab = await labDefinitionService.updateLabDefinition(editModal.selectedItem.id, updatedLabDefinition);

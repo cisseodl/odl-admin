@@ -3,7 +3,10 @@ import { z } from "zod"
 export const labSchema = z.object({
   title: z.string().min(1, "Le titre est requis").min(3, "Le titre doit contenir au moins 3 caractères"),
   description: z.string().min(1, "La description est requise"),
-  lessonId: z.coerce.number().optional().nullable(),
+  lessonId: z.coerce.number({
+    required_error: "La leçon est requise",
+    invalid_type_error: "La leçon doit être sélectionnée",
+  }).min(1, "La leçon est requise"),
   labType: z.enum(["file", "link", "instructions"], {
     required_error: "Vous devez choisir un type de lab",
   }),
@@ -39,6 +42,12 @@ export const labSchema = z.object({
 }, {
   message: "La durée maximale doit être ≥ à la durée estimée",
   path: ["maxDurationMinutes"],
+}).refine((data) => {
+  // La leçon est obligatoire
+  return data.lessonId != null && data.lessonId > 0
+}, {
+  message: "La leçon est requise",
+  path: ["lessonId"],
 });
 
 export type LabFormData = z.infer<typeof labSchema>

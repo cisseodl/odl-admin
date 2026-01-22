@@ -83,7 +83,25 @@ export function LabFormModal({
         setLoadingCourses(true)
         try {
           const coursesData = await courseService.getCoursesByInstructorId(Number(user.id))
-          setCourses(Array.isArray(coursesData) ? coursesData : [])
+          const coursesList = Array.isArray(coursesData) ? coursesData : []
+          setCourses(coursesList)
+          
+          // Si on édite et qu'il y a une lessonId, trouver le cours correspondant
+          if (defaultValues?.lessonId && coursesList.length > 0) {
+            for (const course of coursesList) {
+              try {
+                const lessonsData = await lessonService.getLessonsByCourse(course.id)
+                const lesson = lessonsData.find((l: Lesson) => l.id === defaultValues.lessonId)
+                if (lesson) {
+                  setSelectedCourseId(course.id)
+                  setLessons(lessonsData)
+                  break
+                }
+              } catch (err) {
+                // Continuer avec le cours suivant
+              }
+            }
+          }
         } catch (err: any) {
           console.error("Error fetching courses:", err)
           toast({
@@ -97,7 +115,7 @@ export function LabFormModal({
       }
       fetchCourses()
     }
-  }, [open, user?.id, toast])
+  }, [open, user?.id, toast, defaultValues?.lessonId])
 
   // Charger les leçons quand un cours est sélectionné
   useEffect(() => {
@@ -141,13 +159,14 @@ export function LabFormModal({
       } else {
         setLabType("instructions")
       }
+      
     } else if (open && !defaultValues) {
       setUploadedFileUrls([])
       setLabType("instructions")
       setSelectedCourseId(null)
       setLessons([])
     }
-  }, [open, defaultValues])
+  }, [open, defaultValues, courses])
 
   return (
     <ModalForm
@@ -157,6 +176,23 @@ export function LabFormModal({
       description={description}
       onSubmit={(data) => {
         console.log("LabFormModal onSubmit called with data:", data)
+        // Valider que le cours et la leçon sont sélectionnés
+        if (!selectedCourseId) {
+          toast({
+            title: "Erreur de validation",
+            description: "Veuillez sélectionner un cours",
+            variant: "destructive",
+          })
+          return
+        }
+        if (!data.lessonId || data.lessonId <= 0) {
+          toast({
+            title: "Erreur de validation",
+            description: "Veuillez sélectionner une leçon",
+            variant: "destructive",
+          })
+          return
+        }
         try {
           onSubmit(data)
         } catch (error) {
@@ -183,6 +219,16 @@ export function LabFormModal({
         useEffect(() => {
           form.setValue("labType", labType, { shouldValidate: true })
         }, [labType])
+        
+        // S'assurer que lessonId est défini si on édite et que le cours est chargé
+        useEffect(() => {
+          if (defaultValues?.lessonId && selectedCourseId && lessons.length > 0) {
+            const lessonExists = lessons.some((l: Lesson) => l.id === defaultValues.lessonId)
+            if (lessonExists) {
+              form.setValue("lessonId", defaultValues.lessonId, { shouldValidate: true })
+            }
+          }
+        }, [defaultValues?.lessonId, selectedCourseId, lessons])
         
         // Fonction pour mettre à jour les URLs de fichiers dans le form
         const updateFormWithFileUrls = (urls: string[]) => {
@@ -279,13 +325,13 @@ export function LabFormModal({
 
             {/* Sélecteur de cours */}
             <div className="grid gap-2 w-full">
-              <Label className="w-full break-words">Cours (optionnel)</Label>
+              <Label className="w-full break-words">Cours *</Label>
               <Select
                 value={selectedCourseId ? String(selectedCourseId) : "__none__"}
                 onValueChange={(value) => {
                   const courseId = value && value !== "__none__" ? Number(value) : null
                   setSelectedCourseId(courseId)
-                  form.setValue("lessonId", undefined, { shouldValidate: false })
+                  form.setValue("lessonId", undefined, { shouldValidate: true })
                   setLessons([])
                 }}
                 disabled={loadingCourses}
@@ -294,7 +340,6 @@ export function LabFormModal({
                   <SelectValue placeholder={loadingCourses ? "Chargement..." : "Sélectionner un cours"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">Aucun cours</SelectItem>
                   {courses.map((course) => (
                     <SelectItem key={course.id} value={String(course.id)}>
                       {course.title || `Cours #${course.id}`}
@@ -302,12 +347,15 @@ export function LabFormModal({
                   ))}
                 </SelectContent>
               </Select>
+              {!selectedCourseId && (
+                <p className="text-sm text-destructive">Veuillez sélectionner un cours</p>
+              )}
             </div>
 
             {/* Sélecteur de leçon */}
-            {selectedCourseId && (
+            {selectedCourseId ? (
               <div className="grid gap-2 w-full">
-                <Label className="w-full break-words">Leçon associée (optionnel)</Label>
+                <Label className="w-full break-words">Leçon associée *</Label>
                 <Controller
                   name="lessonId"
                   control={form.control}
@@ -317,19 +365,22 @@ export function LabFormModal({
                       onValueChange={(value) => {
                         field.onChange(value && value !== "__none__" ? Number(value) : null)
                       }}
-                      disabled={loadingLessons}
+                      disabled={loadingLessons || lessons.length === 0}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={loadingLessons ? "Chargement..." : "Sélectionner une leçon"} />
+                        <SelectValue placeholder={loadingLessons ? "Chargement..." : lessons.length === 0 ? "Aucune leçon disponible" : "Sélectionner une leçon"} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="__none__">Aucune leçon</SelectItem>
-                        {lessons.map((lesson) => (
-                          <SelectItem key={lesson.id} value={String(lesson.id)}>
-                            {lesson.title || `Leçon #${lesson.id}`}
-                            {lesson.module?.title && ` (${lesson.module.title})`}
-                          </SelectItem>
-                        ))}
+                        {lessons.length > 0 ? (
+                          lessons.map((lesson) => (
+                            <SelectItem key={lesson.id} value={String(lesson.id)}>
+                              {lesson.title || `Leçon #${lesson.id}`}
+                              {lesson.module?.title && ` (${lesson.module.title})`}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="__no_lesson__" disabled>Aucune leçon disponible pour ce cours</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   )}
@@ -337,6 +388,11 @@ export function LabFormModal({
                 {form.formState.errors.lessonId && (
                   <p className="text-sm text-destructive">{form.formState.errors.lessonId.message}</p>
                 )}
+              </div>
+            ) : (
+              <div className="grid gap-2 w-full">
+                <Label className="w-full break-words text-muted-foreground">Leçon associée *</Label>
+                <p className="text-sm text-muted-foreground">Veuillez d'abord sélectionner un cours</p>
               </div>
             )}
             
