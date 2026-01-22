@@ -128,16 +128,26 @@ export function LabsManager() {
         return;
       }
       
+      // Valider que les durées sont fournies
+      if (!data.estimatedDurationMinutes || data.estimatedDurationMinutes <= 0) {
+        setError("La durée estimée est requise et doit être supérieure à 0");
+        return;
+      }
+      if (!data.maxDurationMinutes || data.maxDurationMinutes <= 0) {
+        setError("La durée maximale est requise et doit être supérieure à 0");
+        return;
+      }
+      
       // Préparer les données selon le type de lab choisi
       const newLabDefinition: Omit<LabDefinition, 'id'> = {
         title: data.title,
         description: data.description || "",
         uploaded_files: data.labType === "file" ? (data.uploadedFiles || null) : null,
         resource_links: data.labType === "link" ? (data.resourceLinks || null) : null,
-        estimated_duration_minutes: data.estimatedDurationMinutes,
-        max_duration_minutes: data.maxDurationMinutes || data.estimatedDurationMinutes,
+        estimated_duration_minutes: Number(data.estimatedDurationMinutes),
+        max_duration_minutes: Number(data.maxDurationMinutes),
         instructions: data.labType === "instructions" ? (data.instructions || "") : (data.instructions || ""),
-        lesson_id: data.lessonId,
+        lesson_id: Number(data.lessonId),
         activate: data.activate ?? true,
       };
       console.log("Creating lab with:", newLabDefinition)

@@ -15,12 +15,45 @@ export class LabDefinitionService {
   }
 
   async createLabDefinition(labDefinition: Omit<LabDefinition, 'id'>): Promise<LabDefinition> {
-    // Transformer lesson_id en lessonId pour le backend
-    const { lesson_id, ...rest } = labDefinition;
-    const backendPayload = {
-      ...rest,
+    // Transformer les champs snake_case en camelCase pour le backend
+    const { 
+      lesson_id, 
+      estimated_duration_minutes,
+      max_duration_minutes,
+      uploaded_files,
+      resource_links,
+      ...rest 
+    } = labDefinition;
+    
+    // S'assurer que les champs requis sont présents et valides
+    if (!estimated_duration_minutes || estimated_duration_minutes <= 0) {
+      throw new Error("La durée estimée est requise et doit être supérieure à 0");
+    }
+    if (!max_duration_minutes || max_duration_minutes <= 0) {
+      throw new Error("La durée maximale est requise et doit être supérieure à 0");
+    }
+    if (!lesson_id || lesson_id <= 0) {
+      throw new Error("La leçon est requise");
+    }
+    
+    const backendPayload: any = {
+      title: rest.title,
+      description: rest.description || "",
+      instructions: rest.instructions || "",
       lessonId: lesson_id,
+      estimatedDurationMinutes: estimated_duration_minutes,
+      maxDurationMinutes: max_duration_minutes,
+      activate: rest.activate !== undefined ? rest.activate : true,
     };
+    
+    // Ajouter les champs optionnels seulement s'ils sont définis
+    if (uploaded_files !== undefined && uploaded_files !== null && uploaded_files !== "") {
+      backendPayload.uploadedFiles = uploaded_files;
+    }
+    if (resource_links !== undefined && resource_links !== null && resource_links !== "") {
+      backendPayload.resourceLinks = resource_links;
+    }
+    
     const response = await fetchApi<any>("/api/labs/", {
       method: "POST",
       body: backendPayload,
@@ -29,12 +62,36 @@ export class LabDefinitionService {
   }
 
   async updateLabDefinition(id: number, labDefinitionData: Partial<LabDefinition>): Promise<LabDefinition | null> {
-    // Transformer lesson_id en lessonId pour le backend
-    const { lesson_id, ...rest } = labDefinitionData;
-    const backendPayload = {
+    // Transformer les champs snake_case en camelCase pour le backend
+    const { 
+      lesson_id,
+      estimated_duration_minutes,
+      max_duration_minutes,
+      uploaded_files,
+      resource_links,
+      ...rest 
+    } = labDefinitionData;
+    
+    const backendPayload: any = {
       ...rest,
-      ...(lesson_id !== undefined && { lessonId: lesson_id }),
     };
+    
+    if (lesson_id !== undefined) {
+      backendPayload.lessonId = lesson_id;
+    }
+    if (estimated_duration_minutes !== undefined) {
+      backendPayload.estimatedDurationMinutes = estimated_duration_minutes;
+    }
+    if (max_duration_minutes !== undefined) {
+      backendPayload.maxDurationMinutes = max_duration_minutes;
+    }
+    if (uploaded_files !== undefined) {
+      backendPayload.uploadedFiles = uploaded_files;
+    }
+    if (resource_links !== undefined) {
+      backendPayload.resourceLinks = resource_links;
+    }
+    
     const response = await fetchApi<any>(`/api/labs/${id}`, {
       method: "PUT",
       body: backendPayload,
