@@ -132,7 +132,15 @@ export function DataTable<TData, TValue>({
 
   // Protection supplémentaire : s'assurer que getFilteredRowModel() retourne toujours un objet valide
   const filteredRowModel = React.useMemo(() => {
+    if (!isValidData) {
+      return { rows: [] }
+    }
     try {
+      // Vérifier que getFilteredRowModel existe et est une fonction avant de l'appeler
+      if (typeof table.getFilteredRowModel !== 'function') {
+        console.warn("[DataTable] getFilteredRowModel is not a function, using rowModel")
+        return rowModel // Utiliser rowModel comme fallback
+      }
       const model = table.getFilteredRowModel()
       if (!model || !model.rows) {
         return { rows: [] }
@@ -144,9 +152,10 @@ export function DataTable<TData, TValue>({
       return model
     } catch (error) {
       console.error("[DataTable] Error getting filtered row model:", error)
-      return { rows: [] }
+      // En cas d'erreur, utiliser rowModel comme fallback
+      return rowModel
     }
-  }, [table])
+  }, [table, isValidData, rowModel])
 
   return (
     <div className={cn("space-y-4", className)}>
