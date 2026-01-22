@@ -193,8 +193,35 @@ export function LabFormModal({
           })
           return
         }
+        // Valider que les durées sont bien des nombres valides
+        const estimatedDuration = Number(data.estimatedDurationMinutes)
+        const maxDuration = Number(data.maxDurationMinutes)
+        if (!data.estimatedDurationMinutes || isNaN(estimatedDuration) || estimatedDuration <= 0) {
+          toast({
+            title: "Erreur de validation",
+            description: "La durée estimée est requise et doit être supérieure à 0",
+            variant: "destructive",
+          })
+          return
+        }
+        if (!data.maxDurationMinutes || isNaN(maxDuration) || maxDuration <= 0) {
+          toast({
+            title: "Erreur de validation",
+            description: "La durée maximale est requise et doit être supérieure à 0",
+            variant: "destructive",
+          })
+          return
+        }
+        // S'assurer que les valeurs sont bien des nombres
+        const validatedData = {
+          ...data,
+          estimatedDurationMinutes: estimatedDuration,
+          maxDurationMinutes: maxDuration,
+          lessonId: Number(data.lessonId),
+        }
+        console.log("LabFormModal validated data:", validatedData)
         try {
-          onSubmit(data)
+          onSubmit(validatedData)
         } catch (error) {
           console.error("Error in onSubmit handler:", error)
         }

@@ -25,24 +25,29 @@ export class LabDefinitionService {
       ...rest 
     } = labDefinition;
     
+    // Convertir en nombres et valider
+    const estimatedDuration = Number(estimated_duration_minutes);
+    const maxDuration = Number(max_duration_minutes);
+    const lessonId = Number(lesson_id);
+    
     // S'assurer que les champs requis sont présents et valides
-    if (!estimated_duration_minutes || estimated_duration_minutes <= 0) {
+    if (!estimated_duration_minutes || isNaN(estimatedDuration) || estimatedDuration <= 0) {
       throw new Error("La durée estimée est requise et doit être supérieure à 0");
     }
-    if (!max_duration_minutes || max_duration_minutes <= 0) {
+    if (!max_duration_minutes || isNaN(maxDuration) || maxDuration <= 0) {
       throw new Error("La durée maximale est requise et doit être supérieure à 0");
     }
-    if (!lesson_id || lesson_id <= 0) {
+    if (!lesson_id || isNaN(lessonId) || lessonId <= 0) {
       throw new Error("La leçon est requise");
     }
     
     const backendPayload: any = {
-      title: rest.title,
+      title: rest.title || "",
       description: rest.description || "",
       instructions: rest.instructions || "",
-      lessonId: lesson_id,
-      estimatedDurationMinutes: estimated_duration_minutes,
-      maxDurationMinutes: max_duration_minutes,
+      lessonId: lessonId,
+      estimatedDurationMinutes: estimatedDuration,
+      maxDurationMinutes: maxDuration,
       activate: rest.activate !== undefined ? rest.activate : true,
     };
     
@@ -53,6 +58,8 @@ export class LabDefinitionService {
     if (resource_links !== undefined && resource_links !== null && resource_links !== "") {
       backendPayload.resourceLinks = resource_links;
     }
+    
+    console.log("[LabDefinitionService] Sending payload to API:", backendPayload);
     
     const response = await fetchApi<any>("/api/labs/", {
       method: "POST",
