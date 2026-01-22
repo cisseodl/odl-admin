@@ -25,8 +25,10 @@ type ActionMenuProps = {
 }
 
 export function ActionMenu({ actions, trigger }: ActionMenuProps) {
-  const defaultActions = actions.filter((a) => !a.variant || a.variant === "default")
-  const destructiveActions = actions.filter((a) => a.variant === "destructive")
+  // S'assurer que actions est toujours un tableau pour éviter l'erreur "Cannot read properties of undefined"
+  const safeActions = Array.isArray(actions) ? actions : []
+  const defaultActions = safeActions.filter((a) => !a.variant || a.variant === "default")
+  const destructiveActions = safeActions.filter((a) => a.variant === "destructive")
 
   return (
     <DropdownMenu>
