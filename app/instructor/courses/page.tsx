@@ -51,12 +51,21 @@ export default function InstructorCoursesPage() {
       })
       return
     }
+    if (!data.categoryId) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner une catégorie.",
+        variant: "destructive",
+      })
+      return
+    }
     try {
       const coursePayload = {
         ...data,
         instructorId: Number(user.id),
       }
       const createdCourse = await courseService.createCourse(
+        data.categoryId,
         coursePayload,
         data.imageFile
       )
@@ -82,7 +91,7 @@ export default function InstructorCoursesPage() {
     <div className="space-y-6">
       <PageHeader
         title={t('instructor.courses.title') || "Cours"}
-        description={t('instructor.courses.description') || "Créez et gérez vos cours. Choisissez la formation adaptée lors de la création (ex: cours JavaScript → formation Dev Web)."}
+        description={t('instructor.courses.description') || "Créez et gérez vos cours. Sélectionnez la catégorie adaptée lors de la création."}
         action={{
           label: t('courses.actions.create') || "Créer un cours",
           onClick: addCourseModal.open,
@@ -93,7 +102,7 @@ export default function InstructorCoursesPage() {
         open={addCourseModal.isOpen}
         onOpenChange={(open) => !open && addCourseModal.close()}
         title={t('courses.actions.create') || "Créer un cours"}
-        description={t('courses.create_description') || "Créez un nouveau cours et choisissez la formation adaptée."}
+        description={t('courses.create_description') || "Créez un nouveau cours et sélectionnez la catégorie adaptée."}
         onSubmit={handleAddCourse}
         submitLabel={t('courses.actions.create') || "Créer un cours"}
         categories={categories}

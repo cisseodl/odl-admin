@@ -29,10 +29,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
-import { Categorie, Formation } from "@/models"
+import { Categorie } from "@/models"
 import { useLanguage } from "@/contexts/language-context"
-import { formationService } from "@/services"
-import { useEffect, useState } from "react"
 
 const courseFormSchema = z.object({
   title: z.string().min(2, "Le titre doit contenir au moins 2 caractères."),
@@ -40,17 +38,10 @@ const courseFormSchema = z.object({
   description: z.string().min(10, "La description doit contenir au moins 10 caractères."),
   level: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]),
   language: z.string().min(2, "La langue doit contenir au moins 2 caractères."),
-  categoryId: z.number().optional(),
-  formationId: z.number().optional(),
-}).refine((data) => {
-  // La formation est requise si une catégorie est sélectionnée
-  if (data.categoryId) {
-    return !!data.formationId;
-  }
-  return true;
-}, {
-  message: "Vous devez sélectionner une formation pour cette catégorie",
-  path: ["formationId"],
+  categoryId: z.number({
+    required_error: "La catégorie est requise",
+    invalid_type_error: "Veuillez sélectionner une catégorie",
+  }).min(1, "La catégorie est requise"),
 })
 
 export type CourseFormData = z.infer<typeof courseFormSchema>
@@ -77,40 +68,11 @@ export function CourseFormModal({
   categories,
 }: CourseFormModalProps) {
   const { t } = useLanguage()
-  const [formations, setFormations] = useState<Formation[]>([])
-  const [loadingFormations, setLoadingFormations] = useState(false)
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null)
   
   const form = useForm<CourseFormData>({
     resolver: zodResolver(courseFormSchema),
     defaultValues,
   })
-
-  // Charger les formations quand une catégorie est sélectionnée
-  useEffect(() => {
-    const categoryId = form.watch("categoryId")
-    if (categoryId && categoryId !== selectedCategoryId) {
-      setSelectedCategoryId(categoryId)
-      loadFormations(categoryId)
-    } else if (!categoryId) {
-      setFormations([])
-      setSelectedCategoryId(null)
-      form.setValue("formationId", undefined)
-    }
-  }, [form.watch("categoryId")])
-
-  const loadFormations = async (categorieId: number) => {
-    setLoadingFormations(true)
-    try {
-      const formationsData = await formationService.getFormationsByCategorieId(categorieId)
-      setFormations(formationsData)
-    } catch (error) {
-      console.error("Error loading formations:", error)
-      setFormations([])
-    } finally {
-      setLoadingFormations(false)
-    }
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -207,7 +169,6 @@ export function CourseFormModal({
                     onValueChange={(value) => {
                       const numValue = value === "__none__" ? undefined : Number(value)
                       field.onChange(numValue)
-                      form.setValue("formationId", undefined) // Réinitialiser la formation
                     }} 
                     value={field.value ? String(field.value) : "__none__"}
                   >
@@ -217,7 +178,6 @@ export function CourseFormModal({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="__none__" disabled>{t('course_form.category_placeholder') || "Sélectionnez une catégorie"}</SelectItem>
                       {categories && Array.isArray(categories) && categories.length > 0 ? (
                         categories.map((category) => (
                           <SelectItem key={category.id} value={String(category.id)}>
@@ -233,58 +193,6 @@ export function CourseFormModal({
                 </FormItem>
               )}
             />
-            
-            {/* Sélecteur de Formation (apparaît après sélection d'une catégorie) */}
-            {form.watch("categoryId") && (
-              <FormField
-                control={form.control}
-                name="formationId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('course_form.formation_label') || "Formation *"}</FormLabel>
-                    <Select 
-                      onValueChange={(value) => field.onChange(value && value !== "__none__" ? Number(value) : undefined)} 
-                      value={field.value ? String(field.value) : "__none__"}
-                      required
-                      disabled={loadingFormations}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={loadingFormations ? (t('common.loading') || "Chargement...") : (t('course_form.formation_placeholder') || "Sélectionnez une formation (optionnel)")} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="__none__" disabled>{t('course_form.formation_placeholder') || "Sélectionnez une formation"}</SelectItem>
-                        {formations.length > 0 ? (
-                          formations.map((formation) => (
-                            <SelectItem key={formation.id} value={String(formation.id)}>
-                              {formation.title}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          !loadingFormations && (
-                            <SelectItem value="__no_formation__" disabled>
-                              {t('course_form.no_formation_available') || "Aucune formation disponible pour cette catégorie"}
-                            </SelectItem>
-                          )
-                        )}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                    {!loadingFormations && formations.length === 0 && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Aucune formation disponible pour cette catégorie. Vous devez d'abord créer une formation avant de créer un cours.
-                      </p>
-                    )}
-                    {formations.length > 0 && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Sélectionnez la formation adaptée à votre cours. Par exemple, le cours "JavaScript" sera lié à la formation "Développement Web".
-                      </p>
-                    )}
-                  </FormItem>
-                )}
-              />
-            )}
             
             <Button type="submit">{submitLabel}</Button>
           </form>

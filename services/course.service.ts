@@ -93,12 +93,11 @@ export class CourseService {
   ): Promise<Course> {
     const formData = new FormData();
     
-    // Si formationId est fourni, l'utiliser, sinon utiliser categoryId
+    // Utiliser seulement categoryId (plus de formationId)
     const payload = {
       ...courseData,
-      // Si formationId est présent, l'utiliser, sinon utiliser categoryId
-      formationId: courseData.formationId || undefined,
-      categoryId: courseData.formationId ? undefined : catId, // Ne pas envoyer categoryId si formationId est présent
+      categoryId: catId,
+      formationId: undefined, // Ne plus utiliser formationId
     };
     
     formData.append("courses", JSON.stringify(payload));
@@ -106,7 +105,6 @@ export class CourseService {
       formData.append("image", imageFile);
     }
 
-    // Utiliser catId pour l'endpoint (le backend peut gérer les deux cas)
     const response = await fetchApi<any>(`/courses/save/${catId}`, {
       method: "POST",
       body: formData,
