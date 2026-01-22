@@ -63,15 +63,20 @@ export function DataTable<TData, TValue>({
     return columns
   }, [columns])
 
+  // S'assurer que safeData et safeColumns sont valides avant de créer la table
+  const isValidData = React.useMemo(() => {
+    return Array.isArray(safeData) && safeData.length >= 0 && Array.isArray(safeColumns) && safeColumns.length > 0
+  }, [safeData, safeColumns])
+
   const table = useReactTable({
-    data: safeData,
-    columns: safeColumns,
+    data: isValidData ? safeData : [],
+    columns: isValidData ? safeColumns : [],
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: enablePagination ? getPaginationRowModel() : undefined,
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
+    getFilteredRowModel: isValidData ? getFilteredRowModel() : undefined,
     state: {
       sorting,
       columnFilters,
