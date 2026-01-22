@@ -160,11 +160,6 @@ export const instructorRoutes: Route[] = [
     href: "/instructor/evaluations",
   },
   {
-    label: "routes.instructor_moderation",
-    icon: Shield,
-    href: "/instructor/moderation",
-  },
-  {
     label: "routes.instructor_certificates",
     icon: Award,
     href: "/instructor/certificates",
