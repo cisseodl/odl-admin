@@ -12,7 +12,6 @@ import {
   Upload,
   FileQuestion,
   Shield,
-  Bell,
   HardDrive, // Added HardDrive for Labs
   ClipboardList, // For TD (Travaux Dirigés)
   HelpCircle, // For Quiz
