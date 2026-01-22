@@ -13,14 +13,28 @@ export const labSchema = z.object({
   uploadedFiles: z.string().optional(),
   resourceLinks: z.string().optional(),
   // Utiliser coerce pour convertir automatiquement string -> number depuis les inputs HTML
-  estimatedDurationMinutes: z.coerce.number({
-    required_error: "La durée estimée est requise",
-    invalid_type_error: "La durée estimée doit être un nombre",
-  }).min(1, "La durée estimée doit être au moins 1 minute"),
-  maxDurationMinutes: z.coerce.number({
-    required_error: "La durée maximale est requise",
-    invalid_type_error: "La durée maximale doit être un nombre",
-  }).min(1, "La durée maximale doit être au moins 1 minute"),
+  estimatedDurationMinutes: z.preprocess(
+    (val) => {
+      if (val === "" || val === null || val === undefined) return undefined;
+      const num = Number(val);
+      return isNaN(num) ? undefined : Math.floor(num);
+    },
+    z.number({
+      required_error: "La durée estimée est requise",
+      invalid_type_error: "La durée estimée doit être un nombre",
+    }).min(1, "La durée estimée doit être au moins 1 minute")
+  ),
+  maxDurationMinutes: z.preprocess(
+    (val) => {
+      if (val === "" || val === null || val === undefined) return undefined;
+      const num = Number(val);
+      return isNaN(num) ? undefined : Math.floor(num);
+    },
+    z.number({
+      required_error: "La durée maximale est requise",
+      invalid_type_error: "La durée maximale doit être un nombre",
+    }).min(1, "La durée maximale doit être au moins 1 minute")
+  ),
   instructions: z.string().optional(),
   activate: z.boolean().default(true),
 }).refine((data) => {
