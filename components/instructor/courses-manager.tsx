@@ -143,15 +143,18 @@ export function CoursesManager() {
   const handleAddCourse = async (data: CourseFormData) => {
     try {
       const { categoryId, ...courseData } = data;
+      console.log("Creating course with data:", { categoryId, courseData });
       const response = await courseService.createCourse(categoryId, courseData);
+      console.log("Course creation response:", response);
       addCourseModal.close();
       
       toast({
         title: "Succès",
-        description: response?.message || "Le cours a été créé avec succès.",
+        description: "Le cours a été créé avec succès.",
       });
       
-      fetchCourses();
+      // Rafraîchir la liste des cours
+      await fetchCourses();
     } catch (err: any) {
       console.error("Error creating course:", err);
       toast({

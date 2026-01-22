@@ -125,7 +125,7 @@ export class CourseService {
       formData.append("image", imageFile);
     }
 
-    const response = await fetchApi<any>(`/api/courses/${id}`, { // CORRECTION ICI
+    const response = await fetchApi<any>(`/courses/${id}`, { // Fixed: removed /api/ prefix
       method: "PUT",
       body: formData,
     });
