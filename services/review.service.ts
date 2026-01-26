@@ -34,7 +34,7 @@ export class ReviewService {
 
   async getAllReviews(): Promise<Review[]> {
     try {
-      const response = await fetchApi<any>(`/api/courses/reviews/all`, {
+      const response = await fetchApi<any>(`/api/reviews/all`, { // Corrected path
         method: "GET",
       });
       return response.data || response;
