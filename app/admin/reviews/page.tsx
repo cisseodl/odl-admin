@@ -3,7 +3,7 @@
 import { useLanguage } from "@/contexts/language-context"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ReviewsList } from "@/components/admin/reviews-list"
-import { CommentsList } from "@/components/admin/comments-list" // Import the new CommentsList
+import { TestimonialsList } from "@/components/admin/testimonials-list" // Import the new TestimonialsList
 import { MessageSquare, Star } from "lucide-react"
 
 export default function ReviewsPage() {
