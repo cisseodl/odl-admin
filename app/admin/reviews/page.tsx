@@ -24,20 +24,20 @@ export default function ReviewsPage() {
                       <Star className="h-4 w-4 mr-2" />
                       Avis
                     </TabsTrigger>
-                    <TabsTrigger
-                      value="comments"
-                      className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
-                    >
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      Commentaires
-                    </TabsTrigger>        </TabsList>
+                              <TabsTrigger
+                                value="testimonials"
+                                className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
+                              >
+                                <MessageSquare className="h-4 w-4 mr-2" />
+                                Témoignages
+                              </TabsTrigger>        </TabsList>
 
         <TabsContent value="reviews" className="space-y-4">
           <ReviewsList />
         </TabsContent>
 
-        <TabsContent value="comments" className="space-y-4">
-          <CommentsList />
+        <TabsContent value="testimonials" className="space-y-4">
+          <TestimonialsList />
         </TabsContent>
       </Tabs>
     </div>
