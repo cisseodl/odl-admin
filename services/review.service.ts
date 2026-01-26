@@ -43,6 +43,12 @@ export class ReviewService {
       return [];
     }
   }
+
+  async deleteReview(reviewId: number): Promise<void> {
+    await fetchApi<void>(`/api/reviews/${reviewId}`, {
+      method: "DELETE",
+    });
+  }
 }
 
 export const reviewService = new ReviewService();

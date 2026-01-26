@@ -117,13 +117,28 @@ export function ReviewsList() {
 
 
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (selectedReview) {
-      setReviews(reviews.filter((r) => r.id !== selectedReview.id))
-      setShowDeleteModal(false)
-      setSelectedReview(null)
+      try {
+        await reviewService.deleteReview(selectedReview.id);
+        setReviews(reviews.filter((r) => r.id !== selectedReview.id));
+        toast({
+          title: t('common.success'),
+          description: t('reviews.toasts.delete_success'),
+        });
+      } catch (error: any) {
+        console.error("Error deleting review:", error);
+        toast({
+          title: t('common.error'),
+          description: error.message || t('reviews.toasts.delete_error'),
+          variant: "destructive",
+        });
+      } finally {
+        setShowDeleteModal(false);
+        setSelectedReview(null);
+      }
     }
-  }
+  };
 
   const handleSaveEdit = (editedReview: Review) => {
     setReviews(
