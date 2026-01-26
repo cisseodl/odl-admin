@@ -90,7 +90,7 @@ export function ReviewDetailModal({ isOpen, onOpenChange, review }: ReviewDetail
               <MessageSquare className="h-4 w-4" />
               {t('reviews.list.header_comment')}:
             </p>
-            <div className="bg-muted/50 p-4 rounded-md border border-border">
+            <div>
               <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{review.comment}</p>
             </div>
           </div>

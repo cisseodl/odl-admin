@@ -17,21 +17,20 @@ export default function ReviewsPage() {
 
       <Tabs defaultValue="reviews" className="space-y-4">
         <TabsList className="grid w-full grid-cols-2 bg-[rgb(50,50,50)]/10 dark:bg-[rgb(50,50,50)]/20 border border-[rgb(50,50,50)]/20">
-          <TabsTrigger
-            value="reviews"
-            className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
-          >
-            <Star className="h-4 w-4 mr-2" />
-            {t('reviews.tabs.reviews')}
-          </TabsTrigger>
-          <TabsTrigger
-            value="comments"
-            className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
-          >
-            <MessageSquare className="h-4 w-4 mr-2" />
-            {t('reviews.tabs.comments')}
-          </TabsTrigger>
-        </TabsList>
+                      <TabsTrigger
+                        value="reviews"
+                        className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
+                      >
+                      <Star className="h-4 w-4 mr-2" />
+                      Avis
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="comments"
+                      className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
+                    >
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Commentaires
+                    </TabsTrigger>        </TabsList>
 
         <TabsContent value="reviews" className="space-y-4">
           <ReviewsList />
