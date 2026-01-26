@@ -20,6 +20,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Search, MoreHorizontal, Check, X, Star, Trash2, Eye, MessageSquare, BookOpen, Calendar, Edit } from "lucide-react"
 import { EmptyState } from "./empty-state"
+import { ReviewDetailModal } from "./modals/review-detail-modal" // Import the new modal
 // import { ViewReviewModal } from "./modals/view-review-modal" // Ne plus importer car on le gère en ligne ou avec un modal plus générique
 // import { ApproveReviewModal } from "./modals/approve-review-modal" // Ne plus importer, géré en ligne
 
@@ -43,7 +44,6 @@ type Review = {
   rating: number
   comment: string
   date: string
-  status: "Approuvé" | "En attente" | "Rejeté"
   avatar?: string
   rejectionReason?: string
 }
@@ -57,10 +57,8 @@ export function ReviewsList() {
   const { toast } = useToast()
 
   const [showEditModal, setShowEditModal] = useState(false)
-  const [showApproveModal, setShowApproveModal] = useState(false)
-  const [showRejectModal, setShowRejectModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [rejectionReason, setRejectionReason] = useState("")
+  const [showDetailModal, setShowDetailModal] = useState(false)
 
   useEffect(() => {
     fetchReviews()
@@ -104,18 +102,7 @@ export function ReviewsList() {
       review.comment.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case t('reviews.list.status_approved'):
-        return "default"
-      case t('reviews.list.status_pending'):
-        return "outline"
-      case t('reviews.list.status_rejected'):
-        return "destructive"
-      default:
-        return "secondary"
-    }
-  }
+
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }).map((_, i) => (
@@ -128,34 +115,7 @@ export function ReviewsList() {
     ))
   }
 
-  const handleApprove = () => {
-    if (selectedReview) {
-      setReviews(
-        reviews.map((r) =>
-          r.id === selectedReview.id
-            ? { ...r, status: t('reviews.list.status_approved') as const }
-            : r
-        )
-      )
-      setShowApproveModal(false)
-      setSelectedReview(null)
-    }
-  }
 
-  const handleReject = () => {
-    if (selectedReview) {
-      setReviews(
-        reviews.map((r) =>
-          r.id === selectedReview.id
-            ? { ...r, status: t('reviews.list.status_rejected') as const, rejectionReason }
-            : r
-        )
-      )
-      setShowRejectModal(false)
-      setRejectionReason("")
-      setSelectedReview(null)
-    }
-  }
 
   const handleDelete = () => {
     if (selectedReview) {
@@ -205,7 +165,6 @@ export function ReviewsList() {
                 <TableHead className="hidden sm:table-cell">Note</TableHead>
                 <TableHead>Commentaire</TableHead>
                 <TableHead className="hidden md:table-cell">Date</TableHead>
-                <TableHead>Statut</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -269,9 +228,6 @@ export function ReviewsList() {
                         {review.date}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusVariant(review.status) as any}>{review.status}</Badge>
-                    </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -282,6 +238,15 @@ export function ReviewsList() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>{t('reviews.list.header_actions')}</DropdownMenuLabel>
                           <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedReview(review)
+                              setShowDetailModal(true)
+                            }}
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            {t('reviews.list.action_view')}
+                          </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => {
                               setSelectedReview(review)
@@ -390,45 +355,13 @@ export function ReviewsList() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal Valider (Approve Review) */}
-      <Dialog open={showApproveModal} onOpenChange={setShowApproveModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('reviews.modals.approve_title')}</DialogTitle>
-            <DialogDescription>
-              {t('reviews.modals.approve_description').replace('{{user}}', selectedReview?.user || '').replace('{{course}}', selectedReview?.course || '')}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowApproveModal(false)}>{t('common.cancel')}</Button>
-            <Button onClick={handleApprove}>{t('reviews.modals.approve_confirm')}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
-      {/* Modal Rejeter (Reject Review) */}
-      <Dialog open={showRejectModal} onOpenChange={setShowRejectModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('reviews.modals.reject_title')}</DialogTitle>
-            <DialogDescription>
-              {t('reviews.modals.reject_description').replace('{{user}}', selectedReview?.user || '').replace('{{course}}', selectedReview?.course || '')}
-            </DialogDescription>
-          </DialogHeader>
-          <Textarea
-            placeholder={t('reviews.modals.reject_reason_placeholder')}
-            value={rejectionReason}
-            onChange={(e) => setRejectionReason(e.target.value)}
-            className="min-h-[100px]"
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRejectModal(false)}>{t('common.cancel')}</Button>
-            <Button variant="destructive" onClick={handleReject} disabled={!rejectionReason.trim()}>
-              {t('reviews.modals.reject_confirm')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+      <ReviewDetailModal
+        isOpen={showDetailModal}
+        onOpenChange={setShowDetailModal}
+        review={selectedReview}
+      />
 
       {/* Modal Supprimer (Delete Review) */}
       <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
