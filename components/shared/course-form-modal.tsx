@@ -92,7 +92,7 @@ export function CourseFormModal({
                 <FormItem>
                   <FormLabel>Titre du cours *</FormLabel>
                   <FormControl>
-                    <Input placeholder={t('course_form.title_placeholder') || "Introduction à..."} {...field} />
+                    <Input placeholder={t('course_form.title_placeholder') || "Introduction à..."} {...field} name={field.name} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -105,7 +105,7 @@ export function CourseFormModal({
                 <FormItem>
                   <FormLabel>{t('course_form.subtitle_label') || "Sous-titre"}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t('course_form.subtitle_placeholder') || "Apprenez les bases de..."} {...field} />
+                    <Input placeholder={t('course_form.subtitle_placeholder') || "Apprenez les bases de..."} {...field} name={field.name} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -118,7 +118,7 @@ export function CourseFormModal({
                 <FormItem>
                   <FormLabel>{t('course_form.description_label') || "Description"}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder={t('course_form.description_placeholder') || "Ce cours couvre..."} {...field} />
+                    <Textarea placeholder={t('course_form.description_placeholder') || "Ce cours couvre..."} {...field} name={field.name} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -130,7 +130,7 @@ export function CourseFormModal({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('courses.level') || "Niveau"}</FormLabel>
-                  <Select onValueChange={(value) => field.onChange(value)} defaultValue={field.value}>
+                  <Select onValueChange={(value) => field.onChange(value)} defaultValue={field.value} name={field.name}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t('course_form.level_placeholder') || "Sélectionnez un niveau"} />
@@ -153,7 +153,7 @@ export function CourseFormModal({
                 <FormItem>
                   <FormLabel>{t('courses.language') || "Langue"}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t('course_form.language_placeholder') || "Français"} {...field} />
+                    <Input placeholder={t('course_form.language_placeholder') || "Français"} {...field} name={field.name} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -171,6 +171,7 @@ export function CourseFormModal({
                       field.onChange(numValue)
                     }} 
                     value={field.value ? String(field.value) : "__none__"}
+                    name={field.name}
                   >
                     <FormControl>
                       <SelectTrigger>
