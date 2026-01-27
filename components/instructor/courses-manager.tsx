@@ -175,7 +175,8 @@ export function CoursesManager() {
     try {
       const { categoryId, ...courseData } = data;
       console.log("[InstructorCoursesManager] handleUpdateCourse - Request data:", { id: editCourseModal.selectedItem.id, categoryId, courseData }); // ADD LOG
-      const response = await courseService.updateCourse(editCourseModal.selectedItem.id, courseData, undefined);
+      const payloadWithId = { ...courseData, id: editCourseModal.selectedItem.id }; // Add ID to payload
+      const response = await courseService.updateCourse(editCourseModal.selectedItem.id, payloadWithId, undefined);
       console.log("[InstructorCoursesManager] handleUpdateCourse - Response:", response); // ADD LOG
       editCourseModal.close();
       
