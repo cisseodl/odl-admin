@@ -237,12 +237,12 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
       const modulesPayload = {
         courseId: wizardData.course.courseId,
         courseType: (wizardData.course.level || "DEBUTANT").toUpperCase() as "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE",
-                                      modules: modules.map((m, idx) => ({
-                                        title: m.title,
-                                        description: m.description || "", // Reverted to empty string
-                                        moduleOrder: m.moduleOrder || idx + 1,
-                                        lessons: [], // Pas de leçons pour l'instant
-                                      })),      }
+                                                modules: modules.map((m, idx) => ({
+                                                  title: m.title,
+                                                  description: m.description.trim() === '' ? "(No description provided)" : m.description, // Ensure non-empty string
+                                                  moduleOrder: m.moduleOrder || idx + 1,
+                                                  lessons: [], // Pas de leçons pour l'instant
+                                                })),      }
 
       await moduleService.saveModules(modulesPayload)
 
@@ -372,7 +372,7 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
         return {
           id: moduleId, // ID du module existant (pour update)
           title: m.title, // @NotBlank - requis
-          description: m.description || "", // Reverted to empty string
+          description: m.description.trim() === '' ? "(No description provided)" : m.description, // Ensure non-empty string
           moduleOrder: m.moduleOrder || idx + 1, // @NotNull - requis
           lessons: moduleLessons, // List<LessonCreationRequest>
         };
