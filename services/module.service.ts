@@ -32,7 +32,7 @@ export class ModuleService {
         courseType: payload.courseType || "DEBUTANT",
         modules: payload.modules.map(m => ({
           title: m.title, // @NotBlank - requis
-          description: m.description || "", // Optionnel dans ModuleCreationRequest
+          description: m.description ? m.description : undefined, // Ensure undefined if empty or null
           moduleOrder: m.moduleOrder, // @NotNull - requis
           lessons: (m.lessons || []).map((l: any) => ({
             title: l.title, // @NotBlank - requis
