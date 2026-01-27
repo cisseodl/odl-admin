@@ -74,6 +74,11 @@ export function CourseFormModal({
     defaultValues,
   })
 
+  const handleFormSubmit = (data: CourseFormData) => {
+    console.log(">>>> CourseFormModal: Submitting form data:", data); // New log
+    onSubmit(data);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-[600px] max-h-[90vh] flex flex-col min-h-0">
@@ -84,13 +89,7 @@ export function CourseFormModal({
           )}
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={(e) => {
-            e.preventDefault(); // Manually prevent default
-            console.log(">>>> Manual onSubmit handler triggered!");
-            // This is a temporary test. If this stops the refresh,
-            // the issue is with form.handleSubmit(onSubmit) not being called correctly.
-            // We are not calling the actual onSubmit for now.
-          }} className="space-y-4 overflow-y-auto flex-1 pr-2">
+          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 overflow-y-auto flex-1 pr-2">
             <FormField
               control={form.control}
               name="title"
