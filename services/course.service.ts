@@ -100,7 +100,7 @@ export class CourseService {
       formationId: undefined, // Ne plus utiliser formationId
     };
     
-    formData.append("courses", JSON.stringify(payload));
+    formData.append("courses", new Blob([JSON.stringify(payload)], { type: "application/json" }));
     if (imageFile) {
       formData.append("image", imageFile);
     }
