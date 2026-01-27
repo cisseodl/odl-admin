@@ -146,6 +146,7 @@ export function StepLessons({ onSubmit, modules, defaultLessons = [] }: StepLess
                         <Label htmlFor={`lesson-title-${lesson.id}`}>Titre de la leçon *</Label>
                         <Input
                           id={`lesson-title-${lesson.id}`}
+                          name={`lesson-title-${lesson.id}`} // Added name attribute
                           value={lesson.title}
                           onChange={(e) => updateLesson(lesson.id || "", "title", e.target.value)}
                           placeholder="Ex: Introduction à EC2"
@@ -157,6 +158,7 @@ export function StepLessons({ onSubmit, modules, defaultLessons = [] }: StepLess
                         <div className="space-y-2">
                           <Label htmlFor={`lesson-type-${lesson.id}`}>Type *</Label>
                           <Select
+                            name={`lesson-type-${lesson.id}`} // Added name attribute
                             value={lesson.type}
                             onValueChange={(value: any) => {
                               updateLesson(lesson.id || "", "type", value)
@@ -166,7 +168,7 @@ export function StepLessons({ onSubmit, modules, defaultLessons = [] }: StepLess
                             }}
                             required
                           >
-                            <SelectTrigger>
+                            <SelectTrigger id={`lesson-type-${lesson.id}`}> {/* Added id to SelectTrigger */}
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -202,6 +204,7 @@ export function StepLessons({ onSubmit, modules, defaultLessons = [] }: StepLess
                           <Label htmlFor={`lesson-duration-${lesson.id}`}>Durée (minutes) *</Label>
                           <Input
                             id={`lesson-duration-${lesson.id}`}
+                            name={`lesson-duration-${lesson.id}`} // Added name attribute
                             type="number"
                             min="0"
                             value={lesson.duration || 0}
@@ -225,6 +228,7 @@ export function StepLessons({ onSubmit, modules, defaultLessons = [] }: StepLess
                         {lesson.type === "QUIZ" ? (
                           <Input
                             id={`lesson-file-${lesson.id}`}
+                            name={`lesson-file-${lesson.id}`} // Added name attribute
                             type="url"
                             value={lesson.contentUrl || ""}
                             onChange={(e) =>
@@ -236,6 +240,7 @@ export function StepLessons({ onSubmit, modules, defaultLessons = [] }: StepLess
                           <div className="space-y-2">
                             <Input
                               id={`lesson-file-${lesson.id}`}
+                              name={`lesson-file-${lesson.id}`} // Added name attribute
                               type="file"
                               accept={
                                 lesson.type === "VIDEO" || lesson.type === "DOCUMENT"

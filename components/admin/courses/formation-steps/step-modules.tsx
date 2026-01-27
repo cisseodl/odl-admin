@@ -106,6 +106,7 @@ export function StepModules({ onSubmit, defaultModules = [], courseCreated }: St
                 <Label htmlFor={`module-title-${index}`}>Titre du module *</Label>
                 <Input
                   id={`module-title-${index}`}
+                  name={`module-title-${index}`} // Added name attribute
                   value={module.title}
                   onChange={(e) => updateModule(index, "title", e.target.value)}
                   placeholder="Ex: Introduction à AWS"
@@ -116,6 +117,7 @@ export function StepModules({ onSubmit, defaultModules = [], courseCreated }: St
                 <Label htmlFor={`module-description-${index}`}>Description (optionnel)</Label>
                 <Textarea
                   id={`module-description-${index}`}
+                  name={`module-description-${index}`} // Added name attribute
                   value={module.description || ""}
                   onChange={(e) => updateModule(index, "description", e.target.value)}
                   placeholder="Décrivez le contenu de ce module..."
