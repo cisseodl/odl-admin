@@ -144,6 +144,7 @@ export function CoursesManager() {
   }, [user, authLoading]);
 
   const handleAddCourse = async (data: CourseFormData) => {
+    console.log(">>>> handleAddCourse called!"); // ADD THIS LOG
     try {
       const { categoryId, ...courseData } = data;
       console.log("[InstructorCoursesManager] handleAddCourse - Request data:", { categoryId, courseData }); // ADD LOG
