@@ -146,9 +146,9 @@ export function CoursesManager() {
   const handleAddCourse = async (data: CourseFormData) => {
     try {
       const { categoryId, ...courseData } = data;
-      console.log("Creating course with data:", { categoryId, courseData });
+      console.log("[InstructorCoursesManager] handleAddCourse - Request data:", { categoryId, courseData }); // ADD LOG
       const response = await courseService.createCourse(categoryId, courseData);
-      console.log("Course creation response:", response);
+      console.log("[InstructorCoursesManager] handleAddCourse - Response:", response); // ADD LOG
       addCourseModal.close();
       
       toast({
@@ -159,7 +159,7 @@ export function CoursesManager() {
       // Rafraîchir la liste des cours
       await fetchCourses();
     } catch (err: any) {
-      console.error("Error creating course:", err);
+      console.error("[InstructorCoursesManager] handleAddCourse - Error creating course:", err); // ADD LOG
       toast({
         title: "Erreur",
         description: err.message || "Impossible de créer le cours.",
@@ -173,7 +173,9 @@ export function CoursesManager() {
     if (!editCourseModal.selectedItem) return;
     try {
       const { categoryId, ...courseData } = data;
-      await courseService.updateCourse(editCourseModal.selectedItem.id, courseData, undefined);
+      console.log("[InstructorCoursesManager] handleUpdateCourse - Request data:", { id: editCourseModal.selectedItem.id, categoryId, courseData }); // ADD LOG
+      const response = await courseService.updateCourse(editCourseModal.selectedItem.id, courseData, undefined);
+      console.log("[InstructorCoursesManager] handleUpdateCourse - Response:", response); // ADD LOG
       editCourseModal.close();
       
       toast({
@@ -183,7 +185,7 @@ export function CoursesManager() {
       
       fetchCourses();
     } catch (err: any) {
-      console.error("Error updating course:", err);
+      console.error("[InstructorCoursesManager] handleUpdateCourse - Error updating course:", err); // ADD LOG
       toast({
         title: "Erreur",
         description: err.message || "Impossible de mettre à jour le cours.",
@@ -194,7 +196,9 @@ export function CoursesManager() {
 
   const handleDeleteCourse = async (courseId: number) => {
     try {
-      await courseService.deleteCourse(courseId);
+      console.log("[InstructorCoursesManager] handleDeleteCourse - Deleting course with ID:", courseId); // ADD LOG
+      const response = await courseService.deleteCourse(courseId);
+      console.log("[InstructorCoursesManager] handleDeleteCourse - Response:", response); // ADD LOG
       deleteConfirmModal.close();
       
       toast({
@@ -204,7 +208,7 @@ export function CoursesManager() {
       
       fetchCourses();
     } catch (err: any) {
-      console.error("Error deleting course:", err);
+      console.error("[InstructorCoursesManager] handleDeleteCourse - Error deleting course:", err); // ADD LOG
       toast({
         title: "Erreur",
         description: err.message || "Impossible de supprimer le cours.",
