@@ -84,7 +84,13 @@ export function CourseFormModal({
           )}
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 overflow-y-auto flex-1 pr-2">
+          <form onSubmit={(e) => {
+            e.preventDefault(); // Manually prevent default
+            console.log(">>>> Manual onSubmit handler triggered!");
+            // This is a temporary test. If this stops the refresh,
+            // the issue is with form.handleSubmit(onSubmit) not being called correctly.
+            // We are not calling the actual onSubmit for now.
+          }} className="space-y-4 overflow-y-auto flex-1 pr-2">
             <FormField
               control={form.control}
               name="title"
