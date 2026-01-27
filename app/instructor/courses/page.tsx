@@ -74,10 +74,10 @@ export default function InstructorCoursesPage() {
           title: "Succès",
           description: "Cours créé avec succès.",
         })
-        addCourseModal.close()
-        window.location.reload()
-      }
-    } catch (error: any) {
+              addCourseModal.close()
+              // window.location.reload() // Removed this line to prevent page refresh
+              // Rafraîchir la liste des cours est géré par le composant parent CoursesManager via fetchCourses
+            }    } catch (error: any) {
       console.error("Error creating course:", error)
       toast({
         title: "Erreur",
