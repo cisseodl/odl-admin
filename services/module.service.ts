@@ -24,8 +24,6 @@ export interface ModulesPayload {
 export class ModuleService {
   async saveModules(payload: ModulesPayload): Promise<any> {
     try {
-      console.log("[ModuleService] saveModules appelé avec payload:", payload);
-      
       // Le backend attend un FormData avec "module" comme JSON stringifié
       const modulePayload = {
         courseId: payload.courseId,
@@ -45,19 +43,15 @@ export class ModuleService {
       };
       
       const jsonString = JSON.stringify(modulePayload);
-      console.log("[ModuleService] JSON stringifié:", jsonString);
       
       const formData = new FormData();
-      formData.append("module", jsonString);
-      
-      console.log("[ModuleService] FormData créé, appel de fetchApi vers /modules/save");
+      formData.append("module", new Blob([jsonString], { type: "application/json" }));
       
       const response = await fetchApi<any>("/modules/save", {
         method: "POST",
         body: formData,
       });
       
-      console.log("[ModuleService] Réponse reçue du backend:", response);
       return response;
     } catch (error: any) {
       console.error("[ModuleService] Erreur dans saveModules:", error);
