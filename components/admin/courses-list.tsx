@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback, useEffect } from "react"
 import { useLanguage } from "@/contexts/language-context"
 import { PageHeader } from "@/components/ui/page-header"
 import { SearchBar } from "@/components/ui/search-bar"
@@ -9,300 +9,164 @@ import { ActionMenu } from "@/components/ui/action-menu"
 import { StatusBadge } from "@/components/ui/status-badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { useModal } from "@/hooks/use-modal"
-import { useToast } from "@/hooks/use-toast";
-import { useSearch } from "@/hooks/use-search";
-import { FormationBuilderWizard } from "@/components/admin/courses/formation-builder-wizard";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { ViewCourseModal } from "./modals/view-course-modal";
-import { CourseFormModal } from "@/components/shared/course-form-modal";
-import type { ColumnDef } from "@tanstack/react-table";
-import { Eye, Edit, Trash2, Power, Users, Clock, Star, BookOpen } from "lucide-react";
-import type { CourseFormData } from "@/lib/validations/course";
+import { useToast } from "@/hooks/use-toast"
+import { useSearch } from "@/hooks/use-search"
+import { FormationBuilderWizard } from "@/components/admin/courses/formation-builder-wizard"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { ViewCourseModal } from "./modals/view-course-modal"
+import { CourseFormModal } from "@/components/shared/course-form-modal"
+import type { ColumnDef } from "@tanstack/react-table"
+import { Eye, Edit, Trash2, Power, Users, Clock, Star, BookOpen, ListFilter } from "lucide-react"
+import type { CourseFormData } from "@/lib/validations/course"
+import { Course as CourseModel, Categorie } from "@/models"
+import { courseService, categorieService, instructorService } from "@/services"
+import { convertDurationToSeconds, convertSecondsToDurationString } from "@/lib/utils"
+import { PageLoader } from "@/components/ui/page-loader"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
 
-import { Course as CourseModel, Categorie } from "@/models"; // Import Course from models/index.ts
-import { courseService, categorieService, moduleService, instructorService } from "@/services"; // Import courseService from services/index.ts
-import { convertDurationToSeconds, convertSecondsToDurationString } from "@/lib/utils"; // Import duration conversion utilities
-import { useEffect } from "react";
-import { PageLoader } from "@/components/ui/page-loader";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"; // Import DropdownMenu components
-import { Button } from "@/components/ui/button"; // Import Button for dropdown trigger
-import { ListFilter } from "lucide-react"; // Import icon for filter button
-import { ModulesPayload } from "@/services/module.service";
-
-// Helper function to map CourseModel to CourseDisplay
-type CourseDisplay = CourseModel;
+type CourseDisplay = CourseModel
 
 export function CoursesList() {
   const { t } = useLanguage()
-  const addModal = useModal<CourseDisplay>();
-  const editModal = useModal<CourseDisplay>();
-  const deleteModal = useModal<CourseDisplay>();
-  const viewModal = useModal<CourseDisplay>();
-  const { toast } = useToast();
+  const addModal = useModal<CourseDisplay>()
+  const editModal = useModal<CourseDisplay>()
+  const deleteModal = useModal<CourseDisplay>()
+  const viewModal = useModal<CourseDisplay>()
+  const { toast } = useToast()
 
-  const [courses, setCourses] = useState<CourseDisplay[]>([]);
-  const [categories, setCategories] = useState<Categorie[]>([]); // State to store categories
-  const [instructors, setInstructors] = useState<any[]>([]); // State to store instructors
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null); // State for selected category filter
-  const [loading, setLoading] = useState(true);
-  
+  const [courses, setCourses] = useState<CourseDisplay[]>([])
+  const [categories, setCategories] = useState<Categorie[]>([])
+  const [instructors, setInstructors] = useState<any[]>([])
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
+  const [selectedStatus, setSelectedStatus] = useState<string>("ALL") // "ALL", "PUBLISHED", "UNPUBLISHED"
+  const [loading, setLoading] = useState(true)
+
   const fetchCourses = useCallback(async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      // Charger les catégories et instructeurs en parallèle
       const [categoriesResponse, instructorsResponse] = await Promise.all([
         categorieService.getAllCategories(),
-        instructorService.getAllInstructors()
-      ]);
+        instructorService.getAllInstructors(),
+      ])
 
-      let categoriesData: Categorie[] = [];
+      let categoriesData: Categorie[] = []
       if (Array.isArray(categoriesResponse)) {
-        categoriesData = categoriesResponse;
-        setCategories(categoriesData);
+        categoriesData = categoriesResponse
+        setCategories(categoriesData)
       } else if (categoriesResponse && Array.isArray(categoriesResponse.data)) {
-        categoriesData = categoriesResponse.data;
-        setCategories(categoriesData);
-      } else {
-        // Si categoriesResponse est null ou une structure inattendue, utiliser un tableau vide
-        setCategories([]);
-        if (categoriesResponse !== null && categoriesResponse !== undefined) {
-          console.error("Unexpected categories response structure:", categoriesResponse);
-        }
+        categoriesData = categoriesResponse.data
+        setCategories(categoriesData)
       }
 
-      // Traiter la réponse des instructeurs
-      let instructorsData: any[] = [];
+      let instructorsData: any[] = []
       if (instructorsResponse) {
         if (Array.isArray(instructorsResponse.data)) {
-          instructorsData = instructorsResponse.data;
+          instructorsData = instructorsResponse.data
         } else if (Array.isArray(instructorsResponse)) {
-          instructorsData = instructorsResponse;
+          instructorsData = instructorsResponse
         }
       }
-      setInstructors(instructorsData);
+      setInstructors(instructorsData)
 
-      let coursesResponse;
+      let statusFilter: string | undefined
+      switch (selectedStatus) {
+        case "PUBLISHED":
+          statusFilter = "PUBLISHED"
+          break
+        case "UNPUBLISHED":
+          statusFilter = "DRAFT,IN_REVIEW,BROUILLON"
+          break
+        case "ALL":
+        default:
+          statusFilter = "PUBLISHED,DRAFT,IN_REVIEW,BROUILLON,ARCHIVED,PUBLIE"
+          break
+      }
+
+      let coursesResponse
+      // Note: getCoursesByCategory ne semble pas supporter le filtre de statut, on filtre localement pour ce cas
       if (selectedCategory) {
-        coursesResponse = await courseService.getCoursesByCategory(selectedCategory);
+        coursesResponse = await courseService.getCoursesByCategory(selectedCategory)
       } else {
-        coursesResponse = await courseService.getAllCourses();
+        coursesResponse = await courseService.getAllCourses({ status: statusFilter })
       }
-      
-      // getAllCourses peut retourner directement un tableau ou un objet avec data
-      let coursesData: any[] = [];
+
+      let coursesData: any[] = []
       if (Array.isArray(coursesResponse)) {
-        coursesData = coursesResponse;
+        coursesData = coursesResponse
       } else if (coursesResponse && Array.isArray(coursesResponse.data)) {
-        coursesData = coursesResponse.data;
-      } else if (coursesResponse && coursesResponse.data && Array.isArray(coursesResponse.data)) {
-        coursesData = coursesResponse.data;
-      } else {
-        console.warn("Unexpected courses response structure:", coursesResponse);
-        coursesData = [];
+        coursesData = coursesResponse.data
       }
 
-      // Debug: Log pour voir la structure des données
-      if (coursesData.length > 0) {
-        console.log("Sample course data (full):", JSON.stringify(coursesData[0], null, 2));
-        console.log("Available categories:", categoriesData.length);
-        console.log("Available instructors:", instructorsData.length);
-        if (instructorsData.length > 0) {
-          console.log("Sample instructor:", instructorsData[0]);
-        }
-      }
-
-      // Enrichir les cours avec les informations de catégorie et d'instructeur
       let enrichedCourses = coursesData.map((course: any) => {
-        const enriched: CourseDisplay = { ...course };
-
-        // Le backend retourne category comme string (titre) et instructor comme InstructorDto
-        // Enrichir la catégorie : le backend retourne 'category' comme string (titre)
-        if (course.category && typeof course.category === 'string') {
-          // Chercher la catégorie par titre dans notre liste
-          const category = categoriesData.find((cat: Categorie) => cat.title === course.category);
-          if (category) {
-            enriched.categorie = category;
+        const enriched: CourseDisplay = { ...course }
+        const category = categoriesData.find((cat) => cat.id === course.categoryId)
+        if (category) enriched.categorie = category
+        const instructor = instructorsData.find(
+          (inst) => inst.id === course.instructorId || inst.userId === course.instructorId
+        )
+        if (instructor)
+          enriched.instructor = {
+            id: instructor.userId || instructor.id,
+            fullName: instructor.fullName || instructor.email,
+            email: instructor.email,
+            avatar: instructor.avatar,
           }
-        } else if (!enriched.categorie || !enriched.categorie.title) {
-          // Fallback : essayer de trouver par ID
-          const categoryId = course.categorieId || course.categoryId || course.categorie?.id || 
-                            (typeof course.categorie === 'number' ? course.categorie : null);
-          if (categoryId) {
-            const category = categoriesData.find((cat: Categorie) => cat.id === Number(categoryId));
-            if (category) {
-              enriched.categorie = category;
-            }
-          }
-        }
+        return enriched
+      })
 
-        // Enrichir l'instructeur : le backend peut retourner 'instructor' comme InstructorDto avec 'name'
-        // ou null si le profil instructeur n'existe pas
-        let instructorFound = false;
-
-        // 1. Vérifier si instructor est présent et a un nom
-        if (course.instructor) {
-          if (course.instructor.name) {
-            // InstructorDto du backend avec 'name'
-            enriched.instructor = {
-              id: course.instructor.id,
-              fullName: course.instructor.name,
-              email: undefined,
-              avatar: course.instructor.avatar,
-            };
-            instructorFound = true;
-          } else if (course.instructor.fullName) {
-            // Objet User avec fullName
-            enriched.instructor = course.instructor;
-            instructorFound = true;
-          } else if (course.instructor.id || course.instructor.userId) {
-            // Chercher dans la liste des instructeurs par ID
-            const instructorId = course.instructor.id || course.instructor.userId;
-            const instructor = instructorsData.find((inst: any) => 
-              Number(inst.id) === Number(instructorId) || 
-              Number(inst.userId) === Number(instructorId)
-            );
-            if (instructor) {
-              enriched.instructor = {
-                id: instructor.userId || instructor.id,
-                fullName: instructor.fullName || instructor.email || `Instructor #${instructor.userId || instructor.id}`,
-                email: instructor.email,
-                avatar: instructor.avatar,
-              };
-              instructorFound = true;
-            }
-          }
-        }
-
-        // 2. Si instructor n'est pas trouvé, chercher par instructorId dans les champs du cours
-        if (!instructorFound) {
-          // Le backend peut retourner instructorId dans différents champs
-          // Essayer toutes les variantes possibles
-          const instructorId = course.instructorId || 
-                              course.instructor_id || 
-                              course.instructorId || 
-                              (course.instructor && typeof course.instructor === 'number' ? course.instructor : null) ||
-                              (course.instructor && course.instructor.id ? course.instructor.id : null) ||
-                              (course.instructor && course.instructor.userId ? course.instructor.userId : null);
-          
-          if (instructorId) {
-            // Chercher dans la liste des instructeurs
-            const instructor = instructorsData.find((inst: any) => {
-              const instId = inst.id || inst.userId;
-              return Number(instId) === Number(instructorId);
-            });
-            
-            if (instructor) {
-              enriched.instructor = {
-                id: instructor.userId || instructor.id,
-                fullName: instructor.fullName || instructor.email || `Instructor #${instructor.userId || instructor.id}`,
-                email: instructor.email,
-                avatar: instructor.avatar,
-              };
-              instructorFound = true;
-            } else {
-              // Log seulement pour le premier cours pour éviter le spam
-              if (coursesData.indexOf(course) === 0) {
-                console.warn(`Instructor with ID ${instructorId} not found in instructors list. Available instructor IDs:`, 
-                  instructorsData.map((inst: any) => inst.id || inst.userId));
-              }
-            }
-          }
-        }
-
-        // 3. Si toujours pas trouvé, essayer de récupérer depuis getCourseById (seulement pour le premier pour debug)
-        if (!instructorFound && coursesData.indexOf(course) === 0) {
-          console.warn("No instructor found for course:", course.id, "Course data keys:", Object.keys(course));
-          // Ne pas faire d'appel API ici car c'est trop coûteux, juste logger
-        }
-
-        return enriched;
-      });
-
-      // Pour les cours qui n'ont toujours pas d'instructeur, essayer de récupérer les détails complets
-      const coursesWithoutInstructor = enrichedCourses.filter(c => !c.instructor || !c.instructor.fullName);
-      
-      if (coursesWithoutInstructor.length > 0) {
-        console.log(`Found ${coursesWithoutInstructor.length} courses without instructor, trying to fetch details...`);
-        
-        // Récupérer les détails complets pour les cours sans instructeur (limité aux 10 premiers pour performance)
-        const coursesToFetch = coursesWithoutInstructor.slice(0, 10);
-        const courseDetailsPromises = coursesToFetch.map(course => 
-          courseService.getCourseById(course.id).catch(err => {
-            console.warn(`Failed to fetch details for course ${course.id}:`, err);
-            return null;
-          })
-        );
-        
-        try {
-          const courseDetails = await Promise.all(courseDetailsPromises);
-          
-          // Mettre à jour les cours avec les détails récupérés
-          courseDetails.forEach((details, index) => {
-            if (details && details.instructor) {
-              const courseIndex = enrichedCourses.findIndex(c => c.id === coursesToFetch[index].id);
-              if (courseIndex !== -1) {
-                if (details.instructor.name) {
-                  enrichedCourses[courseIndex].instructor = {
-                    id: details.instructor.id,
-                    fullName: details.instructor.name,
-                    email: undefined,
-                    avatar: details.instructor.avatar,
-                  };
-                } else if (details.instructor.fullName) {
-                  enrichedCourses[courseIndex].instructor = details.instructor;
-                }
-              }
-            }
-          });
-        } catch (err) {
-          console.error("Error fetching course details:", err);
-        }
+      // Filtrage local si on a filtré par catégorie
+      if (selectedCategory && selectedStatus !== "ALL") {
+        enrichedCourses = enrichedCourses.filter(course => {
+            const status = course.status?.toUpperCase();
+            if (selectedStatus === 'PUBLISHED') return status === 'PUBLISHED' || status === 'PUBLIE';
+            if (selectedStatus === 'UNPUBLISHED') return status === 'DRAFT' || status === 'IN_REVIEW' || status === 'BROUILLON';
+            return true;
+        })
       }
 
-      setCourses(enrichedCourses);
+
+      setCourses(enrichedCourses)
     } catch (err: any) {
       toast({
-        title: t('common.error'),
-        description: t('courses.toasts.error_load'),
+        title: t("common.error"),
+        description: t("courses.toasts.error_load"),
         variant: "destructive",
-      });
-      console.error("Error fetching data:", err);
+      })
+      console.error("Error fetching data:", err)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [selectedCategory, toast, t]);
+  }, [selectedCategory, selectedStatus, toast, t])
 
   useEffect(() => {
-    fetchCourses();
-  }, [fetchCourses]);
+    fetchCourses()
+  }, [fetchCourses])
 
-
-    const { searchQuery, setSearchQuery, filteredData } = useSearch<CourseDisplay>({
-      data: courses,
-      searchKeys: ["title", "instructor.fullName", "categorie.title"],
-    });
+  const { searchQuery, setSearchQuery, filteredData } = useSearch<CourseDisplay>({
+    data: courses,
+    searchKeys: ["title", "instructor.fullName", "categorie.title"],
+  })
 
   const handleAddCourse = async (courseId?: number) => {
-    try {
-      // Le wizard gère déjà toute la création du cours, on rafraîchit juste la liste
-      if (courseId) {
-        addModal.close();
-        toast({
-          title: "Succès",
-          description: "La formation complète a été créée avec succès.",
-        });
-        await fetchCourses(); // Refresh the list
-      }
-    } catch (err: any) {
+    if (courseId) {
+      addModal.close()
       toast({
-        title: "Erreur",
-        description: err.message || "Une erreur est survenue lors de la création de la formation.",
-        variant: "destructive",
-      });
-      console.error("Error adding course:", err);
+        title: "Succès",
+        description: "La formation a été créée avec succès.",
+      })
+      await fetchCourses() // Refresh the list
     }
-  };
-  
+  }
+
+  // ... (autres handlers: handleUpdateCourse, handleDeleteCourse, etc.)
   const handleUpdateCourse = async (data: CourseFormData & { imageFile?: File | null }) => {
     if (editModal.selectedItem) {
       try {
@@ -398,6 +262,7 @@ export function CoursesList() {
 
   const columns: ColumnDef<CourseDisplay>[] = useMemo(
     () => [
+      // ... columns definition from your original file
       {
         accessorKey: "title",
         header: t('courses.list.header_course'),
@@ -413,9 +278,7 @@ export function CoursesList() {
         header: t('courses.list.header_instructor'),
         cell: ({ row }) => {
           const course = row.original;
-          // Le backend peut retourner instructor comme InstructorDto avec 'name' ou comme User avec 'fullName'
-          const instructorName = course.instructor?.name || course.instructor?.fullName;
-          // Si pas de nom, vérifier si on a au moins un ID pour afficher quelque chose
+          const instructorName = course.instructor?.fullName;
           if (!instructorName && course.instructor?.id) {
             return `Instructor #${course.instructor.id}`;
           }
@@ -427,13 +290,12 @@ export function CoursesList() {
         header: t('courses.list.header_category'),
         cell: ({ row }) => {
           const course = row.original;
-          // Le backend peut retourner category comme string (titre) ou comme objet Categorie
-          const categoryTitle = course.categorie?.title || (typeof course.category === 'string' ? course.category : null);
+          const categoryTitle = course.categorie?.title;
           return categoryTitle || t('common.notAvailable');
         },
       },
       {
-        accessorKey: "students", // This still needs to be populated from backend
+        accessorKey: "students",
         header: t('courses.list.header_students'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
@@ -447,17 +309,7 @@ export function CoursesList() {
         header: t('courses.list.header_duration'),
         cell: ({ row }) => {
           const course = row.original;
-          // Le backend retourne duration comme string (ex: "23h 45min") ou comme number (en secondes)
-          let durationDisplay: string;
-          if (typeof course.duration === 'string') {
-            // Si c'est déjà une string, l'utiliser directement
-            durationDisplay = course.duration || t('courses.list.duration_zero');
-          } else if (typeof course.duration === 'number') {
-            // Si c'est un nombre (en secondes), le convertir
-            durationDisplay = course.duration > 0 ? convertSecondsToDurationString(course.duration) : t('courses.list.duration_zero');
-          } else {
-            durationDisplay = t('courses.list.duration_zero');
-          }
+          let durationDisplay = typeof course.duration === 'number' ? convertSecondsToDurationString(course.duration) : t('courses.list.duration_zero');
           return (
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4 text-muted-foreground" />
@@ -467,7 +319,7 @@ export function CoursesList() {
         },
       },
       {
-        accessorKey: "rating", // This still needs to be populated from backend
+        accessorKey: "rating",
         header: t('courses.list.header_rating'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
@@ -499,28 +351,10 @@ export function CoursesList() {
           return (
             <ActionMenu
               actions={[
-                {
-                  label: t('courses.list.action_view'),
-                  icon: <Eye className="h-4 w-4" />,
-                  onClick: () => viewModal.open(course),
-                },
-                {
-                  label: t('courses.list.action_edit'),
-                  icon: <Edit className="h-4 w-4" />,
-                  onClick: () => editModal.open(course),
-                },
-                {
-                  label: course.activate ? t('courses.list.action_deactivate') : t('courses.list.action_activate'),
-                  icon: <Power className="h-4 w-4" />,
-                  onClick: () => handleToggleActivate(course),
-                  variant: course.activate ? 'destructive' : 'default',
-                },
-                {
-                  label: t('courses.list.action_delete'),
-                  icon: <Trash2 className="h-4 w-4" />,
-                  onClick: () => deleteModal.open(course),
-                  variant: "destructive",
-                },
+                { label: t('courses.list.action_view'), icon: <Eye className="h-4 w-4" />, onClick: () => viewModal.open(course) },
+                { label: t('courses.list.action_edit'), icon: <Edit className="h-4 w-4" />, onClick: () => editModal.open(course) },
+                { label: course.activate ? t('courses.list.action_deactivate') : t('courses.list.action_activate'), icon: <Power className="h-4 w-4" />, onClick: () => handleToggleActivate(course), variant: course.activate ? 'destructive' : 'default' },
+                { label: t('courses.list.action_delete'), icon: <Trash2 className="h-4 w-4" />, onClick: () => deleteModal.open(course), variant: "destructive" },
               ]}
             />
           )
@@ -530,37 +364,59 @@ export function CoursesList() {
     [viewModal, editModal, deleteModal, handleToggleActivate, t]
   )
 
-  console.log("CoursesList render - loading:", loading, "filteredData:", filteredData); // Debug log
   return (
     <>
       <PageHeader
-        title={t('courses.title')}
+        title={t("courses.title")}
         action={{
-          label: t('courses.addCourse'),
+          label: t("courses.addCourse"),
           onClick: () => addModal.open(),
         }}
       />
 
       <Card className="mt-6">
         <CardContent>
-          <div className="mb-4 flex items-center gap-2"> {/* Added flex container */}
+          <div className="mb-4 flex items-center gap-2">
             <SearchBar
-              placeholder={t('courses.search_placeholder')}
+              placeholder={t("courses.search_placeholder")}
               value={searchQuery}
               onChange={setSearchQuery}
             />
+
+            {/* Filtre par Statut */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="flex-shrink-0"> {/* flex-shrink-0 to prevent button from shrinking */}
+                <Button variant="outline" className="flex-shrink-0">
                   <ListFilter className="mr-2 h-4 w-4" />
-                  {selectedCategory ? categories.find(cat => cat.id === selectedCategory)?.title : t('courses.filter_all_categories')}
+                  {selectedStatus === 'PUBLISHED' && "Publiés"}
+                  {selectedStatus === 'UNPUBLISHED' && "Non publiés"}
+                  {selectedStatus === 'ALL' && "Tous les statuts"}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>{t('courses.filter_by_category')}</DropdownMenuLabel>
+                <DropdownMenuLabel>Filtrer par statut</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setSelectedStatus("ALL")}>Tous les statuts</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSelectedStatus("PUBLISHED")}>Publiés</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSelectedStatus("UNPUBLISHED")}>Non publiés</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Filtre par Catégorie */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex-shrink-0">
+                  <ListFilter className="mr-2 h-4 w-4" />
+                  {selectedCategory
+                    ? categories.find((cat) => cat.id === selectedCategory)?.title
+                    : t("courses.filter_all_categories")}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>{t("courses.filter_by_category")}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setSelectedCategory(null)}>
-                  {t('courses.filter_all_categories')}
+                  {t("courses.filter_all_categories")}
                 </DropdownMenuItem>
                 {categories.map((category) => (
                   <DropdownMenuItem key={category.id} onClick={() => setSelectedCategory(category.id)}>
@@ -587,11 +443,11 @@ export function CoursesList() {
         <CourseFormModal
           open={editModal.isOpen}
           onOpenChange={(open) => !open && editModal.close()}
-          title={t('courses.editCourse')}
-          description={t('courses.edit_description')}
+          title={t("courses.editCourse")}
+          description={t("courses.edit_description")}
           defaultValues={editModal.selectedItem}
           onSubmit={handleUpdateCourse}
-          submitLabel={t('common.save')}
+          submitLabel={t("common.save")}
           categories={categories}
         />
       )}
@@ -608,9 +464,9 @@ export function CoursesList() {
         open={deleteModal.isOpen}
         onOpenChange={(open) => !open && deleteModal.close()}
         onConfirm={handleDeleteCourse}
-        title={t('courses.deleteCourse')}
-        description={t('courses.delete_description').replace('{{name}}', deleteModal.selectedItem?.title || '')}
-        confirmText={t('common.delete')}
+        title={t("courses.deleteCourse")}
+        description={t("courses.delete_description").replace("{{name}}", deleteModal.selectedItem?.title || "")}
+        confirmText={t("common.delete")}
         variant="destructive"
       />
     </>

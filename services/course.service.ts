@@ -54,8 +54,13 @@ export class CourseService {
     return response.data;
   }
 
-  async getCoursesByCategory(catId: number): Promise<any> {
-    const response = await fetchApi<any>(`/api/courses/read/by-category/${catId}`, { // CORRECTION ICI
+  async getCoursesByCategory(catId: number, filters: { status?: string } = {}): Promise<any> {
+    const queryParams = new URLSearchParams();
+    if (filters.status) {
+      queryParams.append("status", filters.status);
+    }
+    const endpoint = `/api/courses/read/by-category/${catId}?${queryParams.toString()}`;
+    const response = await fetchApi<any>(endpoint, {
       method: "GET",
     });
     return response;

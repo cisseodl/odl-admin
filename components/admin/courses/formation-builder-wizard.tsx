@@ -270,7 +270,7 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
     }
   }
 
-  const handleLessonsSubmit = async (lessons: LessonFormData[]) => {
+  const handleLessonsSubmit = async (lessons: LessonFormData[], navigateToNextStep = true) => {
     if (!wizardData.course?.courseId || wizardData.modules.length === 0) {
       toast({
         title: "Erreur",
@@ -396,13 +396,15 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
       console.log("Réponse du backend après sauvegarde des modules:", response);
 
       setWizardData(prev => ({ ...prev, lessons }))
-      setCompletedSteps(prev => new Set([...prev, "lessons"]))
-      setCurrentStep("quiz")
       
-      toast({
-        title: "Succès",
-        description: "Les leçons ont été ajoutées. Vous pouvez maintenant créer le quiz.",
-      })
+      if (navigateToNextStep) {
+        setCompletedSteps(prev => new Set([...prev, "lessons"]))
+        setCurrentStep("quiz")
+        toast({
+          title: "Succès",
+          description: "Les leçons ont été ajoutées. Vous pouvez maintenant créer le quiz.",
+        })
+      }
     } catch (error: any) {
       console.error("Error creating lessons:", error)
       toast({
@@ -410,6 +412,7 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
         description: error.message || "Impossible d'ajouter les leçons.",
         variant: "destructive",
       })
+      throw error; // Rethrow pour que le contexte appelant soit au courant de l'échec
     } finally {
       setIsSaving(false)
     }
