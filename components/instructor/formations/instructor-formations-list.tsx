@@ -142,8 +142,18 @@ export function InstructorFormationsList() {
   const handleAddCourse = async (data: CourseFormData) => {
     setError(null)
     try {
-      const { categoryId, ...courseData } = data
-      const response = await courseService.createCourse(categoryId, courseData)
+      // Extraire categoryId et imageFile des données du formulaire
+      const { categoryId, imageFile, ...courseDataRest } = data as CourseFormData & { imageFile?: File };
+
+      if (!categoryId) {
+        throw new Error("La catégorie est obligatoire pour créer un cours.");
+      }
+      
+      const response = await courseService.createCourse(
+        categoryId, // Pass categoryId as the first argument
+        courseDataRest, // Pass the rest of the course data
+        imageFile // Pass imageFile separately
+      )
       
       if (response) {
         toast({
