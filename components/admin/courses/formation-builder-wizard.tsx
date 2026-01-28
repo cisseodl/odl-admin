@@ -33,7 +33,6 @@ export type CourseFormData = {
   subtitle?: string
   description: string
   categoryId?: number
-  formationId?: number
   instructorId: number
   level: string
   language: string
@@ -162,58 +161,63 @@ export function FormationBuilderWizard({ open, onOpenChange, onComplete }: Forma
   const handleCourseSubmit = async (data: CourseFormData) => {
     setIsSaving(true)
     try {
-      // Créer le cours (sans modules)
-      // Utiliser formationId si disponible, sinon categoryId
-      const categoryIdForEndpoint = data.categoryId || 0 // Le backend peut gérer les deux
+      if (!data.categoryId) {
+        throw new Error("La catégorie est obligatoire pour créer un cours.");
+      }
+      
+      // 1. Préparer le payload du cours
       const coursePayload = {
         title: data.title,
         subtitle: data.subtitle || "",
         description: data.description,
         instructorId: data.instructorId,
-        categoryId: data.formationId ? undefined : data.categoryId, // Ne pas envoyer categoryId si formationId est présent
-        formationId: data.formationId || undefined,
+        categoryId: data.categoryId, // Directement utiliser categoryId
         level: data.level || "DEBUTANT",
         language: data.language || "Français",
         objectives: data.objectives || [],
         features: data.features || [],
-        modules: [], // Pas de modules pour l'instant
+        modules: [], // Les modules sont ajoutés dans une étape ultérieure
       }
 
+      // 2. Appeler le service de création de cours, en passant categoryId séparément
       const createdCourse = await courseService.createCourse(
-        categoryIdForEndpoint || data.categoryId || 0, // Utiliser categoryId pour l'endpoint (compatibilité)
+        data.categoryId, // Passer categoryId comme premier argument
         coursePayload,
         data.imageFile
       )
-
-      // Le backend retourne CResponse<CourseDto> avec structure { ok, data: CourseDto, message }
-      // CourseDto a un champ 'id'
+      
+      // Gérer la réponse du backend qui peut avoir plusieurs formes
       let courseId: number | null = null;
       if (createdCourse && typeof createdCourse === 'object') {
+        // Cas 1: L'ID est à la racine de l'objet retourné
         if ('id' in createdCourse && typeof createdCourse.id === 'number') {
           courseId = createdCourse.id;
-        } else if ('data' in createdCourse && createdCourse.data && typeof createdCourse.data === 'object' && 'id' in createdCourse.data) {
+        } 
+        // Cas 2: L'objet est dans une propriété 'data'
+        else if ('data' in createdCourse && createdCourse.data && typeof createdCourse.data === 'object' && 'id' in createdCourse.data) {
           courseId = createdCourse.data.id as number;
         }
       }
 
       if (!courseId) {
-        console.error("Course creation response:", createdCourse);
-        throw new Error("Impossible de récupérer l'ID du cours créé. Réponse: " + JSON.stringify(createdCourse));
+        console.error("Course creation response did not contain a valid ID:", createdCourse);
+        throw new Error("Impossible de récupérer l'ID du cours après sa création. Réponse du serveur : " + JSON.stringify(createdCourse));
       }
 
+      // 3. Mettre à jour l'état du wizard
       setWizardData(prev => ({ ...prev, course: { ...data, courseId } }))
       setCompletedSteps(prev => new Set([...prev, "course"]))
       setCurrentStep("modules")
       
       toast({
         title: "Succès",
-        description: "La formation a été créée. Vous pouvez maintenant ajouter les modules.",
+        description: "Le cours a été créé. Vous pouvez maintenant ajouter les modules.",
       })
     } catch (error: any) {
       console.error("Error creating course:", error)
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de créer la formation.",
+        description: error.message || "Une erreur est survenue lors de la création du cours.",
         variant: "destructive",
       })
     } finally {
