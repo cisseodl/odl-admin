@@ -4,19 +4,13 @@ import { Categorie } from "@/models"; // Import Categorie model
 import { UserDb } from "@/models/user-db.model"; // Import UserDb for instructor
 
 export class CourseService {
-  async getAllCourses(filters: { status?: string } = {}): Promise<any> {
+  async getAllCourses(filters: { status?: string | string[] } = {}): Promise<any> {
     try {
       const queryParams = new URLSearchParams();
-      if (filters.status) {
-        // Mapper les statuts frontend vers backend
-        const statusMap: Record<string, string> = {
-          'IN_REVIEW': 'BROUILLON',
-          'DRAFT': 'BROUILLON',
-          'PUBLISHED': 'PUBLIE',
-          'ARCHIVED': 'ARCHIVE',
-        };
-        const backendStatus = statusMap[filters.status] || filters.status;
-        queryParams.append("status", backendStatus);
+      // Admin : Tous (pas de param) / Publié (status=PUBLIE) / Non publié (status=BROUILLON&status=IN_REVIEW)
+      if (filters.status !== undefined && filters.status !== null) {
+        const statuses = Array.isArray(filters.status) ? filters.status : [filters.status];
+        statuses.forEach((s) => queryParams.append("status", s));
       }
       const endpoint = `/courses/read?${queryParams.toString()}`;
       const apiResponse = await fetchApi<any>(endpoint, { method: "GET" });

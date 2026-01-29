@@ -21,8 +21,6 @@ export type AddCoursePayload = {
   title: string
   instructorId: number
   categoryId: number
-  status: "Brouillon" | "En révision" | "Publié"
-  duration?: string
 }
 
 type AddCourseModalProps = {
@@ -37,8 +35,6 @@ export function AddCourseModal({ open, onOpenChange, onAddCourse, categories, in
   const [title, setTitle] = useState("")
   const [instructorId, setInstructorId] = useState<string>("")
   const [categoryId, setCategoryId] = useState<string>("")
-  const [duration, setDuration] = useState("")
-  const [status, setStatus] = useState<"Brouillon" | "En révision" | "Publié">("Brouillon")
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,14 +43,10 @@ export function AddCourseModal({ open, onOpenChange, onAddCourse, categories, in
       title,
       instructorId: Number(instructorId),
       categoryId: Number(categoryId),
-      status,
-      duration: duration || undefined,
     })
     setTitle("")
     setInstructorId("")
     setCategoryId("")
-    setDuration("")
-    setStatus("Brouillon")
     onOpenChange(false)
   }
 
@@ -110,28 +102,6 @@ export function AddCourseModal({ open, onOpenChange, onAddCourse, categories, in
                       {cat.title}
                     </SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="duration">Durée (optionnel)</Label>
-              <Input
-                id="duration"
-                placeholder="Ex. 10h 30min"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="status">Statut</Label>
-              <Select value={status} onValueChange={(value) => setStatus(value as "Brouillon" | "En révision" | "Publié")}>
-                <SelectTrigger id="status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Brouillon">Brouillon</SelectItem>
-                  <SelectItem value="En révision">En révision</SelectItem>
-                  <SelectItem value="Publié">Publié</SelectItem>
                 </SelectContent>
               </Select>
             </div>

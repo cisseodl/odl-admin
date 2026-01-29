@@ -329,6 +329,7 @@
       "action_delete": "Supprimer",
       "status_published": "Publié",
       "status_draft": "Brouillon",
+      "status_unpublished": "Non publié",
       "status_review": "En Révision",
       "duration_zero": "0h 0min"
     },

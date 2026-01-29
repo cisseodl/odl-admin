@@ -384,6 +384,7 @@
       "action_delete": "Delete",
       "status_published": "Published",
       "status_draft": "Draft",
+      "status_unpublished": "Unpublished",
       "status_review": "In Review",
       "duration_zero": "0h 0min"
     },

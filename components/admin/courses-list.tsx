@@ -76,26 +76,26 @@ export function CoursesList() {
       }
       setInstructors(instructorsData)
 
-      let statusFilter: string | undefined
+      // Admin : uniquement Tous / Publié / Non publié (évite l'erreur 500 sur liste de statuts)
+      let statusFilter: string | string[] | undefined
       switch (selectedStatus) {
         case "PUBLISHED":
-          statusFilter = "PUBLISHED"
+          statusFilter = "PUBLIE"
           break
         case "UNPUBLISHED":
-          statusFilter = "DRAFT,IN_REVIEW,BROUILLON"
+          statusFilter = ["BROUILLON", "IN_REVIEW"]
           break
         case "ALL":
         default:
-          statusFilter = "PUBLISHED,DRAFT,IN_REVIEW,BROUILLON,ARCHIVED,PUBLIE"
+          statusFilter = undefined
           break
       }
 
       let coursesResponse
-      // Note: getCoursesByCategory ne semble pas supporter le filtre de statut, on filtre localement pour ce cas
       if (selectedCategory) {
         coursesResponse = await courseService.getCoursesByCategory(selectedCategory)
       } else {
-        coursesResponse = await courseService.getAllCourses({ status: statusFilter })
+        coursesResponse = await courseService.getAllCourses(statusFilter !== undefined ? { status: statusFilter } : {})
       }
 
       let coursesData: any[] = []
@@ -157,7 +157,7 @@ export function CoursesList() {
 
   const handleAddCourse = async (payload: AddCoursePayload) => {
     try {
-      const { categoryId, instructorId, title, status, duration } = payload
+      const { categoryId, instructorId, title } = payload
       const courseData = {
         title,
         instructorId,
@@ -352,14 +352,9 @@ export function CoursesList() {
         accessorKey: "status",
         header: t('courses.list.header_status'),
         cell: ({ row }) => {
-          const statusMap: Record<string, string> = {
-            "PUBLIE": t('courses.list.status_published'),
-            "PUBLISHED": t('courses.list.status_published'),
-            "BROUILLON": t('courses.list.status_draft'),
-            "DRAFT": t('courses.list.status_draft'),
-            "IN_REVIEW": t('courses.list.status_review'),
-          }
-          const statusText = statusMap[row.original.status] || row.original.status
+          // Admin : afficher uniquement Publié ou Non publié
+          const s = (row.original.status || "").toUpperCase()
+          const statusText = s === "PUBLIE" || s === "PUBLISHED" ? t('courses.list.status_published') : t('courses.list.status_unpublished')
           return <StatusBadge status={statusText} />
         },
       },
