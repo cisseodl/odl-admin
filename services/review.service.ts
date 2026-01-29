@@ -10,6 +10,7 @@ export interface Review {
     id: number;
     fullName?: string;
     email?: string;
+    avatar?: string;
   };
   course?: {
     id: number;

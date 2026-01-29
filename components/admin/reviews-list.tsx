@@ -80,6 +80,7 @@ export function ReviewsList() {
           month: "short",
           year: "numeric"
         }) : "Date inconnue",
+        avatar: apiReview.user?.avatar,
         status: "Approuvé" as const, // Le backend n'a pas de statut, on considère tout comme approuvé
       }))
       setReviews(formattedReviews)
