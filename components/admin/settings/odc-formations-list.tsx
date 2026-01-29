@@ -202,18 +202,34 @@ export function OdcFormationsList() {
         cell: ({ row }: any) => {
           try {
             if (!row?.original) return null
+            const formation = row.original
             return (
               <ActionMenu
-                items={[
+                actions={[
+                  {
+                    label: "Voir",
+                    icon: ExternalLink,
+                    onClick: () => {
+                      if (formation.lien) {
+                        window.open(formation.lien, '_blank', 'noopener,noreferrer')
+                      } else {
+                        toast({
+                          title: "Information",
+                          description: "Aucun lien disponible pour cette formation",
+                          variant: "default",
+                        })
+                      }
+                    },
+                  },
                   {
                     label: "Modifier",
                     icon: Edit,
-                    onClick: () => openEditModal(row.original),
+                    onClick: () => openEditModal(formation),
                   },
                   {
                     label: "Supprimer",
                     icon: Trash2,
-                    onClick: () => deleteModal.open(row.original),
+                    onClick: () => deleteModal.open(formation),
                     variant: "destructive",
                   },
                 ]}
