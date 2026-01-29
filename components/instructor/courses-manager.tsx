@@ -17,6 +17,8 @@ import {
   FileText,
   Edit,
   X,
+  Upload,
+  Undo2,
 } from "lucide-react";
 
 import { useAuth } from "@/contexts/auth-context"; // Import useAuth
@@ -36,12 +38,17 @@ type Course = {
   chapters: number;
   videos: number;
   students: number; // Ajouté
-  status: "Publié" | "Brouillon" | "En révision";
+  status: "Publié" | "Non publié" | "En révision";
   rating: number; // Ajouté
   createdAt: string;
 };
 
-export function CoursesManager() {
+type CoursesManagerProps = {
+  /** Incrémenter pour forcer un rafraîchissement de la liste (ex. après création depuis la page). */
+  refreshTrigger?: number;
+};
+
+export function CoursesManager({ refreshTrigger }: CoursesManagerProps = {}) {
   const { t } = useLanguage()
   const { user, isLoading: authLoading } = useAuth(); // Utiliser useAuth
   const { toast } = useToast();
@@ -87,10 +94,10 @@ export function CoursesManager() {
             c.status === "PUBLISHED" || c.status === "PUBLIE" || c.status === "Publié"
               ? "Publié"
               : c.status === "DRAFT" || c.status === "BROUILLON" || c.status === "Brouillon"
-              ? "Brouillon"
+              ? "Non publié"
               : c.status === "IN_REVIEW" || c.status === "En révision"
               ? "En révision"
-              : (c.status || "Brouillon") as "Publié" | "Brouillon" | "En révision",
+              : ("Non publié") as "Publié" | "Non publié" | "En révision",
           rating: c.rating || c.averageRating || 0,
           createdAt: c.createdAt
             ? new Date(c.createdAt).toLocaleDateString("fr-FR")
@@ -142,6 +149,13 @@ export function CoursesManager() {
     fetchCourses();
     fetchCategories();
   }, [user, authLoading]);
+
+  // Rafraîchir la liste quand la page signale une création (ex. modal "Créer un cours" au niveau page)
+  useEffect(() => {
+    if (refreshTrigger != null && refreshTrigger > 0 && user && !authLoading) {
+      fetchCourses();
+    }
+  }, [refreshTrigger]);
 
   const handleAddCourse = async (data: CourseFormData) => {
     console.log(">>>> handleAddCourse called!"); // ADD THIS LOG
@@ -219,6 +233,40 @@ export function CoursesManager() {
     }
   };
 
+  const handlePublishCourse = async (course: Course) => {
+    try {
+      await courseService.validateCourse(course.id, "APPROVE");
+      toast({
+        title: "Succès",
+        description: "Le cours a été publié.",
+      });
+      await fetchCourses();
+    } catch (err: any) {
+      toast({
+        title: "Erreur",
+        description: err.message || "Impossible de publier le cours.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleWithdrawCourse = async (course: Course) => {
+    try {
+      await courseService.validateCourse(course.id, "WITHDRAW");
+      toast({
+        title: "Succès",
+        description: "Le cours a été retiré (non publié).",
+      });
+      await fetchCourses();
+    } catch (err: any) {
+      toast({
+        title: "Erreur",
+        description: err.message || "Impossible de retirer le cours.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const { searchQuery, setSearchQuery, filteredData } = useSearch<Course>({
     data: courses,
     searchKeys: ["title"],
@@ -228,10 +276,10 @@ export function CoursesManager() {
     () => [
       {
         accessorKey: "title",
-        header: "Formation",
+        header: "Cours",
         cell: ({ row }) => {
           const course = row.original;
-          // Afficher la hiérarchie : Catégorie → Formation → Cours
+          // Afficher la hiérarchie : Catégorie → Cours
           const categoryTitle = course.categorie?.title || course.category || null;
           const formationTitle = course.formation?.title || null;
           const courseTitle = course.title || "Sans titre";
@@ -273,7 +321,7 @@ export function CoursesManager() {
         accessorKey: "status",
         header: "Statut",
         cell: ({ row }) => {
-          const status = row.original.status || "Brouillon";
+          const status = row.original.status || "Non publié";
           return <StatusBadge status={status} />;
         },
       },
@@ -282,28 +330,29 @@ export function CoursesManager() {
         header: "Actions",
         cell: ({ row }) => {
           const course = row.original;
-          return (
-            <ActionMenu
-              actions={[
-                {
-                  label: "Voir",
-                  icon: <Eye className="h-4 w-4" />,
-                  onClick: () => viewCourseModal.open(course),
-                },
-                {
-                  label: "Modifier",
-                  icon: <Edit className="h-4 w-4" />,
-                  onClick: () => editCourseModal.open(course),
-                },
-                {
-                  label: "Supprimer",
-                  icon: <X className="h-4 w-4" />,
-                  onClick: () => deleteConfirmModal.open(course),
-                  variant: "destructive",
-                },
-              ]}
-            />
-          );
+          const isPublished = course.status === "Publié";
+          const actions: Array<{ label: string; icon: React.ReactNode; onClick: () => void; variant?: "default" | "destructive" }> = [
+            {
+              label: "Voir",
+              icon: <Eye className="h-4 w-4" />,
+              onClick: () => viewCourseModal.open(course),
+            },
+            {
+              label: "Modifier",
+              icon: <Edit className="h-4 w-4" />,
+              onClick: () => editCourseModal.open(course),
+            },
+            ...(isPublished
+              ? [{ label: "Rétirer", icon: <Undo2 className="h-4 w-4" />, onClick: () => handleWithdrawCourse(course) }]
+              : [{ label: "Publier", icon: <Upload className="h-4 w-4" />, onClick: () => handlePublishCourse(course) }]),
+            {
+              label: "Supprimer",
+              icon: <X className="h-4 w-4" />,
+              onClick: () => deleteConfirmModal.open(course),
+              variant: "destructive" as const,
+            },
+          ];
+          return <ActionMenu actions={actions} />;
         },
       },
     ],
@@ -338,7 +387,7 @@ export function CoursesManager() {
                   value="draft"
                   className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
                 >
-                  Les cours non publiés ({courses.filter((c) => c.status === "Brouillon").length})
+                  Les cours non publiés ({courses.filter((c) => c.status === "Non publié").length})
                 </TabsTrigger>
               </TabsList>
 
@@ -382,7 +431,7 @@ export function CoursesManager() {
                 </div>
                 <DataTable
                   columns={columns}
-                  data={filteredData.filter((c) => c.status === "Brouillon")}
+                  data={filteredData.filter((c) => c.status === "Non publié")}
                   searchValue={searchQuery}
                 />
               </TabsContent>

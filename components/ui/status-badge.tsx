@@ -18,6 +18,7 @@ const statusVariantMap: Record<string, VariantProps<typeof Badge>["variant"]> = 
   "Approuvé": "default",
   "Inactif": "secondary",
   "Brouillon": "secondary",
+  "Non publié": "secondary",
   "En attente": "outline",
   "En révision": "outline",
   "Suspendu": "error",

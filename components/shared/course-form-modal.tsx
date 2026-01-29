@@ -42,7 +42,7 @@ const courseFormSchema = z.object({
     required_error: "La catégorie est requise",
     invalid_type_error: "Veuillez sélectionner une catégorie",
   }).min(1, "La catégorie est requise"),
-  imageFile: z.any().optional(), // Nouveau champ pour le fichier image
+   // Nouveau champ pour le fichier image
 })
 
 export type CourseFormData = z.infer<typeof courseFormSchema>
@@ -54,7 +54,7 @@ type CourseFormModalProps = {
   description: string
   onSubmit: (data: CourseFormData) => void
   submitLabel: string
-  defaultValues?: Partial<CourseFormData> & { currentImageUrl?: string } // Ajout de currentImageUrl
+  defaultValues?: Partial<CourseFormData> // Ajout de currentImageUrl
   categories: Categorie[]
 }
 
@@ -205,33 +205,9 @@ export function CourseFormModal({
               )}
             />
 
-            {/* Champ pour le fichier image */}
-            <FormField
-              control={form.control}
-              name="imageFile"
-              render={({ field: { value, onChange, ...fieldProps } }) => (
-                <FormItem>
-                  <FormLabel>Image du cours (optionnel)</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...fieldProps}
-                      type="file"
-                      accept="image/*"
-                      onChange={(event) => {
-                        onChange(event.target.files && event.target.files[0]);
-                      }}
-                    />
-                  </FormControl>
-                  {defaultValues?.currentImageUrl && !value && (
-                      <div className="mt-2 text-sm text-muted-foreground">
-                          Image actuelle: <a href={defaultValues.currentImageUrl} target="_blank" rel="noopener noreferrer" className="underline">Voir l'image</a>
-                      </div>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             
+            
+
             <Button type="submit">{submitLabel}</Button>
           </form>
         </Form>

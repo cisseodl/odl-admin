@@ -17,6 +17,7 @@ export default function InstructorCoursesPage() {
   const { toast } = useToast()
   const addCourseModal = useModal()
   const [categories, setCategories] = useState<Categorie[]>([])
+  const [coursesRefreshTrigger, setCoursesRefreshTrigger] = useState(0)
 
   useEffect(() => {
     fetchCategories()
@@ -74,10 +75,10 @@ export default function InstructorCoursesPage() {
           title: "Succès",
           description: "Cours créé avec succès.",
         })
-              addCourseModal.close()
-              // window.location.reload() // Removed this line to prevent page refresh
-              // Rafraîchir la liste des cours est géré par le composant parent CoursesManager via fetchCourses
-            }    } catch (error: any) {
+        addCourseModal.close()
+        setCoursesRefreshTrigger((t) => t + 1)
+      }
+    } catch (error: any) {
       console.error("Error creating course:", error)
       toast({
         title: "Erreur",
@@ -97,7 +98,7 @@ export default function InstructorCoursesPage() {
           onClick: addCourseModal.open,
         }}
       />
-      <CoursesManager />
+      <CoursesManager refreshTrigger={coursesRefreshTrigger} />
       <CourseFormModal
         open={addCourseModal.isOpen}
         onOpenChange={(open) => !open && addCourseModal.close()}

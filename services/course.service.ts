@@ -143,7 +143,7 @@ export class CourseService {
     });
   }
 
-  async validateCourse(courseId: number, action: "APPROVE" | "REJECT", reason?: string): Promise<any> {
+  async validateCourse(courseId: number, action: "APPROVE" | "REJECT" | "WITHDRAW", reason?: string): Promise<any> {
     const payload: { action: string; reason?: string } = { action };
     if (reason && reason.trim()) {
       payload.reason = reason;

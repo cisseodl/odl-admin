@@ -11,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { useModal } from "@/hooks/use-modal"
 import { useToast } from "@/hooks/use-toast"
 import { useSearch } from "@/hooks/use-search"
-import { FormationBuilderWizard } from "@/components/admin/courses/formation-builder-wizard"
+import { AddCourseModal, type AddCoursePayload } from "@/components/admin/modals/add-course-modal"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { ViewCourseModal } from "./modals/view-course-modal"
 import { CourseFormModal } from "@/components/shared/course-form-modal"
@@ -155,14 +155,34 @@ export function CoursesList() {
     searchKeys: ["title", "instructor.fullName", "categorie.title"],
   })
 
-  const handleAddCourse = async (courseId?: number) => {
-    if (courseId) {
+  const handleAddCourse = async (payload: AddCoursePayload) => {
+    try {
+      const { categoryId, instructorId, title, status, duration } = payload
+      const courseData = {
+        title,
+        instructorId,
+        categoryId,
+        subtitle: title,
+        description: "",
+        level: "BEGINNER",
+        language: "fr",
+        objectives: [] as string[],
+        features: [] as string[],
+        modules: [] as any[],
+      }
+      await courseService.createCourse(categoryId, courseData)
       addModal.close()
       toast({
         title: "Succès",
-        description: "La formation a été créée avec succès.",
+        description: "Le cours a été créé. L'instructeur pourra ajouter les modules, leçons et quiz, puis publier.",
       })
-      await fetchCourses() // Refresh the list
+      await fetchCourses()
+    } catch (err: any) {
+      toast({
+        title: "Erreur",
+        description: err.message ?? "Impossible de créer le cours.",
+        variant: "destructive",
+      })
     }
   }
 
@@ -433,10 +453,12 @@ export function CoursesList() {
           )}
         </CardContent>
       </Card>
-      <FormationBuilderWizard
+      <AddCourseModal
         open={addModal.isOpen}
         onOpenChange={(open) => !open && addModal.close()}
-        onComplete={handleAddCourse}
+        onAddCourse={handleAddCourse}
+        categories={categories}
+        instructors={instructors}
       />
 
       {editModal.selectedItem && (
