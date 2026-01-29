@@ -76,7 +76,7 @@ export function TestimonialsList() {
       console.error("Error fetching testimonials:", error)
       toast({
         title: t('common.error'),
-        description: error.message || t('testimonials.toasts.error_fetch'),
+        description: error.message || "Erreur lors du chargement des témoignages",
         variant: "destructive",
       })
     } finally {
@@ -97,13 +97,13 @@ export function TestimonialsList() {
         setTestimonials(testimonials.filter((t) => t.id !== selectedTestimonial.id));
         toast({
           title: t('common.success'),
-          description: t('testimonials.toasts.delete_success'),
+          description: "Le témoignage a été supprimé avec succès",
         });
       } catch (error: any) {
         console.error("Error deleting testimonial:", error);
         toast({
           title: t('common.error'),
-          description: error.message || t('testimonials.toasts.delete_error'),
+          description: error.message || "Erreur lors de la suppression du témoignage",
           variant: "destructive",
         });
       } finally {
@@ -118,8 +118,8 @@ export function TestimonialsList() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>{t('testimonials.list.title')}</CardTitle>
-            <CardDescription>{t('testimonials.list.description')}</CardDescription>
+            <CardTitle>Liste des témoignages</CardTitle>
+            <CardDescription>Gérez tous les témoignages des apprenants</CardDescription>
           </div>
         </div>
       </CardHeader>
@@ -128,7 +128,7 @@ export function TestimonialsList() {
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder={t('testimonials.list.search_placeholder')}
+              placeholder="Rechercher un témoignage..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-8"
@@ -156,7 +156,7 @@ export function TestimonialsList() {
               ) : filteredTestimonials.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4}>
-                    <EmptyState icon={MessageSquare} title={t('testimonials.empty.title')} description={t('testimonials.empty.description')} />
+                    <EmptyState icon={MessageSquare} title="Aucun témoignage" description="Aucun témoignage ne correspond à votre recherche" />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -198,7 +198,7 @@ export function TestimonialsList() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>{t('testimonials.list.header_actions')}</DropdownMenuLabel>
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={() => {
@@ -207,7 +207,7 @@ export function TestimonialsList() {
                             }}
                           >
                             <Eye className="mr-2 h-4 w-4" />
-                            {t('testimonials.list.action_view')}
+                            Voir détails
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-destructive"
@@ -217,7 +217,7 @@ export function TestimonialsList() {
                             }}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            {t('testimonials.list.action_delete')}
+                            Supprimer
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -234,9 +234,9 @@ export function TestimonialsList() {
       <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{t('testimonials.modals.detail_title')}</DialogTitle>
+            <DialogTitle>Détails du témoignage</DialogTitle>
             <DialogDescription>
-              {t('testimonials.modals.detail_description')}
+              Consultez les détails complets de ce témoignage
             </DialogDescription>
           </DialogHeader>
           {selectedTestimonial && (
@@ -262,7 +262,7 @@ export function TestimonialsList() {
               <div>
                 <p className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
                   <MessageSquare className="h-4 w-4" />
-                  {t('testimonials.list.header_content')}:
+                  Témoignage :
                 </p>
                 <div>
                   <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{selectedTestimonial.content}</p>
@@ -278,14 +278,14 @@ export function TestimonialsList() {
       <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('testimonials.modals.delete_title')}</DialogTitle>
+            <DialogTitle>Supprimer le témoignage</DialogTitle>
             <DialogDescription>
-              {t('testimonials.modals.delete_description').replace('{{user}}', selectedTestimonial?.user || '')}
+              Êtes-vous sûr de vouloir supprimer le témoignage de {selectedTestimonial?.user || 'cet utilisateur'} ? Cette action est irréversible.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDeleteModal(false)}>{t('common.cancel')}</Button>
-            <Button variant="destructive" onClick={handleDelete}>{t('testimonials.modals.delete_confirm')}</Button>
+            <Button variant="destructive" onClick={handleDelete}>Supprimer</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
