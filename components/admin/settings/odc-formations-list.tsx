@@ -9,7 +9,7 @@ import { PageLoader } from "@/components/ui/page-loader";
 import { ActionMenu } from "@/components/ui/action-menu";
 import { useToast } from "@/hooks/use-toast";
 import { odcFormationService, OdcFormation, OdcFormationRequest } from "@/services/odc-formation.service";
-import { Plus, Edit, Trash2, ExternalLink } from "lucide-react";
+import { Plus, Edit, Trash2, ExternalLink, Eye, Calendar, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useModal } from "@/hooks/use-modal";
@@ -17,6 +17,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 
 export function OdcFormationsList() {
   const { t } = useLanguage();
@@ -27,6 +29,7 @@ export function OdcFormationsList() {
   const addModal = useModal<OdcFormation>();
   const editModal = useModal<OdcFormation>();
   const deleteModal = useModal<OdcFormation>();
+  const viewModal = useModal<OdcFormation>();
 
   const [formData, setFormData] = useState<OdcFormationRequest>({
     titre: "",
@@ -208,18 +211,8 @@ export function OdcFormationsList() {
                 actions={[
                   {
                     label: "Voir",
-                    icon: <ExternalLink className="h-4 w-4" />,
-                    onClick: () => {
-                      if (formation.lien) {
-                        window.open(formation.lien, '_blank', 'noopener,noreferrer')
-                      } else {
-                        toast({
-                          title: "Information",
-                          description: "Aucun lien disponible pour cette formation",
-                          variant: "default",
-                        })
-                      }
-                    },
+                    icon: <Eye className="h-4 w-4" />,
+                    onClick: () => viewModal.open(formation),
                   },
                   {
                     label: "Modifier",
@@ -248,7 +241,7 @@ export function OdcFormationsList() {
       return []
     }
     return cols
-  }, [editModal, deleteModal]);
+  }, [editModal, deleteModal, viewModal, toast]);
 
   // S'assurer que formations est toujours un tableau, même pendant le chargement
   const safeFormations = useMemo(() => {
@@ -375,6 +368,140 @@ export function OdcFormationsList() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de visualisation */}
+      {viewModal.selectedItem && (
+        <Dialog
+          open={viewModal.isOpen}
+          onOpenChange={(open) => !open && viewModal.close()}
+        >
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl flex items-center gap-2">
+                <ExternalLink className="h-6 w-6 text-primary" />
+                {viewModal.selectedItem.titre || "Formation ODC"}
+              </DialogTitle>
+              <DialogDescription>
+                Détails de la formation ODC
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {/* Informations principales */}
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-semibold text-muted-foreground">Titre</Label>
+                  <p className="text-base font-medium mt-1">{viewModal.selectedItem.titre || "-"}</p>
+                </div>
+                
+                <Separator />
+                
+                <div>
+                  <Label className="text-sm font-semibold text-muted-foreground">Description</Label>
+                  <p className="text-sm mt-1 whitespace-pre-wrap text-muted-foreground">
+                    {viewModal.selectedItem.description || "Aucune description disponible"}
+                  </p>
+                </div>
+                
+                <Separator />
+                
+                <div>
+                  <Label className="text-sm font-semibold text-muted-foreground">Lien</Label>
+                  <div className="mt-2 flex items-center gap-2">
+                    {viewModal.selectedItem.lien ? (
+                      <>
+                        <a
+                          href={viewModal.selectedItem.lien}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline flex items-center gap-2 break-all"
+                        >
+                          <ExternalLink className="h-4 w-4 flex-shrink-0" />
+                          <span className="break-all">{viewModal.selectedItem.lien}</span>
+                        </a>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(viewModal.selectedItem.lien, '_blank', 'noopener,noreferrer')}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Ouvrir
+                        </Button>
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground">Aucun lien disponible</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <Separator />
+              
+              {/* Informations supplémentaires */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {viewModal.selectedItem.adminName && (
+                  <div>
+                    <Label className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Créé par
+                    </Label>
+                    <p className="text-sm mt-1">{viewModal.selectedItem.adminName}</p>
+                    {viewModal.selectedItem.adminEmail && (
+                      <p className="text-xs text-muted-foreground mt-1">{viewModal.selectedItem.adminEmail}</p>
+                    )}
+                  </div>
+                )}
+                
+                {viewModal.selectedItem.createdAt && (
+                  <div>
+                    <Label className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      Date de création
+                    </Label>
+                    <p className="text-sm mt-1">
+                      {new Date(viewModal.selectedItem.createdAt).toLocaleDateString('fr-FR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                )}
+              </div>
+              
+              {viewModal.selectedItem.activate !== undefined && (
+                <>
+                  <Separator />
+                  <div>
+                    <Label className="text-sm font-semibold text-muted-foreground">Statut</Label>
+                    <div className="mt-2">
+                      <Badge variant={viewModal.selectedItem.activate ? "default" : "secondary"}>
+                        {viewModal.selectedItem.activate ? "Actif" : "Inactif"}
+                      </Badge>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => viewModal.close()}>
+                Fermer
+              </Button>
+              {viewModal.selectedItem.lien && (
+                <Button
+                  onClick={() => window.open(viewModal.selectedItem.lien, '_blank', 'noopener,noreferrer')}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Ouvrir le lien
+                </Button>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Dialog de confirmation de suppression */}
       <ConfirmDialog
