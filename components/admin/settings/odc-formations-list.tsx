@@ -208,7 +208,7 @@ export function OdcFormationsList() {
                 actions={[
                   {
                     label: "Voir",
-                    icon: ExternalLink,
+                    icon: <ExternalLink className="h-4 w-4" />,
                     onClick: () => {
                       if (formation.lien) {
                         window.open(formation.lien, '_blank', 'noopener,noreferrer')
@@ -223,12 +223,12 @@ export function OdcFormationsList() {
                   },
                   {
                     label: "Modifier",
-                    icon: Edit,
+                    icon: <Edit className="h-4 w-4" />,
                     onClick: () => openEditModal(formation),
                   },
                   {
                     label: "Supprimer",
-                    icon: Trash2,
+                    icon: <Trash2 className="h-4 w-4" />,
                     onClick: () => deleteModal.open(formation),
                     variant: "destructive",
                   },
