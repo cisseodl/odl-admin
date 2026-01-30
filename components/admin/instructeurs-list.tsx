@@ -30,6 +30,8 @@ import { CourseSelectModal } from "./modals/course-select-modal";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/language-context";
+import { ActionResultDialog } from "@/components/shared/action-result-dialog";
+import { useActionResultDialog } from "@/hooks/use-action-result-dialog";
 
 type InstructorDisplay = {
   id: number;
@@ -122,6 +124,7 @@ const mapInstructorDisplayToUserDisplay = (instructor: InstructorDisplay): UserD
 export function InstructeursList() {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const dialog = useActionResultDialog();
   const promoteUserSelectModal = useModal<{ userId: number }>();
   const userCreationModal = useModal<UserDb>();
   const promoteProfileFormModal = useModal<{ userId: number, defaultValues: Partial<InstructorProfileFormData> }>();
@@ -221,17 +224,10 @@ export function InstructeursList() {
         };
 
         await instructorService.updateInstructor(instructorId, updatedUserData);
-        toast({
-          title: t('common.success'),
-          description: t('users.instructors.toasts.success_update'),
-        });
+        dialog.showSuccess(t('users.instructors.toasts.success_update'));
         fetchInstructors();
       } catch (err: any) {
-        toast({
-          title: t('common.error'),
-          description: err.message || t('users.instructors.toasts.error_update'),
-          variant: "destructive",
-        });
+        dialog.showError(err.message || t('users.instructors.toasts.error_update'));
         console.error("Error updating instructor:", err);
       } finally {
         editUserFormModal.close();
@@ -243,17 +239,10 @@ export function InstructeursList() {
     if (deleteModal.selectedItem) {
       try {
         await instructorService.deleteInstructor(deleteModal.selectedItem.id!);
-        toast({
-          title: t('common.success'),
-          description: t('users.instructors.toasts.success_delete'),
-        });
+        dialog.showSuccess(t('users.instructors.toasts.success_delete'));
         fetchInstructors();
       } catch (err: any) {
-        toast({
-          title: t('common.error'),
-          description: err.message || t('users.instructors.toasts.error_delete'),
-          variant: "destructive",
-        });
+        dialog.showError(err.message || t('users.instructors.toasts.error_delete'));
         console.error("Error deleting instructor:", err);
       } finally {
         deleteModal.close();
@@ -639,6 +628,15 @@ export function InstructeursList() {
         description={t('users.instructors.modals.unblacklist_description', { name: unblacklistModal.selectedItem?.name })}
         confirmText={t('users.instructors.list.action_unblacklist')}
         variant="default"
+      />
+
+      {/* Dialogue de résultat */}
+      <ActionResultDialog
+        isOpen={dialog.isOpen}
+        onOpenChange={dialog.setIsOpen}
+        isSuccess={dialog.isSuccess}
+        message={dialog.message}
+        title={dialog.title}
       />
 
       {unenrollModal.selectedItem && (() => {

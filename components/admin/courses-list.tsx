@@ -10,6 +10,8 @@ import { StatusBadge } from "@/components/ui/status-badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { useModal } from "@/hooks/use-modal"
 import { useToast } from "@/hooks/use-toast"
+import { ActionResultDialog } from "@/components/shared/action-result-dialog"
+import { useActionResultDialog } from "@/hooks/use-action-result-dialog"
 import { useSearch } from "@/hooks/use-search"
 import { AddCourseModal, type AddCoursePayload } from "@/components/admin/modals/add-course-modal"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
@@ -41,6 +43,7 @@ export function CoursesList() {
   const deleteModal = useModal<CourseDisplay>()
   const viewModal = useModal<CourseDisplay>()
   const { toast } = useToast()
+  const dialog = useActionResultDialog()
 
   const [courses, setCourses] = useState<CourseDisplay[]>([])
   const [categories, setCategories] = useState<Categorie[]>([])
@@ -212,16 +215,9 @@ export function CoursesList() {
           )
         );
         editModal.close();
-        toast({
-          title: "Succès",
-          description: "La formation a été mise à jour.",
-        });
+        dialog.showSuccess("La formation a été mise à jour avec succès.");
       } catch (err: any) {
-        toast({
-          title: "Erreur",
-          description: "Impossible de mettre à jour la formation.",
-          variant: "destructive",
-        });
+        dialog.showError(err?.message || "Impossible de mettre à jour la formation.");
         console.error("Error updating course:", err);
       }
     }
@@ -245,16 +241,9 @@ export function CoursesList() {
                 c.id === course.id ? { ...c, status: newBackendStatus, activate: newActivateStatus } : c
             )
         );
-        toast({
-          title: "Succès",
-          description: `La formation a été ${newActivateStatus ? 'activée' : 'stoppée'}.`,
-        });
+        dialog.showSuccess(`La formation a été ${newActivateStatus ? 'activée' : 'stoppée'} avec succès.`);
     } catch (err: any) {
-        toast({
-          title: "Erreur",
-          description: "Impossible de changer le statut de la formation.",
-          variant: "destructive",
-        });
+        dialog.showError(err?.message || "Impossible de changer le statut de la formation.");
         console.error("Error updating course status:", err);
     }
   };
@@ -265,16 +254,9 @@ export function CoursesList() {
         await courseService.deleteCourse(deleteModal.selectedItem.id);
         setCourses((prev) => prev.filter((course) => course.id !== deleteModal.selectedItem!.id));
         deleteModal.close();
-        toast({
-          title: "Succès",
-          description: "La formation a été supprimée.",
-        });
+        dialog.showSuccess("La formation a été supprimée avec succès.");
       } catch (err: any) {
-        toast({
-          title: t('common.error'),
-          description: t('courses.toasts.error_delete'),
-          variant: "destructive",
-        });
+        dialog.showError(err?.message || t('courses.toasts.error_delete'));
         console.error("Error deleting course:", err);
       }
     }
@@ -485,6 +467,15 @@ export function CoursesList() {
         description={t("courses.delete_description").replace("{{name}}", deleteModal.selectedItem?.title || "")}
         confirmText={t("common.delete")}
         variant="destructive"
+      />
+
+      {/* Dialogue de résultat */}
+      <ActionResultDialog
+        isOpen={dialog.isOpen}
+        onOpenChange={dialog.setIsOpen}
+        isSuccess={dialog.isSuccess}
+        message={dialog.message}
+        title={dialog.title}
       />
     </>
   )

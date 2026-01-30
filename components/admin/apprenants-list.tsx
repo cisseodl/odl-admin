@@ -31,6 +31,8 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Button } from "@/components/ui/button";
 import { Plus, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context"
+import { ActionResultDialog } from "@/components/shared/action-result-dialog";
+import { useActionResultDialog } from "@/hooks/use-action-result-dialog";
 
 type ApprenantDisplay = {
   id: number;
@@ -132,6 +134,7 @@ const mapApprenantDisplayToUserDisplay = (apprenant: ApprenantDisplay): UserDisp
 export function ApprenantsList() {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const dialog = useActionResultDialog();
   const userCreationModal = useModal<UserDb>();
   const promoteUserModal = useModal<{ userId: number }>();
   const promoteProfileFormModal = useModal<{ userId: number, defaultValues: Partial<ApprenantProfileFormData> }>();
@@ -313,6 +316,7 @@ export function ApprenantsList() {
         title: t('common.success'),
         description: t('users.learners.toasts.success_delete'),
       });
+      dialog.showSuccess(t('users.learners.toasts.success_delete'));
       setApprenants((prev) => prev.filter((apprenant) => apprenant.id !== id));
       deleteModal.close();
     } catch (err: any) {
@@ -322,6 +326,7 @@ export function ApprenantsList() {
         description: err.message || t('users.learners.toasts.error_delete'),
         variant: "destructive",
       });
+      dialog.showError(err.message || t('users.learners.toasts.error_delete'));
       console.error("Error deleting apprenant:", err);
     }
   };
@@ -694,6 +699,15 @@ export function ApprenantsList() {
         description={t('users.learners.modals.unblacklist_description', { name: unblacklistModal.selectedItem?.name })}
         confirmText={t('users.learners.list.action_unblacklist')}
         variant="default"
+      />
+
+      {/* Dialogue de résultat */}
+      <ActionResultDialog
+        isOpen={dialog.isOpen}
+        onOpenChange={dialog.setIsOpen}
+        isSuccess={dialog.isSuccess}
+        message={dialog.message}
+        title={dialog.title}
       />
 
       {unenrollModal.selectedItem && (() => {
