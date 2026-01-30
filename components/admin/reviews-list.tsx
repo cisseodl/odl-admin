@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { useLanguage } from "@/contexts/language-context"
 import { reviewService, type Review as ApiReview } from "@/services/review.service"
 import { useToast } from "@/hooks/use-toast"
+import { ActionResultDialog } from "@/components/shared/action-result-dialog"
+import { useActionResultDialog } from "@/hooks/use-action-result-dialog"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -55,6 +57,7 @@ export function ReviewsList() {
   const [reviews, setReviews] = useState<Review[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast()
+  const dialog = useActionResultDialog()
 
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -123,17 +126,10 @@ export function ReviewsList() {
       try {
         await reviewService.deleteReview(selectedReview.id);
         setReviews(reviews.filter((r) => r.id !== selectedReview.id));
-        toast({
-          title: t('common.success'),
-          description: t('reviews.toasts.delete_success'),
-        });
+        dialog.showSuccess(t('reviews.toasts.delete_success'));
       } catch (error: any) {
         console.error("Error deleting review:", error);
-        toast({
-          title: t('common.error'),
-          description: error.message || t('reviews.toasts.delete_error'),
-          variant: "destructive",
-        });
+        dialog.showError(error.message || t('reviews.toasts.delete_error'));
       } finally {
         setShowDeleteModal(false);
         setSelectedReview(null);
@@ -394,6 +390,15 @@ export function ReviewsList() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialogue de résultat */}
+      <ActionResultDialog
+        isOpen={dialog.isOpen}
+        onOpenChange={dialog.setIsOpen}
+        isSuccess={dialog.isSuccess}
+        message={dialog.message}
+        title={dialog.title}
+      />
     </Card>
   )
 }

@@ -8,6 +8,8 @@ import { DataTable } from "@/components/ui/data-table";
 import { PageLoader } from "@/components/ui/page-loader";
 import { ActionMenu } from "@/components/ui/action-menu";
 import { useToast } from "@/hooks/use-toast";
+import { ActionResultDialog } from "@/components/shared/action-result-dialog";
+import { useActionResultDialog } from "@/hooks/use-action-result-dialog";
 import { rubriqueService } from "@/services/rubrique.service";
 import { Rubrique } from "@/models/rubrique.model";
 import { Plus, Edit, Trash2, Image, FileText } from "lucide-react";
@@ -22,6 +24,7 @@ type RubriqueDisplay = Rubrique;
 export function RubriquesList() {
   const { t } = useLanguage()
   const { toast } = useToast();
+  const dialog = useActionResultDialog();
   const [rubriques, setRubriques] = useState<RubriqueDisplay[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -75,18 +78,11 @@ export function RubriquesList() {
         formationsProposees: data.formationsProposees,
       };
       await rubriqueService.createRubrique(newRubrique, data.imageFile);
-      toast({
-        title: t('common.success'),
-        description: t('rubriques.toasts.success_add'),
-      });
+      dialog.showSuccess(t('rubriques.toasts.success_add'));
       fetchRubriques();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to add rubrique:", error);
-      toast({
-        title: t('common.error'),
-        description: t('rubriques.toasts.error_add'),
-        variant: "destructive",
-      });
+      dialog.showError(error?.message || t('rubriques.toasts.error_add'));
     } finally {
       addModal.close();
     }
@@ -105,18 +101,11 @@ export function RubriquesList() {
         formationsProposees: data.formationsProposees,
       };
       await rubriqueService.updateRubrique(editModal.selectedItem.id, updatedRubrique, data.imageFile);
-      toast({
-        title: t('common.success'),
-        description: t('rubriques.toasts.success_update'),
-      });
+      dialog.showSuccess(t('rubriques.toasts.success_update'));
       fetchRubriques();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to update rubrique:", error);
-      toast({
-        title: t('common.error'),
-        description: t('rubriques.toasts.error_update'),
-        variant: "destructive",
-      });
+      dialog.showError(error?.message || t('rubriques.toasts.error_update'));
     } finally {
       editModal.close();
     }
@@ -127,18 +116,11 @@ export function RubriquesList() {
     if (!deleteModal.selectedItem) return;
     try {
       await rubriqueService.deleteRubrique(deleteModal.selectedItem.id!);
-      toast({
-        title: t('common.success'),
-        description: t('rubriques.toasts.success_delete'),
-      });
+      dialog.showSuccess(t('rubriques.toasts.success_delete'));
       fetchRubriques();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to delete rubrique:", error);
-      toast({
-        title: t('common.error'),
-        description: t('rubriques.toasts.error_delete'),
-        variant: "destructive",
-      });
+      dialog.showError(error?.message || t('rubriques.toasts.error_delete'));
     } finally {
       deleteModal.close();
     }
@@ -248,6 +230,15 @@ export function RubriquesList() {
         description={t('rubriques.modals.delete_description').replace('{{name}}', deleteModal.selectedItem?.rubrique || '')}
         confirmText={t('rubriques.modals.delete_confirm')}
         variant="destructive"
+      />
+
+      {/* Dialogue de résultat */}
+      <ActionResultDialog
+        isOpen={dialog.isOpen}
+        onOpenChange={dialog.setIsOpen}
+        isSuccess={dialog.isSuccess}
+        message={dialog.message}
+        title={dialog.title}
       />
     </Card>
   );

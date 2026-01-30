@@ -8,6 +8,8 @@ import { DataTable } from "@/components/ui/data-table";
 import { PageLoader } from "@/components/ui/page-loader";
 import { ActionMenu } from "@/components/ui/action-menu";
 import { useToast } from "@/hooks/use-toast";
+import { ActionResultDialog } from "@/components/shared/action-result-dialog";
+import { useActionResultDialog } from "@/hooks/use-action-result-dialog";
 import { odcFormationService, OdcFormation, OdcFormationRequest } from "@/services/odc-formation.service";
 import { Plus, Edit, Trash2, ExternalLink, Eye, Calendar, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 export function OdcFormationsList() {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const dialog = useActionResultDialog();
   const [formations, setFormations] = useState<OdcFormation[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -72,20 +75,13 @@ export function OdcFormationsList() {
   const handleAddFormation = async () => {
     try {
       await odcFormationService.createFormation(formData);
-      toast({
-        title: t('common.success'),
-        description: "Formation ODC créée avec succès",
-      });
+      dialog.showSuccess("Formation ODC créée avec succès");
       setFormData({ titre: "", description: "", lien: "" });
       fetchFormations();
       addModal.close();
     } catch (error: any) {
       console.error("Failed to add formation:", error);
-      toast({
-        title: t('common.error'),
-        description: error?.message || "Erreur lors de la création de la formation ODC",
-        variant: "destructive",
-      });
+      dialog.showError(error?.message || "Erreur lors de la création de la formation ODC");
     }
   };
 
@@ -93,20 +89,13 @@ export function OdcFormationsList() {
     if (!editModal.selectedItem?.id) return;
     try {
       await odcFormationService.updateFormation(editModal.selectedItem.id, formData);
-      toast({
-        title: t('common.success'),
-        description: "Formation ODC mise à jour avec succès",
-      });
+      dialog.showSuccess("Formation ODC mise à jour avec succès");
       setFormData({ titre: "", description: "", lien: "" });
       fetchFormations();
       editModal.close();
     } catch (error: any) {
       console.error("Failed to update formation:", error);
-      toast({
-        title: t('common.error'),
-        description: error?.message || "Erreur lors de la mise à jour de la formation ODC",
-        variant: "destructive",
-      });
+      dialog.showError(error?.message || "Erreur lors de la mise à jour de la formation ODC");
     }
   };
 
@@ -114,19 +103,12 @@ export function OdcFormationsList() {
     if (!deleteModal.selectedItem?.id) return;
     try {
       await odcFormationService.deleteFormation(deleteModal.selectedItem.id);
-      toast({
-        title: t('common.success'),
-        description: "Formation ODC supprimée avec succès",
-      });
+      dialog.showSuccess("Formation ODC supprimée avec succès");
       fetchFormations();
       deleteModal.close();
     } catch (error: any) {
       console.error("Failed to delete formation:", error);
-      toast({
-        title: t('common.error'),
-        description: error?.message || "Erreur lors de la suppression de la formation ODC",
-        variant: "destructive",
-      });
+      dialog.showError(error?.message || "Erreur lors de la suppression de la formation ODC");
     }
   };
 
@@ -510,6 +492,15 @@ export function OdcFormationsList() {
         onConfirm={handleDeleteFormation}
         title="Supprimer la formation ODC"
         description={`Êtes-vous sûr de vouloir supprimer la formation "${deleteModal.selectedItem?.titre}" ?`}
+      />
+
+      {/* Dialogue de résultat */}
+      <ActionResultDialog
+        isOpen={dialog.isOpen}
+        onOpenChange={dialog.setIsOpen}
+        isSuccess={dialog.isSuccess}
+        message={dialog.message}
+        title={dialog.title}
       />
     </>
   );

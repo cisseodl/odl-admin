@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { useLanguage } from "@/contexts/language-context"
 import { testimonialService, type Testimonial as ApiTestimonial } from "@/services/testimonial.service"
 import { useToast } from "@/hooks/use-toast"
+import { ActionResultDialog } from "@/components/shared/action-result-dialog"
+import { useActionResultDialog } from "@/hooks/use-action-result-dialog"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -48,6 +50,7 @@ export function TestimonialsList() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast()
+  const dialog = useActionResultDialog()
 
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -95,17 +98,10 @@ export function TestimonialsList() {
       try {
         await testimonialService.deleteTestimonial(selectedTestimonial.id);
         setTestimonials(testimonials.filter((t) => t.id !== selectedTestimonial.id));
-        toast({
-          title: t('common.success'),
-          description: "Le témoignage a été supprimé avec succès",
-        });
+        dialog.showSuccess("Le témoignage a été supprimé avec succès");
       } catch (error: any) {
         console.error("Error deleting testimonial:", error);
-        toast({
-          title: t('common.error'),
-          description: error.message || "Erreur lors de la suppression du témoignage",
-          variant: "destructive",
-        });
+        dialog.showError(error.message || "Erreur lors de la suppression du témoignage");
       } finally {
         setShowDeleteModal(false);
         setSelectedTestimonial(null);
@@ -289,6 +285,15 @@ export function TestimonialsList() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialogue de résultat */}
+      <ActionResultDialog
+        isOpen={dialog.isOpen}
+        onOpenChange={dialog.setIsOpen}
+        isSuccess={dialog.isSuccess}
+        message={dialog.message}
+        title={dialog.title}
+      />
     </Card>
   )
 }

@@ -1,5 +1,8 @@
 "use client"
 
+import { ActionResultDialog } from "@/components/shared/action-result-dialog"
+import { useActionResultDialog } from "@/hooks/use-action-result-dialog"
+
 import { useState, useMemo, useEffect } from "react"
 import { PageHeader } from "@/components/ui/page-header"
 import { SearchBar } from "@/components/ui/search-bar"
@@ -65,6 +68,7 @@ export function EvaluationsList() {
   const [evaluations, setEvaluations] = useState<EvaluationDisplay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const dialog = useActionResultDialog();
 
   useEffect(() => {
     const fetchEvaluations = async () => {
@@ -125,8 +129,9 @@ export function EvaluationsList() {
           )
         );
         editModal.close();
+        dialog.showSuccess("L'évaluation a été mise à jour avec succès.");
       } catch (err: any) {
-        setError(err.message || "Failed to update evaluation.");
+        dialog.showError(err.message || "Erreur lors de la mise à jour de l'évaluation.");
         console.error("Error updating evaluation:", err);
       }
     }
@@ -138,8 +143,9 @@ export function EvaluationsList() {
       await evaluationService.deleteEvaluation(id);
       setEvaluations((prev) => prev.filter((evalItem) => evalItem.id !== id));
       deleteModal.close();
+      dialog.showSuccess("L'évaluation a été supprimée avec succès.");
     } catch (err: any) {
-      setError(err.message || "Failed to delete evaluation.");
+      dialog.showError(err.message || "Erreur lors de la suppression de l'évaluation.");
       console.error("Error deleting evaluation:", err);
     }
   };

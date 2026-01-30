@@ -1,5 +1,8 @@
 "use client"
 
+import { ActionResultDialog } from "@/components/shared/action-result-dialog"
+import { useActionResultDialog } from "@/hooks/use-action-result-dialog"
+
 import { useState, useMemo, useEffect } from "react"
 import { PageHeader } from "@/components/ui/page-header"
 import { SearchBar } from "@/components/ui/search-bar"
@@ -94,6 +97,7 @@ export function LabsManager() {
   const [content, setContent] = useState<ContentDisplay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const dialog = useActionResultDialog();
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -190,8 +194,9 @@ export function LabsManager() {
           )
         );
         editModal.close();
+        dialog.showSuccess("Le lab a été mis à jour avec succès.");
       } catch (err: any) {
-        setError(err.message || "Failed to update lab.");
+        dialog.showError(err.message || "Erreur lors de la mise à jour du lab.");
         console.error("Error updating lab:", err);
       }
     }
@@ -204,8 +209,9 @@ export function LabsManager() {
         await labDefinitionService.deleteLabDefinition(deleteModal.selectedItem.id);
         setContent((prev) => prev.filter((item) => item.id !== deleteModal.selectedItem!.id));
         deleteModal.close();
+        dialog.showSuccess("Le lab a été supprimé avec succès.");
       } catch (err: any) {
-        setError(err.message || "Failed to delete lab.");
+        dialog.showError(err.message || "Erreur lors de la suppression du lab.");
         console.error("Error deleting lab:", err);
       }
     }
