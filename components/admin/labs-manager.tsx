@@ -128,17 +128,17 @@ export function LabsManager() {
     try {
       // Valider que lessonId est fourni
       if (!data.lessonId || data.lessonId <= 0) {
-        setError("La leçon est requise pour créer un lab");
+        dialog.showError("La leçon est requise pour créer un lab");
         return;
       }
       
       // Valider que les durées sont fournies
       if (!data.estimatedDurationMinutes || data.estimatedDurationMinutes <= 0) {
-        setError("La durée estimée est requise et doit être supérieure à 0");
+        dialog.showError("La durée estimée est requise et doit être supérieure à 0");
         return;
       }
       if (!data.maxDurationMinutes || data.maxDurationMinutes <= 0) {
-        setError("La durée maximale est requise et doit être supérieure à 0");
+        dialog.showError("La durée maximale est requise et doit être supérieure à 0");
         return;
       }
       
@@ -159,9 +159,10 @@ export function LabsManager() {
       console.log("Lab created successfully:", createdLab)
       setContent((prev) => [...prev, mapLabDefinitionToContentDisplay(createdLab)]);
       addModal.close();
+      dialog.showSuccess("Le lab a été créé avec succès.");
     } catch (err: any) {
       console.error("Error in handleAddLab:", err)
-      setError(err.message || "Failed to add lab.");
+      dialog.showError(err.message || "Erreur lors de la création du lab.");
       console.error("Error adding lab:", err);
     }
   };
@@ -172,7 +173,7 @@ export function LabsManager() {
       try {
         // Valider que lessonId est fourni
         if (!data.lessonId || data.lessonId <= 0) {
-          setError("La leçon est requise pour mettre à jour un lab");
+          dialog.showError("La leçon est requise pour mettre à jour un lab");
           return;
         }
         
@@ -382,6 +383,15 @@ export function LabsManager() {
         description={`Êtes-vous sûr de vouloir supprimer ${deleteModal.selectedItem?.title} ? Cette action est irréversible.`}
         confirmText="Supprimer"
         variant="destructive"
+      />
+
+      {/* Dialogue de résultat */}
+      <ActionResultDialog
+        isOpen={dialog.isOpen}
+        onOpenChange={dialog.setIsOpen}
+        isSuccess={dialog.isSuccess}
+        message={dialog.message}
+        title={dialog.title}
       />
     </>
   )

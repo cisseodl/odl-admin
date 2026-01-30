@@ -105,8 +105,9 @@ export function EvaluationsList() {
       const createdEvaluation = await evaluationService.createEvaluation(newEvaluationData);
       setEvaluations((prev) => [...prev, mapEvaluationToEvaluationDisplay(createdEvaluation)]);
       addModal.close();
+      dialog.showSuccess("L'évaluation a été créée avec succès.");
     } catch (err: any) {
-      setError(err.message || "Failed to add evaluation.");
+      dialog.showError(err.message || "Erreur lors de la création de l'évaluation.");
       console.error("Error adding evaluation:", err);
     }
   };
@@ -298,6 +299,15 @@ export function EvaluationsList() {
         description={t('evaluations.delete.description') || `Êtes-vous sûr de vouloir supprimer ${deleteModal.selectedItem?.title} ? Cette action est irréversible.`}
         confirmText={t('evaluations.delete.confirm') || "Supprimer"}
         variant="destructive"
+      />
+
+      {/* Dialogue de résultat */}
+      <ActionResultDialog
+        isOpen={dialog.isOpen}
+        onOpenChange={dialog.setIsOpen}
+        isSuccess={dialog.isSuccess}
+        message={dialog.message}
+        title={dialog.title}
       />
     </>
   )
