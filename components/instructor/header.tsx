@@ -17,6 +17,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { LanguageSwitcher } from "@/components/shared/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { notificationsService } from "@/services/notifications.service"
 import { formatDistanceToNow } from "date-fns"
 import { fr } from "date-fns/locale"
@@ -34,6 +35,7 @@ type BackendNotification = {
 
 export function InstructorHeader() {
   const { user, logout } = useAuth()
+  const router = useRouter()
   const [unreadCount, setUnreadCount] = useState<number>(0)
   const [notifications, setNotifications] = useState<BackendNotification[]>([])
   const [loadingNotifications, setLoadingNotifications] = useState(false)
@@ -255,7 +257,7 @@ export function InstructorHeader() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/instructor/profile")}>
               <User className="mr-2 h-4 w-4" />
               Mon profil
             </DropdownMenuItem>
