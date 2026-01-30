@@ -19,6 +19,8 @@ import { PageLoader } from "@/components/ui/page-loader"
 import { EmptyState } from "@/components/admin/empty-state"
 import { useLanguage } from "@/contexts/language-context"
 import { useToast } from "@/hooks/use-toast"
+import { ActionResultDialog } from "@/components/shared/action-result-dialog"
+import { useActionResultDialog } from "@/hooks/use-action-result-dialog"
 import { useAuth } from "@/contexts/auth-context"
 import type { Course, Categorie } from "@/models"
 
@@ -43,6 +45,7 @@ type CourseDisplay = {
 export function InstructorFormationsList() {
   const { t } = useLanguage()
   const { toast } = useToast()
+  const dialog = useActionResultDialog()
   const { user } = useAuth()
   const addModal = useModal<CourseDisplay>()
   const editModal = useModal<CourseDisplay>()
@@ -156,20 +159,13 @@ export function InstructorFormationsList() {
       )
       
       if (response) {
-        toast({
-          title: t('courses.toasts.success_create') || "Succès",
-          description: t('courses.toasts.create_success') || "Formation créée avec succès.",
-        })
+        dialog.showSuccess(t('courses.toasts.create_success') || "Formation créée avec succès.")
         addModal.close()
         await fetchCourses()
       }
     } catch (err: any) {
       console.error("Error adding course:", err)
-      toast({
-        title: t('courses.toasts.error_create') || "Erreur",
-        description: err.message || t('courses.toasts.create_error') || "Impossible de créer la formation.",
-        variant: "destructive",
-      })
+      dialog.showError(err.message || t('courses.toasts.create_error') || "Impossible de créer la formation.")
     }
   }
 
@@ -181,20 +177,13 @@ export function InstructorFormationsList() {
         const response = await courseService.updateCourse(editModal.selectedItem.id, courseData)
         
         if (response) {
-          toast({
-            title: t('courses.toasts.success_update') || "Succès",
-            description: t('courses.toasts.update_success') || "Formation mise à jour avec succès.",
-          })
+          dialog.showSuccess(t('courses.toasts.update_success') || "Formation mise à jour avec succès.")
           editModal.close()
           await fetchCourses()
         }
       } catch (err: any) {
         console.error("Error updating course:", err)
-        toast({
-          title: t('courses.toasts.error_update') || "Erreur",
-          description: err.message || t('courses.toasts.update_error') || "Impossible de mettre à jour la formation.",
-          variant: "destructive",
-        })
+        dialog.showError(err.message || t('courses.toasts.update_error') || "Impossible de mettre à jour la formation.")
       }
     }
   }
@@ -204,19 +193,12 @@ export function InstructorFormationsList() {
     if (deleteModal.selectedItem) {
       try {
         await courseService.deleteCourse(deleteModal.selectedItem.id)
-        toast({
-          title: t('courses.toasts.success_delete') || "Succès",
-          description: t('courses.toasts.delete_success') || "Formation supprimée avec succès.",
-        })
+        dialog.showSuccess(t('courses.toasts.delete_success') || "Formation supprimée avec succès.")
         setCourses((prev) => prev.filter((course) => course.id !== deleteModal.selectedItem.id))
         deleteModal.close()
       } catch (err: any) {
         console.error("Error deleting course:", err)
-        toast({
-          title: t('courses.toasts.error_delete') || "Erreur",
-          description: err.message || t('courses.toasts.delete_error') || "Impossible de supprimer la formation.",
-          variant: "destructive",
-        })
+        dialog.showError(err.message || t('courses.toasts.delete_error') || "Impossible de supprimer la formation.")
       }
     }
   }
@@ -416,6 +398,15 @@ export function InstructorFormationsList() {
         description={t('courses.modals.delete_description', { name: deleteModal.selectedItem?.title }) || `Êtes-vous sûr de vouloir supprimer ${deleteModal.selectedItem?.title} ? Cette action est irréversible.`}
         confirmText={t('common.delete') || "Supprimer"}
         variant="destructive"
+      />
+
+      {/* Dialogue de résultat */}
+      <ActionResultDialog
+        isOpen={dialog.isOpen}
+        onOpenChange={dialog.setIsOpen}
+        isSuccess={dialog.isSuccess}
+        message={dialog.message}
+        title={dialog.title}
       />
     </>
   )

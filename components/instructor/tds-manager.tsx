@@ -19,6 +19,8 @@ import { EmptyState } from "@/components/admin/empty-state"
 import { TDFormModal } from "@/components/shared/td-form-modal"
 import { useLanguage } from "@/contexts/language-context"
 import { useToast } from "@/hooks/use-toast"
+import { ActionResultDialog } from "@/components/shared/action-result-dialog"
+import { useActionResultDialog } from "@/hooks/use-action-result-dialog"
 
 type TDDisplay = {
   id: number
@@ -55,6 +57,7 @@ const mapEvaluationToTDDisplay = (evaluation: Evaluation): TDDisplay => {
 export function TDsManager() {
   const { t } = useLanguage()
   const { toast } = useToast()
+  const dialog = useActionResultDialog()
   const addModal = useModal<TDDisplay>()
   const editModal = useModal<TDDisplay>()
   const deleteModal = useModal<TDDisplay>()
@@ -108,19 +111,11 @@ export function TDsManager() {
       const createdTD = await evaluationService.createEvaluation(newTDData)
       setTds((prev) => [...prev, mapEvaluationToTDDisplay(createdTD)])
       addModal.close()
-      toast({
-        title: "Succès",
-        description: "Le TD a été créé avec succès.",
-      })
+      dialog.showSuccess("Le TD a été créé avec succès.")
       fetchTDs()
     } catch (err: any) {
-      setError(err.message || "Failed to add TD.")
       console.error("Error adding TD:", err)
-      toast({
-        title: "Erreur",
-        description: err.message || "Impossible de créer le TD.",
-        variant: "destructive",
-      })
+      dialog.showError(err.message || "Impossible de créer le TD.")
     }
   }
 
@@ -143,19 +138,11 @@ export function TDsManager() {
           )
         )
         editModal.close()
-        toast({
-          title: "Succès",
-          description: "Le TD a été mis à jour avec succès.",
-        })
+        dialog.showSuccess("Le TD a été mis à jour avec succès.")
         fetchTDs()
       } catch (err: any) {
-        setError(err.message || "Failed to update TD.")
         console.error("Error updating TD:", err)
-        toast({
-          title: "Erreur",
-          description: err.message || "Impossible de mettre à jour le TD.",
-          variant: "destructive",
-        })
+        dialog.showError(err.message || "Impossible de mettre à jour le TD.")
       }
     }
   }
@@ -167,18 +154,10 @@ export function TDsManager() {
         await evaluationService.deleteEvaluation(deleteModal.selectedItem.id)
         setTds((prev) => prev.filter((item) => item.id !== deleteModal.selectedItem!.id))
         deleteModal.close()
-        toast({
-          title: "Succès",
-          description: "Le TD a été supprimé avec succès.",
-        })
+        dialog.showSuccess("Le TD a été supprimé avec succès.")
       } catch (err: any) {
-        setError(err.message || "Failed to delete TD.")
         console.error("Error deleting TD:", err)
-        toast({
-          title: "Erreur",
-          description: err.message || "Impossible de supprimer le TD.",
-          variant: "destructive",
-        })
+        dialog.showError(err.message || "Impossible de supprimer le TD.")
       }
     }
   }

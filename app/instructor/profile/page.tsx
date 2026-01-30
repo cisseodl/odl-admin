@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { instructorService } from "@/services/instructor.service"
+import { userService } from "@/services/user.service"
 import { PageHeader } from "@/components/ui/page-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -13,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { ActionResultDialog } from "@/components/shared/action-result-dialog"
-import { User, Mail, Phone, Save, X, GraduationCap } from "lucide-react"
+import { User, Mail, Phone, Save, X, GraduationCap, Lock, Eye, EyeOff } from "lucide-react"
 import { PageLoader } from "@/components/ui/page-loader"
 
 export default function InstructorProfilePage() {
@@ -25,6 +26,11 @@ export default function InstructorProfilePage() {
   const [showDialog, setShowDialog] = useState(false)
   const [dialogSuccess, setDialogSuccess] = useState(false)
   const [dialogMessage, setDialogMessage] = useState("")
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [showPasswordSection, setShowPasswordSection] = useState(false)
+  const [showOldPassword, setShowOldPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   // État du formulaire
   const [editForm, setEditForm] = useState({
@@ -33,6 +39,13 @@ export default function InstructorProfilePage() {
     phone: "",
     biography: "",
     specialization: "",
+  })
+
+  // État du formulaire de changement de mot de passe
+  const [passwordForm, setPasswordForm] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   })
 
   // Charger les données du profil instructeur
@@ -183,6 +196,78 @@ export default function InstructorProfilePage() {
     }
   }
 
+  // Fonction pour changer le mot de passe
+  const handleChangePassword = async () => {
+    if (!user?.email) {
+      setDialogMessage("Impossible de trouver l'email de l'utilisateur.")
+      setDialogSuccess(false)
+      setShowDialog(true)
+      return
+    }
+
+    // Validation
+    if (!passwordForm.oldPassword || passwordForm.oldPassword.trim().length === 0) {
+      setDialogMessage("L'ancien mot de passe est requis.")
+      setDialogSuccess(false)
+      setShowDialog(true)
+      return
+    }
+
+    if (!passwordForm.newPassword || passwordForm.newPassword.trim().length === 0) {
+      setDialogMessage("Le nouveau mot de passe est requis.")
+      setDialogSuccess(false)
+      setShowDialog(true)
+      return
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      setDialogMessage("Le nouveau mot de passe doit contenir au moins 6 caractères.")
+      setDialogSuccess(false)
+      setShowDialog(true)
+      return
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setDialogMessage("Les mots de passe ne correspondent pas.")
+      setDialogSuccess(false)
+      setShowDialog(true)
+      return
+    }
+
+    setIsChangingPassword(true)
+    try {
+      const response = await userService.changePassword(
+        user.email,
+        passwordForm.oldPassword,
+        passwordForm.newPassword
+      )
+
+      if (response.ok) {
+        setDialogMessage("Votre mot de passe a été modifié avec succès.")
+        setDialogSuccess(true)
+        setShowDialog(true)
+        setShowPasswordSection(false)
+        setPasswordForm({
+          oldPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        })
+      } else {
+        setDialogMessage(response.message || "Une erreur est survenue lors du changement de mot de passe.")
+        setDialogSuccess(false)
+        setShowDialog(true)
+      }
+    } catch (error: any) {
+      console.error("Erreur lors du changement de mot de passe:", error)
+      const errorMsg = error?.message || "Une erreur est survenue lors du changement de mot de passe. Vérifiez que l'ancien mot de passe est correct."
+      setDialogMessage(errorMsg)
+      setDialogSuccess(false)
+      setShowDialog(true)
+    } finally {
+      setIsChangingPassword(false)
+    }
+  }
+
   if (isLoading) {
     return <PageLoader />
   }
@@ -330,6 +415,136 @@ export default function InstructorProfilePage() {
               </>
             )}
           </CardContent>
+        </Card>
+
+        {/* Section Changement de Mot de Passe */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Lock className="h-5 w-5" />
+                Mot de Passe
+              </CardTitle>
+              {!showPasswordSection && (
+                <Button onClick={() => setShowPasswordSection(true)} variant="outline">
+                  Changer le mot de passe
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          {showPasswordSection && (
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="oldPassword">Ancien mot de passe</Label>
+                <div className="relative">
+                  <Input
+                    id="oldPassword"
+                    type={showOldPassword ? "text" : "password"}
+                    value={passwordForm.oldPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })}
+                    placeholder="Entrez votre ancien mot de passe"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowOldPassword(!showOldPassword)}
+                  >
+                    {showOldPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">Nouveau mot de passe</Label>
+                <div className="relative">
+                  <Input
+                    id="newPassword"
+                    type={showNewPassword ? "text" : "password"}
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                    placeholder="Entrez votre nouveau mot de passe (min. 6 caractères)"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    {showNewPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirmer le nouveau mot de passe</Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                    placeholder="Confirmez votre nouveau mot de passe"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="flex gap-3">
+                <Button onClick={handleChangePassword} disabled={isChangingPassword}>
+                  {isChangingPassword ? (
+                    <>
+                      <span className="mr-2">Changement en cours...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="mr-2 h-4 w-4" />
+                      Changer le mot de passe
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowPasswordSection(false)
+                    setPasswordForm({
+                      oldPassword: "",
+                      newPassword: "",
+                      confirmPassword: "",
+                    })
+                  }}
+                  disabled={isChangingPassword}
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Annuler
+                </Button>
+              </div>
+            </CardContent>
+          )}
         </Card>
       </div>
 

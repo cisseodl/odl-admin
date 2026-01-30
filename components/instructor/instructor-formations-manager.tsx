@@ -16,6 +16,8 @@ import { formationService, categorieService } from "@/services"
 import { PageLoader } from "@/components/ui/page-loader"
 import { EmptyState } from "@/components/admin/empty-state"
 import { useToast } from "@/hooks/use-toast"
+import { ActionResultDialog } from "@/components/shared/action-result-dialog"
+import { useActionResultDialog } from "@/hooks/use-action-result-dialog"
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/contexts/language-context"
 import { FormationFormModal } from "@/components/shared/formation-form-modal"
@@ -48,6 +50,7 @@ const mapFormationToDisplay = (formation: Formation): FormationDisplay => {
 export function InstructorFormationsManager() {
   const { t } = useLanguage()
   const { toast } = useToast()
+  const dialog = useActionResultDialog()
   const addModal = useModal<FormationDisplay>()
   const editModal = useModal<FormationDisplay>()
 
@@ -112,18 +115,10 @@ export function InstructorFormationsManager() {
         setFormations((prev) => [...prev, mapFormationToDisplay(createdFormation as Formation)])
       }
       addModal.close()
-      toast({
-        title: "Succès",
-        description: "La formation a été créée avec succès.",
-      })
+      dialog.showSuccess("La formation a été créée avec succès.")
     } catch (err: any) {
       const errorMessage = err.message || "Impossible de créer la formation."
-      setError(errorMessage)
-      toast({
-        title: "Erreur",
-        description: errorMessage,
-        variant: "destructive",
-      })
+      dialog.showError(errorMessage)
     }
   }
 
@@ -146,18 +141,10 @@ export function InstructorFormationsManager() {
         )
       }
       editModal.close()
-      toast({
-        title: "Succès",
-        description: "La formation a été mise à jour avec succès.",
-      })
+      dialog.showSuccess("La formation a été mise à jour avec succès.")
     } catch (err: any) {
       const errorMessage = err.message || "Impossible de mettre à jour la formation."
-      setError(errorMessage)
-      toast({
-        title: "Erreur",
-        description: errorMessage,
-        variant: "destructive",
-      })
+      dialog.showError(errorMessage)
     }
   }
 

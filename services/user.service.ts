@@ -175,6 +175,18 @@ export class UserService {
       return [];
     }
   }
+
+  async changePassword(email: string, oldPassword: string, newPassword: string): Promise<any> {
+    const response = await fetchApi<any>("/auth/changePass", {
+      method: "POST",
+      body: {
+        username: email,
+        pass1: oldPassword,
+        pass2: newPassword,
+      },
+    });
+    return response;
+  }
 }
 
 export const userService = new UserService();

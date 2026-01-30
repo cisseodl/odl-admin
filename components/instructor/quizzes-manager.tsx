@@ -19,6 +19,8 @@ import { EmptyState } from "@/components/admin/empty-state"
 import { QuizFormModal } from "@/components/shared/quiz-form-modal"
 import { useLanguage } from "@/contexts/language-context"
 import { useToast } from "@/hooks/use-toast"
+import { ActionResultDialog } from "@/components/shared/action-result-dialog"
+import { useActionResultDialog } from "@/hooks/use-action-result-dialog"
 
 type QuizDisplay = {
   id: number
@@ -53,6 +55,7 @@ const mapEvaluationToQuizDisplay = (evaluation: Evaluation): QuizDisplay => {
 export function QuizzesManager() {
   const { t } = useLanguage()
   const { toast } = useToast()
+  const dialog = useActionResultDialog()
   const addModal = useModal<QuizDisplay>()
   const editModal = useModal<QuizDisplay>()
   const deleteModal = useModal<QuizDisplay>()
@@ -105,19 +108,11 @@ export function QuizzesManager() {
       const createdQuiz = await evaluationService.createEvaluation(newQuizData)
       setQuizzes((prev) => [...prev, mapEvaluationToQuizDisplay(createdQuiz)])
       addModal.close()
-      toast({
-        title: "Succès",
-        description: "Le quiz a été créé avec succès.",
-      })
+      dialog.showSuccess("Le quiz a été créé avec succès.")
       fetchQuizzes()
     } catch (err: any) {
-      setError(err.message || "Failed to add quiz.")
       console.error("Error adding quiz:", err)
-      toast({
-        title: "Erreur",
-        description: err.message || "Impossible de créer le quiz.",
-        variant: "destructive",
-      })
+      dialog.showError(err.message || "Impossible de créer le quiz.")
     }
   }
 
@@ -139,19 +134,11 @@ export function QuizzesManager() {
           )
         )
         editModal.close()
-        toast({
-          title: "Succès",
-          description: "Le quiz a été mis à jour avec succès.",
-        })
+        dialog.showSuccess("Le quiz a été mis à jour avec succès.")
         fetchQuizzes()
       } catch (err: any) {
-        setError(err.message || "Failed to update quiz.")
         console.error("Error updating quiz:", err)
-        toast({
-          title: "Erreur",
-          description: err.message || "Impossible de mettre à jour le quiz.",
-          variant: "destructive",
-        })
+        dialog.showError(err.message || "Impossible de mettre à jour le quiz.")
       }
     }
   }
@@ -163,18 +150,10 @@ export function QuizzesManager() {
         await evaluationService.deleteEvaluation(deleteModal.selectedItem.id)
         setQuizzes((prev) => prev.filter((item) => item.id !== deleteModal.selectedItem!.id))
         deleteModal.close()
-        toast({
-          title: "Succès",
-          description: "Le quiz a été supprimé avec succès.",
-        })
+        dialog.showSuccess("Le quiz a été supprimé avec succès.")
       } catch (err: any) {
-        setError(err.message || "Failed to delete quiz.")
         console.error("Error deleting quiz:", err)
-        toast({
-          title: "Erreur",
-          description: err.message || "Impossible de supprimer le quiz.",
-          variant: "destructive",
-        })
+        dialog.showError(err.message || "Impossible de supprimer le quiz.")
       }
     }
   }
@@ -324,6 +303,15 @@ export function QuizzesManager() {
         description={`Êtes-vous sûr de vouloir supprimer "${deleteModal.selectedItem?.title}" ? Cette action est irréversible.`}
         confirmText="Supprimer"
         variant="destructive"
+      />
+
+      {/* Dialogue de résultat */}
+      <ActionResultDialog
+        isOpen={dialog.isOpen}
+        onOpenChange={dialog.setIsOpen}
+        isSuccess={dialog.isSuccess}
+        message={dialog.message}
+        title={dialog.title}
       />
     </>
   )

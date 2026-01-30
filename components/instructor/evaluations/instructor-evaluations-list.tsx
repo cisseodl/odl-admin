@@ -21,6 +21,8 @@ import { CorrectTpModal } from "./correct-tp-modal"
 import { ViewEvaluationModal } from "@/components/admin/evaluations/modals/view-evaluation-modal"
 import { useLanguage } from "@/contexts/language-context"
 import { useToast } from "@/hooks/use-toast"
+import { ActionResultDialog } from "@/components/shared/action-result-dialog"
+import { useActionResultDialog } from "@/hooks/use-action-result-dialog"
 import { useAuth } from "@/contexts/auth-context"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -58,6 +60,7 @@ const mapEvaluationToEvaluationDisplay = (evaluation: Evaluation): EvaluationDis
 export function InstructorEvaluationsList() {
   const { t } = useLanguage()
   const { toast } = useToast()
+  const dialog = useActionResultDialog()
   const { user } = useAuth()
   const addModal = useModal<EvaluationDisplay>()
   const deleteModal = useModal<EvaluationDisplay>()
@@ -130,19 +133,11 @@ export function InstructorEvaluationsList() {
         tpFileUrl: data.tpFileUrl,
         questions: data.questions, // Inclure les questions pour les QUIZ
       })
-      toast({
-        title: t('evaluations.toasts.success_create') || "Succès",
-        description: t('evaluations.toasts.success_create_message') || "Évaluation créée avec succès.",
-      })
+      dialog.showSuccess(t('evaluations.toasts.success_create_message') || "Évaluation créée avec succès.")
       addModal.close()
       fetchEvaluations()
     } catch (err: any) {
-      setError(err.message || t('evaluations.toasts.error_create') || "Impossible de créer l'évaluation.")
-      toast({
-        title: t('evaluations.toasts.error_create') || "Erreur",
-        description: err.message || "Impossible de créer l'évaluation.",
-        variant: "destructive",
-      })
+      dialog.showError(err.message || "Impossible de créer l'évaluation.")
     }
   }
 
@@ -155,19 +150,11 @@ export function InstructorEvaluationsList() {
         score: data.score,
         feedback: data.feedback,
       })
-      toast({
-        title: t('evaluations.toasts.success_correct') || "Succès",
-        description: t('evaluations.toasts.success_correct_message') || "TP corrigé avec succès.",
-      })
+      dialog.showSuccess(t('evaluations.toasts.success_correct_message') || "TP corrigé avec succès.")
       correctTpModal.close()
       fetchPendingTps()
     } catch (err: any) {
-      setError(err.message || t('evaluations.toasts.error_correct') || "Impossible de corriger le TP.")
-      toast({
-        title: t('evaluations.toasts.error_correct') || "Erreur",
-        description: err.message || "Impossible de corriger le TP.",
-        variant: "destructive",
-      })
+      dialog.showError(err.message || "Impossible de corriger le TP.")
     }
   }
 
@@ -175,19 +162,11 @@ export function InstructorEvaluationsList() {
     setError(null)
     try {
       await evaluationService.deleteEvaluation(id)
-      toast({
-        title: t('evaluations.toasts.success_delete') || "Succès",
-        description: t('evaluations.toasts.success_delete_message') || "Évaluation supprimée avec succès.",
-      })
+      dialog.showSuccess(t('evaluations.toasts.success_delete_message') || "Évaluation supprimée avec succès.")
       setEvaluations((prev) => prev.filter((evalItem) => evalItem.id !== id))
       deleteModal.close()
     } catch (err: any) {
-      setError(err.message || t('evaluations.toasts.error_delete') || "Impossible de supprimer l'évaluation.")
-      toast({
-        title: t('evaluations.toasts.error_delete') || "Erreur",
-        description: err.message || "Impossible de supprimer l'évaluation.",
-        variant: "destructive",
-      })
+      dialog.showError(err.message || "Impossible de supprimer l'évaluation.")
     }
   }
 
@@ -407,6 +386,15 @@ export function InstructorEvaluationsList() {
         description={t('evaluations.delete.description') || `Êtes-vous sûr de vouloir supprimer ${deleteModal.selectedItem?.title} ? Cette action est irréversible.`}
         confirmText={t('evaluations.delete.confirm') || "Supprimer"}
         variant="destructive"
+      />
+
+      {/* Dialogue de résultat */}
+      <ActionResultDialog
+        isOpen={dialog.isOpen}
+        onOpenChange={dialog.setIsOpen}
+        isSuccess={dialog.isSuccess}
+        message={dialog.message}
+        title={dialog.title}
       />
     </>
   )
