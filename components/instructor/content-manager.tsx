@@ -105,7 +105,12 @@ export function ContentManager() {
       setLoading(false);
       return;
     }
-
+    const userId = Number(user.id);
+    if (Number.isNaN(userId)) {
+      console.warn("[ContentManager] user.id invalide:", user.id);
+      setLoading(false);
+      return;
+    }
     fetchModules();
   }, [user, authLoading]);
 
@@ -113,34 +118,37 @@ export function ContentManager() {
     setLoading(true);
     setError(null);
     try {
-      // Récupérer tous les cours de l'instructeur
-      const coursesData = await courseService.getCoursesByInstructorId(Number(user.id));
+      // Récupérer tous les cours de l'instructeur (backend filtre par course.instructor.id = user.id)
+      const instructorId = Number(user.id);
+      const coursesData = await courseService.getCoursesByInstructorId(instructorId);
       setCourses(coursesData || []);
-      
+      const coursesArray = Array.isArray(coursesData) ? coursesData : [];
+      console.log("[ContentManager] fetchModules: cours récupérés =", coursesArray.length, coursesArray);
+
       // Récupérer tous les modules de tous les cours
       const allModules: ModuleWithLessons[] = [];
-      if (coursesData && Array.isArray(coursesData)) {
-        for (const course of coursesData) {
-          try {
-            const courseId = Number(course.id);
-            if (Number.isNaN(courseId)) continue;
-            const modulesList = await moduleService.getModulesByCourse(courseId);
-            const courseModules: ModuleWithLessons[] = Array.isArray(modulesList) ? modulesList : [];
-            
-            const modulesWithCourseId = courseModules.map((module: any) => ({
-              ...module,
-              courseId: course.id,
-              courseTitle: course.title,
-              lessons: module.lessons || []
-            }));
-            
-            allModules.push(...modulesWithCourseId);
-          } catch (err: any) {
-            console.error(`Error loading modules for course ${course.id}:`, err);
-          }
+      for (const course of coursesArray) {
+        try {
+          const courseId = Number(course.id);
+          if (Number.isNaN(courseId)) continue;
+          const modulesList = await moduleService.getModulesByCourse(courseId);
+          const courseModules: ModuleWithLessons[] = Array.isArray(modulesList) ? modulesList : [];
+          console.log(`[ContentManager] fetchModules: cours ${courseId} (${(course as any).title}) → ${courseModules.length} module(s)`);
+
+          const modulesWithCourseId = courseModules.map((module: any) => ({
+            ...module,
+            courseId: course.id,
+            courseTitle: (course as any).title,
+            lessons: module.lessons || []
+          }));
+
+          allModules.push(...modulesWithCourseId);
+        } catch (err: any) {
+          console.error(`[ContentManager] Error loading modules for course ${course.id}:`, err);
         }
       }
-      
+
+      console.log("[ContentManager] fetchModules: total modules à afficher =", allModules.length);
       setModules(allModules);
     } catch (err: any) {
       console.error("Failed to load modules:", err);

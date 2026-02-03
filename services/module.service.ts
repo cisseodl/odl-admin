@@ -61,7 +61,7 @@ export class ModuleService {
     }
   }
 
-  async getModulesByCourse(courseId: number): Promise<any> {
+  async getModulesByCourse(courseId: number): Promise<any[]> {
     const response = await fetchApi<any>(`/modules/course/${courseId}`, {
       method: "GET",
     });
@@ -69,7 +69,13 @@ export class ModuleService {
       throw new Error((response as any).message || "Impossible de charger les modules.");
     }
     const data = (response as any)?.data ?? response;
-    return Array.isArray(data) ? data : [];
+    if (Array.isArray(data)) return data;
+    // Fallback: backend peut renvoyer { data: { content: [...] } } ou { modules: [...] }
+    if (data && typeof data === "object") {
+      if (Array.isArray((data as any).content)) return (data as any).content;
+      if (Array.isArray((data as any).modules)) return (data as any).modules;
+    }
+    return [];
   }
 }
 
