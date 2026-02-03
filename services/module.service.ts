@@ -65,7 +65,11 @@ export class ModuleService {
     const response = await fetchApi<any>(`/modules/course/${courseId}`, {
       method: "GET",
     });
-    return response.data || response;
+    if (response && (response as any).ok === false) {
+      throw new Error((response as any).message || "Impossible de charger les modules.");
+    }
+    const data = (response as any)?.data ?? response;
+    return Array.isArray(data) ? data : [];
   }
 }
 

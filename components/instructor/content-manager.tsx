@@ -122,16 +122,11 @@ export function ContentManager() {
       if (coursesData && Array.isArray(coursesData)) {
         for (const course of coursesData) {
           try {
-            const modulesResponse = await moduleService.getModulesByCourse(course.id);
-            let courseModules: ModuleWithLessons[] = [];
+            const courseId = Number(course.id);
+            if (Number.isNaN(courseId)) continue;
+            const modulesList = await moduleService.getModulesByCourse(courseId);
+            const courseModules: ModuleWithLessons[] = Array.isArray(modulesList) ? modulesList : [];
             
-            if (modulesResponse?.data) {
-              courseModules = Array.isArray(modulesResponse.data) ? modulesResponse.data : [];
-            } else if (Array.isArray(modulesResponse)) {
-              courseModules = modulesResponse;
-            }
-            
-            // Ajouter l'ID du cours à chaque module pour référence
             const modulesWithCourseId = courseModules.map((module: any) => ({
               ...module,
               courseId: course.id,
