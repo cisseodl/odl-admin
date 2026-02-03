@@ -335,9 +335,9 @@ export function ContentManager() {
       const selectedCourse = courses.find(c => c.id === courseId);
       const courseLevel = selectedCourse?.level || "DEBUTANT";
       
-      // Pour supprimer, on envoie tous les modules sauf celui à supprimer
-      const currentModules = courses.find(c => c.id === courseId)?.modules || [];
-      const updatedModules = currentModules
+      // Utiliser la liste à jour depuis l'état modules (pas courses[].modules qui peut être vide si le cours n'a pas été ouvert)
+      const courseModules = modules.filter((m: any) => m.courseId === courseId);
+      const updatedModules = courseModules
         .filter(m => m.id !== moduleId)
         .map(m => ({
           ...m,
@@ -376,6 +376,77 @@ export function ContentManager() {
     }
   };
 
+  const handleUpdateLesson = async (data: LessonFormData) => {
+    if (!editLessonModal.selectedItem) return;
+    
+    try {
+      const { lesson, moduleId, courseId } = editLessonModal.selectedItem;
+      const selectedCourse = courses.find(c => c.id === courseId);
+      const courseLevel = selectedCourse?.level || "DEBUTANT";
+      
+      const courseModules = modules.filter((m: any) => m.courseId === courseId);
+      const updatedModules = courseModules.map(m =>
+        m.id === moduleId
+          ? {
+              ...m,
+              lessons: m.lessons?.map(l =>
+                l.id === lesson.id
+                  ? {
+                      id: l.id,
+                      title: data.title,
+                      lessonOrder: data.lessonOrder,
+                      type: data.type,
+                      contentUrl: data.contentUrl || l.contentUrl,
+                      duration: data.duration ?? l.duration,
+                    }
+                  : {
+                      id: l.id,
+                      title: l.title,
+                      lessonOrder: l.lessonOrder,
+                      type: l.type,
+                      contentUrl: l.contentUrl,
+                      duration: l.duration,
+                    }
+              ) || [],
+            }
+          : {
+              ...m,
+              lessons: m.lessons?.map(l => ({
+                id: l.id,
+                title: l.title,
+                lessonOrder: l.lessonOrder,
+                type: l.type,
+                contentUrl: l.contentUrl,
+                duration: l.duration,
+              })) || [],
+            }
+      );
+      
+      const payload = {
+        courseId,
+        courseType: courseLevel.toUpperCase() as "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE",
+        modules: updatedModules,
+      };
+      
+      const response = await moduleService.saveModules(payload);
+      
+      toast({
+        title: "Succès",
+        description: response.message || "La leçon a été modifiée avec succès.",
+      });
+      
+      await fetchModules();
+      editLessonModal.close();
+    } catch (err: any) {
+      console.error("Error updating lesson:", err);
+      toast({
+        title: "Erreur",
+        description: err.message || "Impossible de modifier la leçon.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDeleteLesson = async () => {
     if (!deleteLessonModal.selectedItem) return;
     
@@ -384,9 +455,8 @@ export function ContentManager() {
       const selectedCourse = courses.find(c => c.id === courseId);
       const courseLevel = selectedCourse?.level || "DEBUTANT";
       
-      // Pour supprimer une leçon, on envoie tous les modules avec la leçon supprimée
-      const currentModules = courses.find(c => c.id === courseId)?.modules || [];
-      const updatedModules = currentModules.map(m => 
+      const courseModules = modules.filter((m: any) => m.courseId === courseId);
+      const updatedModules = courseModules.map(m => 
         m.id === moduleId
           ? {
               ...m,
