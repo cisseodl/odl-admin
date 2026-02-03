@@ -2,6 +2,23 @@ import { Apprenant } from '../models/apprenant.model';
 import { fetchApi } from './api.service';
 
 export class ApprenantService {
+  /**
+   * Apprenants inscrits aux cours de l'instructeur connecté (dashboard instructeur).
+   * Utilise GET /api/apprenants/by-instructor (autorisé INSTRUCTOR et ADMIN).
+   */
+  async getApprenantsByInstructor(): Promise<any> {
+    try {
+      const response = await fetchApi<any>("/api/apprenants/by-instructor", { method: "GET" });
+      if (!response || !response.data) {
+        return [];
+      }
+      return Array.isArray(response.data) ? response.data : [response.data];
+    } catch (error: any) {
+      console.error("Error fetching apprenants by instructor:", error);
+      throw error;
+    }
+  }
+
   async getAllApprenants(): Promise<any> {
     try {
       // Essayer d'abord avec le nouveau endpoint /api/apprenants/get-all

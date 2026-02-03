@@ -86,20 +86,20 @@ export function StudentsTracker() {
           }
         }
 
-        // Récupérer les apprenants uniques qui sont inscrits aux cours de l'instructeur
-        const learnerIds = [...new Set(allDetailsCourses.map(dc => dc.learnerId).filter(Boolean))];
+        // IDs utilisateur (User.id) des apprenants inscrits aux cours de l'instructeur
+        const learnerUserIds = [...new Set(allDetailsCourses.map(dc => dc.learnerId).filter(Boolean))];
         
-        if (learnerIds.length === 0) {
+        if (learnerUserIds.length === 0) {
           setStudents([]);
           setAllStudents([]);
           setLoading(false);
           return;
         }
 
-        // Récupérer les apprenants
-        const allApprenants = await apprenantService.getAllApprenants();
-        const relevantApprenants = allApprenants.filter((a: Apprenant) => 
-          learnerIds.includes(a.id)
+        // Récupérer les apprenants via l'endpoint by-instructor (autorisé pour INSTRUCTOR)
+        const allApprenants = await apprenantService.getApprenantsByInstructor();
+        const relevantApprenants = (Array.isArray(allApprenants) ? allApprenants : []).filter(
+          (a: Apprenant & { userId?: number }) => a.userId != null && learnerUserIds.includes(a.userId)
         );
 
         // Mapper les apprenants avec leurs données de progression réelles
@@ -107,9 +107,9 @@ export function StudentsTracker() {
         const mappedStudents: Student[] = [];
         
         for (const apprenant of relevantApprenants) {
-          // Trouver les détails de cours pour cet apprenant
+          const learnerUserId = (apprenant as Apprenant & { userId?: number }).userId ?? apprenant.id;
           const apprenantDetailsCourses = allDetailsCourses.filter(dc => 
-            dc.learnerId === apprenant.id
+            dc.learnerId === learnerUserId
           );
           
           // Pour chaque inscription de l'apprenant à un cours de l'instructeur
