@@ -132,7 +132,7 @@ export class CourseService {
   }
 
   async deleteCourse(id: number): Promise<void> {
-    await fetchApi<any>(`/api/courses/delete/${id}`, { // CORRECTION ICI
+    await fetchApi<any>(`/courses/delete/${id}`, {
       method: "DELETE",
     });
   }

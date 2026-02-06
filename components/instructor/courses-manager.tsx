@@ -185,11 +185,16 @@ export function CoursesManager({ refreshTrigger }: CoursesManagerProps = {}) {
   };
 
   const handleUpdateCourse = async (data: CourseFormData) => {
-    if (!editCourseModal.selectedItem) return;
+    if (!editCourseModal.selectedItem || !user) return;
     try {
       const { categoryId, ...courseData } = data;
-      console.log("[InstructorCoursesManager] handleUpdateCourse - Request data:", { id: editCourseModal.selectedItem.id, categoryId, courseData }); // ADD LOG
-      const payloadWithId = { ...courseData, id: editCourseModal.selectedItem.id }; // Add ID to payload
+      const payloadWithId = {
+        ...courseData,
+        id: editCourseModal.selectedItem.id,
+        categoryId: Number(categoryId),
+        instructorId: Number(user.id),
+      };
+      console.log("[InstructorCoursesManager] handleUpdateCourse - Request data:", { id: editCourseModal.selectedItem.id, categoryId, payloadWithId });
       const response = await courseService.updateCourse(editCourseModal.selectedItem.id, payloadWithId, undefined);
       console.log("[InstructorCoursesManager] handleUpdateCourse - Response:", response); // ADD LOG
       editCourseModal.close();
