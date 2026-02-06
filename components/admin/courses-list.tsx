@@ -18,7 +18,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { ViewCourseModal } from "./modals/view-course-modal"
 import { CourseFormModal } from "@/components/shared/course-form-modal"
 import type { ColumnDef } from "@tanstack/react-table"
-import { Eye, Edit, Trash2, Power, Users, Clock, Star, BookOpen, ListFilter } from "lucide-react"
+import { Eye, Edit, Trash2, Users, Clock, Star, BookOpen, ListFilter } from "lucide-react"
 import type { CourseFormData } from "@/lib/validations/course"
 import { Course as CourseModel, Categorie } from "@/models"
 import { courseService, categorieService, instructorService } from "@/services"
@@ -223,31 +223,6 @@ export function CoursesList() {
     }
   };
 
-  const handleToggleActivate = async (course: CourseDisplay) => {
-    try {
-        const newActivateStatus = !course.activate;
-        const newBackendStatus: CourseModel['status'] = newActivateStatus ? "PUBLISHED" : "DRAFT";
-
-        const courseDataForUpdate: Partial<CourseModel> = {
-            id: course.id,
-            status: newBackendStatus,
-            activate: newActivateStatus,
-        };
-
-        await courseService.updateCourse(courseDataForUpdate.id!, courseDataForUpdate);
-
-        setCourses((prev) =>
-            prev.map((c) =>
-                c.id === course.id ? { ...c, status: newBackendStatus, activate: newActivateStatus } : c
-            )
-        );
-        dialog.showSuccess(`La formation a été ${newActivateStatus ? 'activée' : 'stoppée'} avec succès.`);
-    } catch (err: any) {
-        dialog.showError(err?.message || "Impossible de changer le statut de la formation.");
-        console.error("Error updating course status:", err);
-    }
-  };
-
   const handleDeleteCourse = async () => {
     if (deleteModal.selectedItem) {
       try {
@@ -350,7 +325,6 @@ export function CoursesList() {
               actions={[
                 { label: t('courses.list.action_view'), icon: <Eye className="h-4 w-4" />, onClick: () => viewModal.open(course) },
                 { label: t('courses.list.action_edit'), icon: <Edit className="h-4 w-4" />, onClick: () => editModal.open(course) },
-                { label: course.activate ? t('courses.list.action_deactivate') : t('courses.list.action_activate'), icon: <Power className="h-4 w-4" />, onClick: () => handleToggleActivate(course), variant: course.activate ? 'destructive' : 'default' },
                 { label: t('courses.list.action_delete'), icon: <Trash2 className="h-4 w-4" />, onClick: () => deleteModal.open(course), variant: "destructive" },
               ]}
             />
@@ -358,13 +332,14 @@ export function CoursesList() {
         },
       },
     ],
-    [viewModal, editModal, deleteModal, handleToggleActivate, t]
+    [viewModal, editModal, deleteModal, t]
   )
 
   return (
     <>
       <PageHeader
         title={t("courses.title")}
+        description={t("courses.page_description")}
         action={{
           label: t("courses.addCourse"),
           onClick: () => addModal.open(),

@@ -56,7 +56,7 @@ export function AddCourseModal({ open, onOpenChange, onAddCourse, categories, in
         <DialogHeader>
           <DialogTitle>Ajouter un cours</DialogTitle>
           <DialogDescription>
-            Créez un nouveau cours et assignez un instructeur. Seul l&apos;instructeur pourra ajouter les modules, leçons et quiz, puis publier le cours.
+            En général, c&apos;est le formateur qui crée le cours. Utilisez cette option uniquement quand un formateur vous le demande (dépannage, indisponibilité). Assignez le formateur concerné : il vérifiera le contenu puis publiera le cours depuis son espace.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>

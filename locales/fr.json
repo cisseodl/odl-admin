@@ -300,6 +300,7 @@
   },
   "courses": {
     "title": "Formations",
+    "page_description": "Le formateur crée et publie les cours. L'admin peut créer un cours à la demande du formateur (dépannage) ; le formateur vérifie le contenu puis publie depuis son espace.",
     "addCourse": "Ajouter une formation",
     "editCourse": "Modifier la formation",
     "deleteCourse": "Supprimer la formation",

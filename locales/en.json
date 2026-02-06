@@ -337,6 +337,7 @@
   },
   "courses": {
     "title": "Courses",
+    "page_description": "The instructor creates and publishes courses. The admin may create a course when the instructor requests it (e.g. backup); the instructor then verifies content and publishes from their dashboard.",
     "addCourse": "Add Course",
     "editCourse": "Edit Course",
     "deleteCourse": "Delete Course",
