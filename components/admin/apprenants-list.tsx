@@ -612,7 +612,7 @@ export function ApprenantsList() {
         onSelectUser={handleUserSelectedForPromotion}
         title={t('users.learners.modals.promote_title')}
         description={t('users.learners.modals.promote_description')}
-        excludeUserIds={apprenants.map(a => a.id)}
+        excludeUserIds={rawApprenantsData.map((a: Apprenant & { user?: { id: number }; userId?: number }) => a.user?.id ?? a.userId).filter((id): id is number => id != null)}
       />
 
       {userCreationModal.isOpen && (

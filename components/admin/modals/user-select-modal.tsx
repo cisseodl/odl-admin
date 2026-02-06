@@ -48,16 +48,13 @@ export function UserSelectModal({
     try {
       // getAllUsers returns { content: UserDb[], totalElements: number }
       const response = await userService.getAllUsers(0, 1000); // Fetch a large number of users
-      console.log("UserSelectModal - Raw response from getAllUsers:", response);
       
       let usersList: UserDb[] = [];
       if (response && Array.isArray(response.content)) {
         usersList = response.content;
       } else if (Array.isArray(response)) {
-        // Fallback: si la réponse est directement un tableau
         usersList = response;
       } else {
-        console.error("Unexpected response structure for getAllUsers:", response);
         setUsers([]);
         toast({
           title: "Erreur de données",
@@ -66,10 +63,6 @@ export function UserSelectModal({
         });
         return;
       }
-      
-      console.log("UserSelectModal - Extracted users list:", usersList);
-      console.log("UserSelectModal - Number of users:", usersList.length);
-      console.log("UserSelectModal - Exclude user IDs:", excludeUserIds);
       
       setUsers(usersList);
     } catch (error) {
@@ -100,21 +93,9 @@ export function UserSelectModal({
         const matchesSearch = !searchTerm || 
           user.fullName?.toLowerCase().includes(lowercasedSearchTerm) ||
           user.email?.toLowerCase().includes(lowercasedSearchTerm);
-        
-        if (isExcluded) {
-          console.log(`User ${user.id} (${user.fullName || user.email}) is excluded (already admin)`);
-        }
-        
         return !isExcluded && matchesSearch;
       }
     );
-    
-    console.log("UserSelectModal - Filtered users:", {
-      totalUsers: users.length,
-      excludedCount: users.filter(u => excludeUserIds.includes(u.id!)).length,
-      filteredCount: filtered.length,
-      searchTerm: searchTerm || "(empty)"
-    });
     
     return filtered;
   }, [searchTerm, users, excludeUserIds]);

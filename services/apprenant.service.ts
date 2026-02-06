@@ -120,11 +120,10 @@ export class ApprenantService {
     try {
       const response = await fetchApi<any>(`/api/apprenants/${apprenantId}/stats`, { method: "GET" });
       
-      // Le backend retourne CResponse avec structure { ok: boolean, data: {...}, message: string }
-      if (response && response.ok && response.data) {
-        // response.data peut être directement l'objet stats ou dans response.data.data
-        const stats = response.data.data || response.data;
-        
+      // Le backend retourne CResponse avec structure { ok?: boolean, data: {...}, message?: string }
+      // Accepter comme succès si data est présent (certains proxies peuvent ne pas renvoyer ok)
+      if (response && response.data) {
+        const stats = response.data.data ?? response.data;
         if (stats && typeof stats === 'object') {
           return {
             coursesEnrolled: stats.coursesEnrolled ?? 0,
@@ -133,13 +132,6 @@ export class ApprenantService {
           };
         }
       }
-      
-      console.warn(`ApprenantService: getApprenantDashboardSummary failed for apprenantId ${apprenantId}`, {
-        ok: response?.ok,
-        hasData: !!response?.data,
-        message: response?.message,
-        data: response?.data
-      });
       return { coursesEnrolled: 0, completedCourses: 0, totalCertificates: 0 };
     } catch (error: any) {
       console.error(`ApprenantService: Error fetching stats for apprenantId ${apprenantId}:`, error);
