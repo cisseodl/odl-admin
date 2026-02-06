@@ -227,9 +227,15 @@
         "header_actions": "Actions",
         "action_view_details": "Voir détails",
         "action_edit": "Modifier",
-        "action_delete": "Supprimer"
+        "action_delete": "Supprimer",
+        "action_blacklist": "Blacklister",
+        "action_unblacklist": "Retirer de la blacklist"
       },
       "modals": {
+        "blacklist_title": "Blacklister l'apprenant",
+        "blacklist_description": "Êtes-vous sûr de vouloir blacklister (désactiver) l'apprenant {{name}} ?",
+        "unblacklist_title": "Retirer l'apprenant de la blacklist",
+        "unblacklist_description": "Êtes-vous sûr de vouloir réactiver l'apprenant {{name}} ?",
         "promote_title": "Promouvoir un utilisateur en apprenant",
         "promote_description": "Sélectionnez un utilisateur existant à promouvoir.",
         "create_user_title": "Créer un nouvel utilisateur",
@@ -270,6 +276,17 @@
         "success_user_created": "L'utilisateur {{name}} a été créé. Vous pouvez maintenant créer son profil apprenant.",
         "success_delete": "L'apprenant et l'utilisateur associé ont été supprimés avec succès."
       }
+    },
+    "enrollments": {
+      "no_courses": "Cet utilisateur n'est inscrit à aucun cours.",
+      "no_results": "Aucun cours trouvé.",
+      "unenroll": "Désinscrire",
+      "success_blacklist": "Utilisateur blacklisté avec succès.",
+      "success_unblacklist": "Utilisateur retiré de la blacklist avec succès.",
+      "success_unenroll": "Utilisateur désinscrit du cours avec succès.",
+      "error_blacklist": "Erreur lors du blacklistage.",
+      "error_unblacklist": "Erreur lors du retrait de la blacklist.",
+      "error_unenroll": "Erreur lors de la désinscription."
     },
     "addUser": "Ajouter un utilisateur",
     "editUser": "Modifier l'utilisateur",

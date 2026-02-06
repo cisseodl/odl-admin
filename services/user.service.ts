@@ -148,13 +148,13 @@ export class UserService {
   }
 
   async blacklistUser(userId: number): Promise<void> {
-    await fetchApi<any>(`/users/${userId}/blacklist`, {
+    await fetchApi<any>(`/api/users/${userId}/blacklist`, {
       method: "PUT",
     });
   }
 
   async unblacklistUser(userId: number): Promise<void> {
-    await fetchApi<any>(`/users/${userId}/unblacklist`, {
+    await fetchApi<any>(`/api/users/${userId}/unblacklist`, {
       method: "PUT",
     });
   }
