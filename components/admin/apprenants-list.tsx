@@ -52,7 +52,9 @@ type ApprenantDisplay = {
 }
 
 const mapApprenantToApprenantDisplay = (apprenant: Apprenant): ApprenantDisplay => {
-  const status: ApprenantDisplay['status'] = apprenant.activate ? "Actif" : "Inactif";
+  // Blacklist modifie user.activate ; le backend envoie userActivate
+  const isActive = apprenant.userActivate ?? apprenant.activate ?? true;
+  const status: ApprenantDisplay['status'] = isActive ? "Actif" : "Inactif";
   const joinedDate = apprenant.createdAt 
     ? new Date(apprenant.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) 
     : "";
@@ -334,9 +336,9 @@ export function ApprenantsList() {
   const handleBlacklist = useCallback(async () => {
     if (blacklistModal.selectedItem) {
       try {
-        // Récupérer le userId depuis les données brutes
+        // Récupérer le userId (User) depuis les données brutes — le backend envoie userId, pas user.id
         const apprenantData = rawApprenantsData.find((app: Apprenant) => app.id === blacklistModal.selectedItem?.id);
-        const userId = apprenantData?.user?.id || apprenantData?.id;
+        const userId = apprenantData?.userId ?? apprenantData?.user?.id ?? apprenantData?.id;
         
         if (!userId) {
           toast({
@@ -369,9 +371,8 @@ export function ApprenantsList() {
   const handleUnblacklist = useCallback(async () => {
     if (unblacklistModal.selectedItem) {
       try {
-        // Récupérer le userId depuis les données brutes
         const apprenantData = rawApprenantsData.find((app: Apprenant) => app.id === unblacklistModal.selectedItem?.id);
-        const userId = apprenantData?.user?.id || apprenantData?.id;
+        const userId = apprenantData?.userId ?? apprenantData?.user?.id ?? apprenantData?.id;
         
         if (!userId) {
           toast({
@@ -712,7 +713,7 @@ export function ApprenantsList() {
 
       {unenrollModal.selectedItem && (() => {
         const apprenantData = rawApprenantsData.find((app: Apprenant) => app.id === unenrollModal.selectedItem?.id);
-        const userId = apprenantData?.user?.id || apprenantData?.id;
+        const userId = apprenantData?.userId ?? apprenantData?.user?.id ?? apprenantData?.id;
         return userId ? (
           <CourseSelectModal
             open={unenrollModal.isOpen}

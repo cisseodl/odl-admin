@@ -20,5 +20,7 @@ export interface Apprenant {
   fullName?: string | null; // Nom complet depuis User
   userEmail?: string | null; // Email depuis User
   userId?: number | null;
+  userActivate?: boolean | null; // Statut du User (blacklist = false)
+  user?: { id: number }; // Optionnel si backend envoie un objet user imbriqué
   avatar?: string | null;
 }
