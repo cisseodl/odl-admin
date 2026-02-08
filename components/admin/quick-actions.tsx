@@ -3,7 +3,7 @@
 import { useLanguage } from "@/contexts/language-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, Shield, Users, BookOpen, Award, Beaker } from "lucide-react" // Added Beaker
+import { Users, BookOpen, List, GraduationCap } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 export function QuickActions() {
@@ -24,15 +24,15 @@ export function QuickActions() {
       color: "text-[hsl(var(--info))]",
     },
     {
-      label: t('dashboard.quick_actions.manage_cohorts'),
-      icon: Users,
-      href: "/admin/cohortes",
+      label: t('dashboard.quick_actions.manage_sections'),
+      icon: List,
+      href: "/admin/sections",
       color: "text-[hsl(var(--info))]",
     },
     {
-      label: t('dashboard.quick_actions.manage_labs'),
-      icon: Beaker,
-      href: "/admin/labs",
+      label: t('dashboard.quick_actions.odc_formations'),
+      icon: GraduationCap,
+      href: "/admin/odc-formations",
       color: "text-[hsl(var(--info))]",
     },
   ]

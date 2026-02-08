@@ -128,8 +128,8 @@
       "description": "Quick access to frequent actions",
       "add_user": "Add a user",
       "create_course": "Create a course",
-      "manage_cohorts": "Manage Cohorts",
-      "manage_labs": "Manage Labs"
+      "manage_sections": "Manage Sections",
+      "odc_formations": "ODC Formations"
     },
     "charts": {
       "users_by_role": {

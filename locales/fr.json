@@ -95,8 +95,8 @@
       "description": "Accès rapide aux actions fréquentes",
       "add_user": "Ajouter un utilisateur",
       "create_course": "Créer un cours",
-      "manage_cohorts": "Gérer les Cohortes",
-      "manage_labs": "Gérer les Labs"
+      "manage_sections": "Gestion des Sections",
+      "odc_formations": "ODC Formations"
     },
     "charts": {
       "users_by_role": {

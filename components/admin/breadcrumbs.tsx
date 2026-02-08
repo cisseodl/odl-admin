@@ -24,6 +24,8 @@ export function Breadcrumbs() {
     "/admin/badges": t('routes.badges'),
     "/admin/leaderboard": t('routes.leaderboard'),
     "/admin/settings": t('routes.settings'),
+    "/admin/sections": t('dashboard.quick_actions.manage_sections'),
+    "/admin/odc-formations": t('dashboard.quick_actions.odc_formations'),
   }
 
   const pathname = usePathname()
