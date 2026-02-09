@@ -11,7 +11,7 @@ export interface ExcelSheet {
 }
 
 /**
- * Crée un fichier Excel avec plusieurs feuilles
+ * Crée un fichier Excel avec plusieurs feuilles et structure claire
  * @param sheets Tableau de feuilles Excel
  * @param filename Nom du fichier (sans extension)
  */
@@ -21,32 +21,44 @@ export function exportToExcel(sheets: ExcelSheet[], filename: string): void {
 
   // Pour chaque feuille
   sheets.forEach((sheet) => {
-    let worksheetData: any[] = []
+    // Créer un tableau de tableaux pour une meilleure structure
+    const worksheetArray: any[][] = []
 
     // Si des en-têtes personnalisés sont fournis, les utiliser
     if (sheet.headers && sheet.headers.length > 0) {
-      // Créer la ligne d'en-tête
-      const headerRow: any = {}
-      sheet.headers.forEach((header) => {
-        headerRow[header.key] = header.label
-      })
-      worksheetData.push(headerRow)
+      // Ligne d'en-tête avec les labels
+      const headerRow = sheet.headers.map(header => header.label)
+      worksheetArray.push(headerRow)
 
-      // Ajouter les données avec les clés correspondantes
+      // Ligne de séparation (vide pour la lisibilité)
+      worksheetArray.push([])
+
+      // Ajouter les données
       sheet.data.forEach((row) => {
-        const dataRow: any = {}
-        sheet.headers.forEach((header) => {
-          dataRow[header.key] = row[header.key] !== undefined ? row[header.key] : ''
+        const dataRow = sheet.headers.map((header) => {
+          return row[header.key] !== undefined ? row[header.key] : ''
         })
-        worksheetData.push(dataRow)
+        worksheetArray.push(dataRow)
       })
     } else {
       // Utiliser les données telles quelles
-      worksheetData = sheet.data
+      if (sheet.data.length > 0) {
+        // En-têtes depuis les clés du premier objet
+        const firstRow = sheet.data[0]
+        const headerRow = Object.keys(firstRow)
+        worksheetArray.push(headerRow)
+        worksheetArray.push([]) // Ligne de séparation
+
+        // Données
+        sheet.data.forEach((row) => {
+          const dataRow = Object.keys(firstRow).map(key => row[key] !== undefined ? row[key] : '')
+          worksheetArray.push(dataRow)
+        })
+      }
     }
 
-    // Créer la feuille de calcul
-    const worksheet = XLSX.utils.json_to_sheet(worksheetData, { skipHeader: false })
+    // Créer la feuille de calcul à partir du tableau
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetArray)
 
     // Définir les largeurs de colonnes
     const colWidths: { wch: number }[] = []
@@ -54,14 +66,17 @@ export function exportToExcel(sheets: ExcelSheet[], filename: string): void {
       sheet.headers.forEach((header) => {
         colWidths.push({ wch: header.width || 20 })
       })
-    } else if (worksheetData.length > 0) {
-      // Calculer automatiquement les largeurs basées sur le contenu
-      const firstRow = worksheetData[0]
-      Object.keys(firstRow).forEach(() => {
+    } else if (worksheetArray.length > 0 && worksheetArray[0].length > 0) {
+      worksheetArray[0].forEach(() => {
         colWidths.push({ wch: 20 })
       })
     }
     worksheet['!cols'] = colWidths
+
+    // Définir la hauteur de la ligne d'en-tête
+    if (worksheetArray.length > 0) {
+      worksheet['!rows'] = [{ hpt: 30 }] // Hauteur pour l'en-tête
+    }
 
     // Ajouter la feuille au classeur
     XLSX.utils.book_append_sheet(workbook, worksheet, sheet.name)
