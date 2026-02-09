@@ -7,6 +7,7 @@ import { UserGrowthChart } from "./user-growth-chart"
 import { StatCard } from "@/components/shared/stat-card"
 import { ReportCard } from "@/components/admin/reports/report-card"
 import { LearnerProgressList } from "./learner-progress-list" // Import the new component
+import { EnrollmentProgressionChart } from "./enrollment-progression-chart"
 import {
   TrendingUp,
   GraduationCap,
@@ -211,35 +212,8 @@ export function AnalyticsDashboard() {
         </Button>
       </div>
 
-      {/* Métriques Analytics - Spécifiques à cette page */}
-      {loading ? (
-        <PageLoader />
-      ) : error ? (
-        <div className="text-center text-destructive p-4">{error}</div>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl font-semibold leading-tight">{t("analytics.kpi")}</CardTitle>
-            <CardDescription className="text-sm leading-relaxed">
-              {t("analytics.title")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
-              {analyticsMetrics.map((metric) => (
-                <StatCard
-                  key={metric.title}
-                  title={metric.title}
-                  value={metric.value}
-                  change={metric.change}
-                  icon={metric.icon}
-                  color={metric.color}
-                />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Graphique KPI - Nombre d'inscrits */}
+      <EnrollmentProgressionChart />
 
       {/* Graphiques principaux */}
       <div className="grid gap-6 lg:grid-cols-2">
