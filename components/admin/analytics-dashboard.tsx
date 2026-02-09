@@ -3,7 +3,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CoursePerformance } from "./course-performance"
-import { UserGrowthChart } from "./user-growth-chart"
 import { StatCard } from "@/components/shared/stat-card"
 import { ReportCard } from "@/components/admin/reports/report-card"
 import { LearnerProgressList } from "./learner-progress-list" // Import the new component
@@ -289,12 +288,11 @@ export function AnalyticsDashboard() {
         </Card>
       )}
 
-      {/* Graphique KPI - Nombre d'inscrits */}
+      {/* Nombre d'inscrits - Suivez votre évolution dans le temps */}
       <EnrollmentProgressionChart />
 
-      {/* Graphiques principaux */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <UserGrowthChart />
+      {/* Top Formations */}
+      <div className="grid gap-6">
         <CoursePerformance timeFilter="30d" />
       </div>
 
