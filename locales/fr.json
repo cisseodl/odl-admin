@@ -54,12 +54,12 @@
     "error": "Email ou mot de passe incorrect."
   },
   "dashboard": {
-    "title": "Tableau de bord",
+    "title": "Tableau de Bord Admin",
     "overview": "Vue d'ensemble",
     "statistics": "Statistiques",
     "recentActivity": "Activité récente",
     "quickActions": "Actions rapides",
-    "description": "Vue d'ensemble de votre plateforme de formation",
+    "description": "vue d'ensemble au cours des 30 derniers jours",
     "loadError": "Impossible de charger les données du tableau de bord.",
     "mainStats": {
       "newUsers": "Nouveaux utilisateurs (30j)",
@@ -75,8 +75,8 @@
       "pendingModeration": "En attente"
     },
     "comparison": {
-      "title": "Comparaison Mois Actuel vs Précédent",
-      "description": "Analyse comparative des performances",
+      "title": "Analyse comparative",
+      "description": "Analyse comparative",
       "previous_period": "période précédente",
       "current_period": "Période Actuelle",
       "no_data": "Aucune donnée de comparaison disponible pour la période.",

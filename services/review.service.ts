@@ -27,18 +27,26 @@ export class ReviewService {
   }
 
   async getReviewsByCourse(courseId: number): Promise<Review[]> {
-    const response = await fetchApi<any>(`/api/courses/${courseId}/reviews`, {
+    const response = await fetchApi<any>(`/api/reviews/course/${courseId}`, {
       method: "GET",
     });
-    return response.data || response;
+    // Le backend retourne CResponse avec structure { ok, data, message }
+    if (response && response.data !== undefined) {
+      return Array.isArray(response.data) ? response.data : [];
+    }
+    return Array.isArray(response) ? response : [];
   }
 
   async getAllReviews(): Promise<Review[]> {
     try {
-      const response = await fetchApi<any>(`/api/reviews/all`, { // Corrected path
+      const response = await fetchApi<any>(`/api/reviews/all`, {
         method: "GET",
       });
-      return response.data || response;
+      // Le backend retourne CResponse avec structure { ok, data, message }
+      if (response && response.data !== undefined) {
+        return Array.isArray(response.data) ? response.data : [];
+      }
+      return Array.isArray(response) ? response : [];
     } catch (error) {
       console.error("Error fetching all reviews:", error);
       return [];

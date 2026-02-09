@@ -198,10 +198,6 @@ export function CertificationsList() {
     <>
       <PageHeader
         title="Certifications"
-        action={{
-          label: "Créer une certification",
-          onClick: () => addModal.open(),
-        }}
       />
 
       <Card className="mt-6">
