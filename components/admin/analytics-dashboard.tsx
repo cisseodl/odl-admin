@@ -26,6 +26,7 @@ import { analyticsService, type AnalyticsMetrics, type LearningTimeMetrics, type
 import { PageLoader } from "@/components/ui/page-loader" // Import PageLoader
 import { useLanguage } from "@/contexts/language-context" // Import useLanguage
 import { downloadCSV, exportStatisticsToCSV } from "@/lib/csv-export" // Import CSV export utilities
+import { exportToExcel, type ExcelSheet } from "@/lib/excel-export" // Import Excel export utilities
 import { useToast } from "@/hooks/use-toast" // Import useToast
 
 export function AnalyticsDashboard() {
@@ -76,98 +77,138 @@ export function AnalyticsDashboard() {
         analyticsService.getCoursePerformanceData("30d"),
       ])
 
-      // Préparer les sections CSV
-      const sections = []
+      // Préparer les feuilles Excel
+      const excelSheets: ExcelSheet[] = []
 
-      // Section 1: Métriques Analytics
+      // Feuille 1: Métriques Analytics
       if (analyticsMetricsData) {
-        sections.push({
-          title: t('analytics.export.sections.analytics_metrics') || "Métriques Analytics",
+        const engagementRate = analyticsMetricsData.totalUsers > 0 
+          ? (analyticsMetricsData.activeUsers / analyticsMetricsData.totalUsers) * 100 
+          : 0
+
+        excelSheets.push({
+          name: "Métriques Analytics",
+          headers: [
+            { key: "metric", label: "Métrique", width: 35 },
+            { key: "value", label: "Valeur", width: 25 },
+          ],
           data: [
-            {
-              [t('analytics.averageRating') || 'Note moyenne']: `${analyticsMetricsData.averageRating.toFixed(2)}/5`,
-              [t('analytics.export.totalReviews') || 'Total avis']: analyticsMetricsData.totalReviews,
-              [t('analytics.engagementRate') || 'Taux d\'engagement']: `${analyticsMetricsData.engagementRate.toFixed(2)}%`,
-              [t('analytics.activeUsers') || 'Utilisateurs actifs']: analyticsMetricsData.activeUsers,
-              [t('analytics.inactiveUsers') || 'Utilisateurs inactifs']: analyticsMetricsData.inactiveUsers || 0,
-              [t('analytics.totalUsers') || 'Total utilisateurs']: analyticsMetricsData.totalUsers,
-              [t('analytics.export.averageSessionTimeMinutes') || 'Temps moyen de session (min)']: analyticsMetricsData.averageSessionTimeMinutes.toFixed(2),
-              [t('analytics.activeSessions') || 'Sessions actives']: analyticsMetricsData.activeSessions,
-              [t('analytics.export.interactionRate') || 'Taux d\'interaction']: `${analyticsMetricsData.interactionRate.toFixed(2)}%`,
-            },
+            { metric: t('analytics.averageRating') || 'Note moyenne', value: `${analyticsMetricsData.averageRating.toFixed(2)}/5` },
+            { metric: t('analytics.export.totalReviews') || 'Total avis', value: analyticsMetricsData.totalReviews },
+            { metric: t('analytics.engagementRate') || 'Taux d\'engagement', value: `${engagementRate.toFixed(2)}%` },
+            { metric: t('analytics.activeUsers') || 'Utilisateurs actifs', value: analyticsMetricsData.activeUsers },
+            { metric: t('analytics.inactiveUsers') || 'Utilisateurs inactifs', value: analyticsMetricsData.inactiveUsers || 0 },
+            { metric: t('analytics.totalUsers') || 'Total utilisateurs', value: analyticsMetricsData.totalUsers },
+            { metric: t('analytics.export.averageSessionTimeMinutes') || 'Temps moyen de session (min)', value: analyticsMetricsData.averageSessionTimeMinutes.toFixed(2) },
+            { metric: t('analytics.activeSessions') || 'Sessions actives', value: analyticsMetricsData.activeSessions },
+            { metric: t('analytics.export.interactionRate') || 'Taux d\'interaction', value: `${analyticsMetricsData.interactionRate.toFixed(2)}%` },
           ],
         })
       }
 
-      // Section 2: Statistiques de comparaison
-      sections.push({
-        title: t('analytics.export.sections.comparison_stats') || "Statistiques de Comparaison",
+      // Feuille 2: Statistiques de comparaison
+      excelSheets.push({
+        name: "Statistiques Comparaison",
+        headers: [
+          { key: "metric", label: "Métrique", width: 30 },
+          { key: "mois_actuel", label: "Mois Actuel", width: 20 },
+          { key: "mois_precedent", label: "Mois Précédent", width: 20 },
+        ],
         data: [
-          {
-            [t('dashboard.comparison.metrics.registrations') || 'Inscriptions']: `${comparisonStats.registrationsCurrentPeriod} (${comparisonStats.registrationsPreviousPeriod})`,
-            [t('dashboard.comparison.metrics.completion_rate') || 'Taux de complétion']: `${comparisonStats.completionRateCurrentPeriod.toFixed(2)}% (${comparisonStats.completionRatePreviousPeriod.toFixed(2)}%)`,
-            [t('dashboard.comparison.metrics.courses_created') || 'Cours créés']: `${comparisonStats.coursesCreatedCurrentPeriod} (${comparisonStats.coursesCreatedPreviousPeriod})`,
-            [t('dashboard.comparison.metrics.active_users') || 'Utilisateurs actifs']: `${comparisonStats.activeUsersCurrentPeriod} (${comparisonStats.activeUsersPreviousPeriod})`,
-            [t('dashboard.comparison.metrics.inactive_users') || 'Utilisateurs inactifs']: `${comparisonStats.inactiveUsersCurrentPeriod} (${comparisonStats.inactiveUsersPreviousPeriod})`,
+          { 
+            metric: t('dashboard.comparison.metrics.registrations') || 'Inscriptions',
+            mois_actuel: comparisonStats.registrationsCurrentPeriod,
+            mois_precedent: comparisonStats.registrationsPreviousPeriod,
+          },
+          { 
+            metric: t('dashboard.comparison.metrics.completion_rate') || 'Taux de complétion',
+            mois_actuel: `${comparisonStats.completionRateCurrentPeriod.toFixed(2)}%`,
+            mois_precedent: `${comparisonStats.completionRatePreviousPeriod.toFixed(2)}%`,
+          },
+          { 
+            metric: t('dashboard.comparison.metrics.courses_created') || 'Cours créés',
+            mois_actuel: comparisonStats.coursesCreatedCurrentPeriod,
+            mois_precedent: comparisonStats.coursesCreatedPreviousPeriod,
+          },
+          { 
+            metric: t('dashboard.comparison.metrics.active_users') || 'Utilisateurs actifs',
+            mois_actuel: comparisonStats.activeUsersCurrentPeriod,
+            mois_precedent: comparisonStats.activeUsersPreviousPeriod,
+          },
+          { 
+            metric: t('dashboard.comparison.metrics.inactive_users') || 'Utilisateurs inactifs',
+            mois_actuel: comparisonStats.inactiveUsersCurrentPeriod,
+            mois_precedent: comparisonStats.inactiveUsersPreviousPeriod,
           },
         ],
       })
 
-      // Section 3: Métriques de temps d'apprentissage
+      // Feuille 3: Métriques de temps d'apprentissage
       if (learningTimeMetrics) {
-        sections.push({
-          title: t('analytics.export.sections.learning_time') || "Métriques de Temps d'Apprentissage",
+        excelSheets.push({
+          name: "Temps d'Apprentissage",
+          headers: [
+            { key: "metric", label: "Métrique", width: 35 },
+            { key: "value", label: "Valeur", width: 25 },
+          ],
           data: [
-            {
-              [t('analytics.learning_time.average_time_per_course') || 'Temps moyen par cours (min)']: Math.round(learningTimeMetrics.averageTimePerCourseMinutes),
-              [t('analytics.learning_time.active_sessions') || 'Sessions actives']: learningTimeMetrics.activeSessions,
-              [t('analytics.learning_time.average_time_per_learner') || 'Temps moyen par apprenant (min)']: Math.round(learningTimeMetrics.averageTimePerLearnerMinutes),
-              [t('analytics.learning_time.courses_with_activity') || 'Cours avec activité']: learningTimeMetrics.coursesWithActivity,
-              [t('analytics.learning_time.active_learners') || 'Apprenants actifs']: learningTimeMetrics.learnersWithActivity,
-            },
+            { metric: t('analytics.learning_time.average_time_per_course') || 'Temps moyen par cours (min)', value: Math.round(learningTimeMetrics.averageTimePerCourseMinutes) },
+            { metric: t('analytics.learning_time.active_sessions') || 'Sessions actives', value: learningTimeMetrics.activeSessions },
+            { metric: t('analytics.learning_time.average_time_per_learner') || 'Temps moyen par apprenant (min)', value: Math.round(learningTimeMetrics.averageTimePerLearnerMinutes) },
+            { metric: t('analytics.learning_time.courses_with_activity') || 'Cours avec activité', value: learningTimeMetrics.coursesWithActivity },
+            { metric: t('analytics.learning_time.active_learners') || 'Apprenants actifs', value: learningTimeMetrics.learnersWithActivity },
           ],
         })
       }
 
-      // Section 4: Croissance des utilisateurs
+      // Feuille 4: Croissance des utilisateurs
       if (userGrowthData && userGrowthData.length > 0) {
-        sections.push({
-          title: t('analytics.export.sections.user_growth') || "Croissance des Utilisateurs",
+        excelSheets.push({
+          name: "Croissance Utilisateurs",
+          headers: [
+            { key: "date", label: t('analytics.export.date') || 'Date', width: 15 },
+            { key: "new_users", label: t('analytics.charts.user_growth.new_users') || 'Nouveaux utilisateurs', width: 20 },
+            { key: "total_users", label: t('analytics.charts.user_growth.total_cumulative') || 'Total utilisateurs', width: 20 },
+          ],
           data: userGrowthData.map((point) => ({
-            [t('analytics.export.date') || 'Date']: point.date,
-            [t('analytics.charts.user_growth.new_users') || 'Nouveaux utilisateurs']: point.newUsers,
-            [t('analytics.charts.user_growth.total_cumulative') || 'Total utilisateurs']: point.totalUsers,
+            date: point.date,
+            new_users: point.newUsers,
+            total_users: point.totalUsers,
           })),
         })
       }
 
-      // Section 5: Performance des cours
+      // Feuille 5: Performance des cours
       if (coursePerformanceData && coursePerformanceData.length > 0) {
-        sections.push({
-          title: t('analytics.export.sections.course_performance') || "Performance des Cours",
+        excelSheets.push({
+          name: "Performance Cours",
+          headers: [
+            { key: "course_title", label: t('analytics.export.courseTitle') || 'Titre du cours', width: 40 },
+            { key: "enrollments", label: t('analytics.export.enrollments') || 'Inscriptions', width: 15 },
+            { key: "completion_rate", label: t('analytics.export.completionRate') || 'Taux de complétion (%)', width: 20 },
+            { key: "average_rating", label: t('analytics.export.averageRating') || 'Note moyenne', width: 15 },
+            { key: "period", label: t('analytics.export.period') || 'Période', width: 15 },
+          ],
           data: coursePerformanceData.map((point) => ({
-            [t('analytics.export.courseTitle') || 'Titre du cours']: point.courseTitle,
-            [t('analytics.export.enrollments') || 'Inscriptions']: point.enrollments,
-            [t('analytics.export.completionRate') || 'Taux de complétion (%)']: point.completionRate.toFixed(2),
-            [t('analytics.export.averageRating') || 'Note moyenne']: point.averageRating.toFixed(2),
-            [t('analytics.export.period') || 'Période']: point.period,
+            course_title: point.courseTitle,
+            enrollments: point.enrollments,
+            completion_rate: point.completionRate.toFixed(2),
+            average_rating: point.averageRating.toFixed(2),
+            period: point.period,
           })),
         })
       }
 
-      // Générer le CSV
-      const csvContent = exportStatisticsToCSV(sections)
-
-      // Télécharger le fichier
+      // Générer le fichier Excel
       const timestamp = new Date().toISOString().split('T')[0]
-      downloadCSV(csvContent, `statistiques-analytics-${timestamp}`)
+      exportToExcel(excelSheets, `statistiques-analytics-${timestamp}`)
 
       toast({
         title: t('analytics.export.success.title') || "Export réussi",
-        description: t('analytics.export.success.description') || "Les statistiques ont été exportées en CSV",
+        description: t('analytics.export.success.description') || "Les statistiques ont été exportées en Excel",
       })
     } catch (err: any) {
-      console.error("Error exporting CSV:", err)
+      console.error("Error exporting Excel:", err)
       toast({
         title: t('analytics.export.error.title') || "Erreur d'export",
         description: err.message || t('analytics.export.error.description') || "Impossible d'exporter les statistiques",
@@ -181,6 +222,12 @@ export function AnalyticsDashboard() {
   // Métriques spécifiques à l'analytics (dynamiques depuis le backend)
   const analyticsMetrics = useMemo(() => {
     if (!analyticsMetricsData) return []
+    
+    // Calculer le taux d'engagement : (apprenants actifs / total apprenants) * 100
+    const engagementRate = analyticsMetricsData.totalUsers > 0 
+      ? (analyticsMetricsData.activeUsers / analyticsMetricsData.totalUsers) * 100 
+      : 0
+    
     return [
       {
         title: t("analytics.averageRating"),
@@ -191,7 +238,7 @@ export function AnalyticsDashboard() {
       },
       {
         title: t("analytics.engagementRate"),
-        value: `${analyticsMetricsData.engagementRate.toFixed(1)}%`,
+        value: `${engagementRate.toFixed(1)}%`,
         change: `${analyticsMetricsData.activeUsers.toLocaleString("fr-FR")} ${t("analytics.activeUsers")} / ${analyticsMetricsData.inactiveUsers?.toLocaleString("fr-FR") || 0} ${t("analytics.inactiveUsers") || "Inactifs"} / ${analyticsMetricsData.totalUsers.toLocaleString("fr-FR")} ${t("analytics.totalUsers")}`,
         icon: TrendingUp,
         color: "text-[hsl(var(--warning))]",
@@ -204,7 +251,7 @@ export function AnalyticsDashboard() {
       <div className="flex justify-end gap-2 mb-4 no-print">
         <Button onClick={handleExportCSV} disabled={exporting || loading} className="flex items-center gap-2">
           <Download className="h-4 w-4" />
-          {exporting ? (t('analytics.export.exporting') || "Export en cours...") : (t('analytics.export.button') || "Exporter en CSV")}
+          {exporting ? (t('analytics.export.exporting') || "Export en cours...") : (t('analytics.export.button') || "Exporter en Excel")}
         </Button>
         <Button onClick={handlePrint} className="flex items-center gap-2">
           <Printer className="h-4 w-4" />

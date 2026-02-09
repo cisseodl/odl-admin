@@ -51,24 +51,27 @@ export function EnrollmentProgressionChart() {
       setError(null)
       try {
         let timeframe = "7-days"
+        let startDate: Date
+        let endDate: Date = new Date()
         
         if (timeFilter === "week") {
           timeframe = "7-days"
+          startDate = startOfWeek(new Date(), { weekStartsOn: 1 })
+          endDate = endOfWeek(new Date(), { weekStartsOn: 1 })
         } else if (timeFilter === "month") {
           timeframe = "30-days"
+          startDate = startOfMonth(new Date())
+          endDate = endOfMonth(new Date())
         } else {
           timeframe = "1-year"
+          startDate = startOfYear(new Date())
+          endDate = endOfYear(new Date())
         }
 
         const result = await analyticsService.getUserGrowthData(timeframe)
         
-        // Transformer les données pour correspondre aux jours de la semaine actuelle
+        // Transformer les données selon le filtre
         const enrollmentMap = new Map<string, number>()
-        
-        // Obtenir la semaine actuelle
-        const now = new Date()
-        const weekStart = startOfWeek(now, { weekStartsOn: 1 })
-        const weekEnd = endOfWeek(now, { weekStartsOn: 1 })
         
         result.forEach((point: UserGrowthDataPoint) => {
           try {
@@ -82,9 +85,16 @@ export function EnrollmentProgressionChart() {
               pointDate = new Date(point.date)
             }
             
-            // Vérifier si la date est dans la semaine actuelle
-            if (pointDate >= weekStart && pointDate <= weekEnd) {
-              const dayKey = format(pointDate, "EEE", { locale: fr })
+            // Vérifier si la date est dans la période sélectionnée
+            if (pointDate >= startDate && pointDate <= endDate) {
+              let dayKey: string
+              if (timeFilter === "week") {
+                dayKey = format(pointDate, "EEE", { locale: fr })
+              } else if (timeFilter === "month") {
+                dayKey = format(pointDate, "dd/MM", { locale: fr })
+              } else { // year
+                dayKey = format(pointDate, "MMM", { locale: fr })
+              }
               const currentCount = enrollmentMap.get(dayKey) || 0
               enrollmentMap.set(dayKey, currentCount + (point.newUsers || 0))
             }
@@ -93,13 +103,40 @@ export function EnrollmentProgressionChart() {
           }
         })
 
-        // Créer les données pour chaque jour de la semaine
-        const chartData: EnrollmentDataPoint[] = getWeekDays.map(({ day, dayFull, date }) => ({
-          day,
-          dayFull,
-          date,
-          enrollments: enrollmentMap.get(day) || 0,
-        }))
+        // Créer les données selon le filtre
+        let chartData: EnrollmentDataPoint[] = []
+        if (timeFilter === "week") {
+          chartData = getWeekDays.map(({ day, dayFull, date }) => ({
+            day,
+            dayFull,
+            date,
+            enrollments: enrollmentMap.get(day) || 0,
+          }))
+        } else if (timeFilter === "month") {
+          const daysInMonth = Array.from({ length: endDate.getDate() }, (_, i) => {
+            const d = new Date(startDate)
+            d.setDate(i + 1)
+            return d
+          })
+          chartData = daysInMonth.map((date) => ({
+            day: format(date, "dd/MM", { locale: fr }),
+            dayFull: format(date, "EEEE dd MMMM", { locale: fr }),
+            date,
+            enrollments: enrollmentMap.get(format(date, "dd/MM", { locale: fr })) || 0,
+          }))
+        } else { // year
+          const monthsInYear = Array.from({ length: 12 }, (_, i) => {
+            const d = new Date(startDate)
+            d.setMonth(i)
+            return d
+          })
+          chartData = monthsInYear.map((date) => ({
+            day: format(date, "MMM", { locale: fr }),
+            dayFull: format(date, "MMMM yyyy", { locale: fr }),
+            date,
+            enrollments: enrollmentMap.get(format(date, "MMM", { locale: fr })) || 0,
+          }))
+        }
 
         setData(chartData)
       } catch (err: any) {

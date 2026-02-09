@@ -29,7 +29,7 @@ export function StatCard({ title, value, change, icon: Icon, color, className, c
         <div className="text-2xl font-bold leading-tight">{value}</div>
         {change && (
           <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-            <span className={change.startsWith("+") ? "text-[hsl(var(--success))]" : "text-destructive"}>{change}</span> {t('analytics.compared_to_last_month')}
+            {change}
           </p>
         )}
       </CardContent>
