@@ -156,7 +156,7 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
       return {
         name: metric.label,
         "Mois précédent": previousNum,
-        "Mois courant": currentNum,
+        "Mois actuel": currentNum,
       }
     })
   }, [metrics])
@@ -218,8 +218,8 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
                   if (value === 'Mois précédent') {
                     return t('dashboard.comparison.previous_period') || "Mois précédent"
                   }
-                  if (value === 'Mois courant') {
-                    return t('dashboard.comparison.current_period') || "Mois courant"
+                  if (value === 'Mois actuel') {
+                    return t('dashboard.comparison.current_period') || "Mois actuel"
                   }
                   return value
                 }}
@@ -228,15 +228,15 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
                 dataKey="Mois précédent" 
                 name="Mois précédent"
                 radius={[0, 4, 4, 0]}
-                barSize={30}
+                barSize={20}
                 fill="#9333ea"
               />
               <Bar 
-                dataKey="Mois courant" 
-                name="Mois courant"
+                dataKey="Mois actuel" 
+                name="Mois actuel"
                 radius={[0, 4, 4, 0]}
-                barSize={30}
-                fill="#ea580c"
+                barSize={20}
+                fill="#16a34a"
               />
             </BarChart>
           </ResponsiveContainer>
