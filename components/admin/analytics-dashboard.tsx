@@ -7,7 +7,6 @@ import { UserGrowthChart } from "./user-growth-chart"
 import { StatCard } from "@/components/shared/stat-card"
 import { ReportCard } from "@/components/admin/reports/report-card"
 import { LearnerProgressList } from "./learner-progress-list" // Import the new component
-import { EnrollmentProgressionChart } from "./enrollment-progression-chart"
 import {
   TrendingUp,
   GraduationCap,
@@ -211,9 +210,6 @@ export function AnalyticsDashboard() {
           {t('analytics.print_button')}
         </Button>
       </div>
-
-      {/* Graphique KPI - Nombre d'inscrits */}
-      <EnrollmentProgressionChart />
 
       {/* Graphiques principaux */}
       <div className="grid gap-6 lg:grid-cols-2">

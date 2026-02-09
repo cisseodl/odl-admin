@@ -8,7 +8,7 @@ import { useEffect, useState, useMemo, useCallback } from "react"; // Ajout de u
 import { analyticsService, OverallComparisonStats } from "@/services/analytics.service"; // Corrected Import service et type
 import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend, Cell } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from "recharts"
 
 type ComparisonMetric = {
   label: string
@@ -145,26 +145,21 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
     ];
   }, [statsData, t]);
 
-  // Préparer les données pour le graphique avec couleurs par métrique
+  // Préparer les données pour le graphique horizontal avec libellés sur Y et mois sur X
   const chartData = useMemo(() => {
     if (!metrics || metrics.length === 0) return [];
     
-    return metrics.map((metric, index) => {
+    return metrics.map((metric) => {
       const currentNum = typeof metric.current === "string" ? parseFloat(metric.current.replace(/[^\d.-]/g, "")) : metric.current
       const previousNum = typeof metric.previous === "string" ? parseFloat(metric.previous.replace(/[^\d.-]/g, "")) : metric.previous
-      const { percentage } = calculateChange(currentNum, previousNum)
-      const colors = metricColors[index % metricColors.length]
       
       return {
         name: metric.label,
-        current: currentNum,
-        previous: previousNum,
-        change: percentage,
-        currentColor: colors.currentHex,
-        previousColor: colors.previousHex,
+        "Mois précédent": previousNum,
+        "Mois courant": currentNum,
       }
     })
-  }, [metrics, calculateChange])
+  }, [metrics])
 
   // Removed periodLabel as period is no longer a prop
   const periodLabel = t('dashboard.comparison.previous_period'); // Default label
@@ -195,24 +190,21 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={chartData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+              layout="vertical"
+              margin={{ top: 20, right: 80, left: 150, bottom: 20 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="name" 
-                angle={-45}
-                textAnchor="end"
-                height={100}
+              <XAxis type="number" />
+              <YAxis 
+                type="category" 
+                dataKey="name"
+                width={140}
                 tick={{ fontSize: 12 }}
               />
-              <YAxis />
               <ChartTooltip 
                 content={<ChartTooltipContent 
                   formatter={(value: any, name: string, props: any) => {
-                    const metric = metrics.find(m => {
-                      const label = m.label
-                      return chartData.find(d => d.name === label)?.name === props.payload?.name
-                    })
+                    const metric = metrics.find(m => m.label === props.payload?.name)
                     if (metric) {
                       return formatValue(value, metric.format, metric.unit)
                     }
@@ -223,47 +215,29 @@ export function ComparisonStats({ title, description }: ComparisonStatsProps) { 
               />
               <Legend 
                 formatter={(value) => {
-                  if (value === 'previous') {
-                    return t('dashboard.comparison.previous_period') || "Période précédente"
+                  if (value === 'Mois précédent') {
+                    return t('dashboard.comparison.previous_period') || "Mois précédent"
                   }
-                  if (value === 'current') {
-                    return t('dashboard.comparison.current_period') || "Période actuelle"
+                  if (value === 'Mois courant') {
+                    return t('dashboard.comparison.current_period') || "Mois courant"
                   }
                   return value
                 }}
               />
               <Bar 
-                dataKey="previous" 
-                name="previous"
-                radius={[4, 4, 0, 0]}
-              >
-                {chartData.map((entry, index) => {
-                  // Les deux dernières barres (dernière métrique) doivent être orange et grise
-                  if (index === chartData.length - 1) {
-                    return <Cell key={`cell-previous-${index}`} fill="#94a3b8" />; // Gris pour période précédente
-                  }
-                  const colors = metricColors[index % metricColors.length]
-                  return (
-                    <Cell key={`cell-previous-${index}`} fill={colors.previousHex} />
-                  )
-                })}
-              </Bar>
+                dataKey="Mois précédent" 
+                name="Mois précédent"
+                radius={[0, 4, 4, 0]}
+                barSize={30}
+                fill="#9333ea"
+              />
               <Bar 
-                dataKey="current" 
-                name="current"
-                radius={[4, 4, 0, 0]}
-              >
-                {chartData.map((entry, index) => {
-                  // Les deux dernières barres (dernière métrique) doivent être orange et grise
-                  if (index === chartData.length - 1) {
-                    return <Cell key={`cell-current-${index}`} fill="#ea580c" />; // Orange pour période actuelle
-                  }
-                  const colors = metricColors[index % metricColors.length]
-                  return (
-                    <Cell key={`cell-current-${index}`} fill={colors.currentHex} />
-                  )
-                })}
-              </Bar>
+                dataKey="Mois courant" 
+                name="Mois courant"
+                radius={[0, 4, 4, 0]}
+                barSize={30}
+                fill="#ea580c"
+              />
             </BarChart>
           </ResponsiveContainer>
         </ChartContainer>
