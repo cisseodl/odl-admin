@@ -20,12 +20,12 @@ export default function InstructorDashboard() {
 
       <InstructorDashboardStats />
 
-      {/* Graphique de performance des cours (Note moyenne) */}
+      {/* Graphique de performance des cours */}
       {user && !authLoading && (
         <Card>
           <CardHeader>
             <CardTitle>{t('instructor.dashboard.average_rating_chart.title')}</CardTitle>
-            <CardDescription>{t('instructor.dashboard.average_rating_chart.description')}</CardDescription>
+            <CardDescription>Notes attribués par formation</CardDescription>
           </CardHeader>
           <CardContent>
             <CoursePerformanceChart />

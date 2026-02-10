@@ -16,7 +16,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { Eye, Edit, Trash2, Tag, BookOpen, FileText, Plus } from "lucide-react"
 import type { CategoryFormData } from "@/lib/validations/category"
 import { Categorie } from "@/models"
-import { categorieService } from "@/services"
+import { categorieService, courseService } from "@/services"
 import { PageLoader } from "@/components/ui/page-loader"
 import { Card, CardContent } from "@/components/ui/card"
 
@@ -51,10 +51,29 @@ export default function InstructorCategoriesPage() {
     setLoading(true)
     setError(null)
     try {
-      const response = await categorieService.getAllCategories()
-      const categoriesData = Array.isArray(response) ? response : response?.data || []
+      // Récupérer les catégories et les cours en parallèle
+      const [categoriesResponse, coursesResponse] = await Promise.all([
+        categorieService.getAllCategories(),
+        courseService.getAllCourses({})
+      ])
+      
+      const categoriesData = Array.isArray(categoriesResponse) ? categoriesResponse : categoriesResponse?.data || []
+      const coursesData = Array.isArray(coursesResponse) ? coursesResponse : coursesResponse?.data || []
+      
+      // Compter le nombre de cours par catégorie
+      const courseCountByCategory = new Map<number, number>()
+      coursesData.forEach((course: any) => {
+        const categoryId = course.categorie?.id || course.categoryId
+        if (categoryId) {
+          courseCountByCategory.set(categoryId, (courseCountByCategory.get(categoryId) || 0) + 1)
+        }
+      })
+      
       if (categoriesData.length > 0) {
-        setCategories(categoriesData.map(mapCategorieToCategoryDisplay))
+        setCategories(categoriesData.map((cat: Categorie) => ({
+          ...mapCategorieToCategoryDisplay(cat),
+          courses: courseCountByCategory.get(cat.id || 0) || 0
+        })))
       } else {
         setCategories([])
       }

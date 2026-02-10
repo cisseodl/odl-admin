@@ -49,13 +49,18 @@ type ContentDisplay = {
 }
 
   // Helper function to map LabDefinition to ContentDisplay
-const mapLabDefinitionToContentDisplay = (lab: LabDefinition): ContentDisplay => {
+const mapLabDefinitionToContentDisplay = (lab: any): ContentDisplay => {
+  // Récupérer les informations de la leçon si disponibles
+  const lesson = (lab as any).lesson || null;
+  const module = lesson?.module || null;
+  const course = module?.course || lesson?.course || null;
+  
   return {
     id: lab.id || 0,
     title: lab.title,
     type: "Lab", // Hardcode type for LabDefinition
-    course: "Lab Course", // Placeholder, as not in LabDefinition model
-    module: "Lab Module", // Placeholder, as not in LabDefinition model
+    course: course?.title || "N/A", // Récupérer depuis la leçon/module/cours
+    module: module?.title || "N/A", // Récupérer depuis la leçon/module
     duration: lab.estimated_duration_minutes ? `${lab.estimated_duration_minutes} min` : "N/A",
     size: "N/A", // Placeholder, as not in LabDefinition model
     uploadDate: lab.createdAt ? new Date(lab.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) : "",

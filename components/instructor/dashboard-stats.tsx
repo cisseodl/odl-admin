@@ -3,7 +3,7 @@
 import { useLanguage } from "@/contexts/language-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PageLoader } from "@/components/ui/page-loader"
-import { BookOpen, Users, TrendingUp, Award, Star } from "lucide-react"
+import { BookOpen, Users, TrendingUp, Award } from "lucide-react"
 import { useEffect, useState } from "react"; // Added useState and useEffect
 import { analyticsService, InstructorDashboardStats } from "@/services/analytics.service"; // Import analyticsService and InstructorDashboardStats type
 
@@ -52,17 +52,24 @@ export function InstructorDashboardStats() {
       color: "text-[hsl(var(--success))]",
     },
     {
-      title: t('instructor.dashboard.stats.average_rating'),
-      value: summary?.averageRating !== undefined ? summary.averageRating.toFixed(1) : "...",
-      change: summary?.newComments !== undefined ? `${summary.newComments} ${t('instructor.dashboard.stats.new_comments')}` : "...",
-      icon: Star,
+      title: t('instructor.dashboard.stats.certified_by_module'),
+      value: summary?.totalCertificatesByModule !== undefined ? summary.totalCertificatesByModule.toLocaleString("fr-FR") : "...",
+      change: t('instructor.dashboard.stats.total_certificates') || "certificats délivrés",
+      icon: Award,
+      color: "text-[hsl(var(--success))]",
+    },
+    {
+      title: t('instructor.dashboard.stats.active_learners'),
+      value: summary?.activeLearners !== undefined ? summary.activeLearners.toLocaleString("fr-FR") : "...",
+      change: t('instructor.dashboard.stats.last_30_days') || "30 derniers jours",
+      icon: Users,
       color: "text-[hsl(var(--info))]",
     },
     {
       title: t('instructor.dashboard.stats.completion_rate'),
       value: summary?.averageCompletionRate !== undefined ? `${summary.averageCompletionRate.toFixed(1)}%` : "...",
-      change: summary?.activeLearners !== undefined ? `${summary.activeLearners} ${t('instructor.dashboard.stats.active_learners')}` : "...",
-      icon: Award,
+      change: summary?.totalEnrollments !== undefined ? `${summary.totalEnrollments} ${t('instructor.dashboard.stats.total_enrollments') || 'inscriptions totales'}` : "...",
+      icon: TrendingUp,
       color: "text-[hsl(var(--success))]",
     },
   ]

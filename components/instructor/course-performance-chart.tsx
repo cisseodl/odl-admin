@@ -129,9 +129,10 @@ export function CoursePerformanceChart() {
               radius={[8, 8, 0, 0]}
               animationDuration={800}
               animationBegin={0}
+              fill="hsl(var(--chart-1))"
             >
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell key={`cell-${index}`} fill="hsl(var(--chart-1))" />
               ))}
             </Bar>
           </BarChart>

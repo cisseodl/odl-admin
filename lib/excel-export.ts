@@ -73,9 +73,19 @@ export function exportToExcel(sheets: ExcelSheet[], filename: string): void {
     }
     worksheet['!cols'] = colWidths
 
-    // Définir la hauteur de la ligne d'en-tête
+    // Définir la hauteur de la ligne d'en-tête et des lignes de données
     if (worksheetArray.length > 0) {
-      worksheet['!rows'] = [{ hpt: 30 }] // Hauteur pour l'en-tête
+      const rows: { hpt: number }[] = []
+      rows.push({ hpt: 30 }) // Hauteur pour l'en-tête
+      // Hauteur pour la ligne de séparation (vide)
+      if (worksheetArray.length > 1 && worksheetArray[1].length === 0) {
+        rows.push({ hpt: 5 })
+      }
+      // Hauteur standard pour les lignes de données
+      for (let i = 2; i < worksheetArray.length; i++) {
+        rows.push({ hpt: 20 })
+      }
+      worksheet['!rows'] = rows
     }
 
     // Ajouter la feuille au classeur

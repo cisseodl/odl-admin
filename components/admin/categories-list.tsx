@@ -19,7 +19,7 @@ import { Eye, Edit, Trash2, Tag, BookOpen, FileText } from "lucide-react"
 import type { CategoryFormData } from "@/lib/validations/category"
 
 import { Categorie } from "@/models"; // Import Categorie from models/index.ts
-import { categorieService } from "@/services"; // Import categorieService from services/index.ts
+import { categorieService, courseService } from "@/services"; // Import categorieService and courseService from services/index.ts
 import { useEffect } from "react";
 import { PageLoader } from "@/components/ui/page-loader";
 
@@ -37,7 +37,7 @@ const mapCategorieToCategoryDisplay = (categorie: Categorie): CategoryDisplay =>
     id: categorie.id || 0,
     title: categorie.title || "",
     description: categorie.description || "",
-    courses: 0, // Placeholder
+    courses: 0, // Will be set when fetching categories with course count
   };
 };
 
@@ -59,12 +59,31 @@ export function CategoriesList() {
       setLoading(true);
       setError(null);
       try {
-        const response = await categorieService.getAllCategories();
-        const categoriesData = Array.isArray(response) ? response : (response?.data || []);
+        // Récupérer les catégories et les cours en parallèle
+        const [categoriesResponse, coursesResponse] = await Promise.all([
+          categorieService.getAllCategories(),
+          courseService.getAllCourses({})
+        ]);
+        
+        const categoriesData = Array.isArray(categoriesResponse) ? categoriesResponse : (categoriesResponse?.data || []);
+        const coursesData = Array.isArray(coursesResponse) ? coursesResponse : (coursesResponse?.data || []);
+        
+        // Compter le nombre de cours par catégorie
+        const courseCountByCategory = new Map<number, number>();
+        coursesData.forEach((course: any) => {
+          const categoryId = course.categorie?.id || course.categoryId;
+          if (categoryId) {
+            courseCountByCategory.set(categoryId, (courseCountByCategory.get(categoryId) || 0) + 1);
+          }
+        });
+        
         if (categoriesData.length > 0) {
-          setCategories(categoriesData.map(mapCategorieToCategoryDisplay));
+          setCategories(categoriesData.map((cat: Categorie) => ({
+            ...mapCategorieToCategoryDisplay(cat),
+            courses: courseCountByCategory.get(cat.id || 0) || 0
+          })));
         } else {
-          console.error("Unexpected response structure:", response);
+          console.error("Unexpected response structure:", categoriesResponse);
           setCategories([]);
         }
       } catch (err: any) {
@@ -80,7 +99,7 @@ export function CategoriesList() {
       }
     };
     fetchCategories();
-  }, [toast]); // Empty dependency array means this runs once on mount
+  }, [toast, t]); // Added t to dependencies
 
 
   const { searchQuery, setSearchQuery, filteredData } = useSearch<CategoryDisplay>({
