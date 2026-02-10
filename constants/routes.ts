@@ -109,11 +109,6 @@ export const instructorRoutes: Route[] = [
     href: "/instructor",
   },
   {
-    label: "routes.analytics",
-    icon: BarChart3,
-    href: "/instructor/analytics",
-  },
-  {
     label: "routes.instructor_categories",
     icon: Tag,
     href: "/instructor/categories",

@@ -127,8 +127,8 @@ export function StudentsTracker() {
               // TODO: Implémenter un endpoint backend pour récupérer la progression réelle
               const student: Student = {
                 id: apprenant.id || 0,
-                name: `${apprenant.prenom || ''} ${apprenant.nom || ''}`.trim(),
-                email: apprenant.email || "",
+                name: apprenant.username || apprenant.fullName || `${apprenant.prenom || ''} ${apprenant.nom || ''}`.trim() || "N/A",
+                email: apprenant.userEmail || apprenant.email || "",
                 course: fullCourse.title || course.title || "N/A",
                 courseId: course.id, // Ajout de courseId pour le filtrage
                 progress: 0, // Progression réelle à calculer depuis l'API
@@ -136,7 +136,7 @@ export function StudentsTracker() {
                 completedModules: 0, // Modules complétés à récupérer depuis l'API
                 totalModules: totalModules,
                 lastActivity: new Date(apprenant.updatedAt || apprenant.createdAt || Date.now()).toLocaleDateString("fr-FR", { year: 'numeric', month: 'short', day: 'numeric' }),
-                avatar: undefined,
+                avatar: apprenant.avatar || undefined,
               };
               
               mappedStudents.push(student);
@@ -145,8 +145,8 @@ export function StudentsTracker() {
               // Ajouter quand même l'étudiant avec des données partielles
               const student: Student = {
                 id: apprenant.id || 0,
-                name: `${apprenant.prenom || ''} ${apprenant.nom || ''}`.trim(),
-                email: apprenant.email || "",
+                name: apprenant.username || apprenant.fullName || `${apprenant.prenom || ''} ${apprenant.nom || ''}`.trim() || "N/A",
+                email: apprenant.userEmail || apprenant.email || "",
                 course: course.title || "N/A",
                 courseId: course.id, // Ajout de courseId pour le filtrage
                 progress: 0,
@@ -154,7 +154,7 @@ export function StudentsTracker() {
                 completedModules: 0,
                 totalModules: 0,
                 lastActivity: new Date(apprenant.updatedAt || apprenant.createdAt || Date.now()).toLocaleDateString("fr-FR", { year: 'numeric', month: 'short', day: 'numeric' }),
-                avatar: undefined,
+                avatar: apprenant.avatar || undefined,
               };
               mappedStudents.push(student);
             }
