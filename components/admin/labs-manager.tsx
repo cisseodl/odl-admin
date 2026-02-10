@@ -285,15 +285,37 @@ export function LabsManager() {
       {
         accessorKey: "duration",
         header: "Durée",
-        cell: ({ row }) =>
-          row.original.duration && row.original.duration !== "N/A" ? (
-            <div className="flex items-center gap-1">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              {row.original.duration}
-            </div>
-          ) : (
-            "-"
-          ),
+        cell: ({ row }) => {
+          const duration = row.original.duration;
+          if (duration && duration !== "N/A" && duration !== "-") {
+            return (
+              <div className="flex items-center gap-1">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                {duration}
+              </div>
+            );
+          }
+          // Si pas de durée, essayer de récupérer depuis estimatedDurationMinutes ou maxDurationMinutes
+          const estimated = row.original.estimatedDurationMinutes;
+          const max = row.original.maxDurationMinutes;
+          if (estimated) {
+            return (
+              <div className="flex items-center gap-1">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                {estimated} min
+              </div>
+            );
+          }
+          if (max) {
+            return (
+              <div className="flex items-center gap-1">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                {max} min
+              </div>
+            );
+          }
+          return "-";
+        },
       },
       {
         accessorKey: "uploadDate",
