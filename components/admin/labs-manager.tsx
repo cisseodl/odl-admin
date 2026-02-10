@@ -53,15 +53,26 @@ const mapLabDefinitionToContentDisplay = (lab: any): ContentDisplay => {
   // Récupérer les informations de la leçon si disponibles
   const lesson = (lab as any).lesson || null;
   const module = lesson?.module || null;
+  // Le cours peut être dans module.course ou directement dans lesson.course
   const course = module?.course || lesson?.course || null;
+  
+  // Calculer la durée : utiliser estimated_duration_minutes, sinon max_duration_minutes, sinon la durée de la leçon
+  let durationDisplay = "N/A";
+  if (lab.estimated_duration_minutes) {
+    durationDisplay = `${lab.estimated_duration_minutes} min`;
+  } else if (lab.max_duration_minutes) {
+    durationDisplay = `${lab.max_duration_minutes} min`;
+  } else if (lesson?.duration) {
+    durationDisplay = `${lesson.duration} min`;
+  }
   
   return {
     id: lab.id || 0,
     title: lab.title,
     type: "Lab", // Hardcode type for LabDefinition
     course: course?.title || "N/A", // Récupérer depuis la leçon/module/cours
-    module: module?.title || "N/A", // Récupérer depuis la leçon/module
-    duration: lab.estimated_duration_minutes ? `${lab.estimated_duration_minutes} min` : "N/A",
+    module: module?.title || "N/A", // Récupérer depuis la leçon/module (gardé pour compatibilité mais ne sera pas affiché)
+    duration: durationDisplay,
     size: "N/A", // Placeholder, as not in LabDefinition model
     uploadDate: lab.createdAt ? new Date(lab.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) : "",
     status: lab.activate ? "Publié" : "Brouillon", // Assuming activate maps to status
@@ -269,17 +280,13 @@ export function LabsManager() {
       {
         accessorKey: "course",
         header: "Formation",
-      },
-      {
-        accessorKey: "module",
-        header: "Module",
-        cell: ({ row }) => row.original.module || "-",
+        cell: ({ row }) => row.original.course || "N/A",
       },
       {
         accessorKey: "duration",
         header: "Durée",
         cell: ({ row }) =>
-          row.original.duration ? (
+          row.original.duration && row.original.duration !== "N/A" ? (
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4 text-muted-foreground" />
               {row.original.duration}
