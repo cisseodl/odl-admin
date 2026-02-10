@@ -10,11 +10,11 @@ import { fetchApi } from "@/services/api.service"
 import { PageLoader } from "@/components/ui/page-loader"
 
 const COLORS = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
+  "hsl(var(--success))", // Vert pour toutes les barres
+  "hsl(var(--success))",
+  "hsl(var(--success))",
+  "hsl(var(--success))",
+  "hsl(var(--success))",
 ]
 
 export function CoursePerformanceChart() {
@@ -78,7 +78,7 @@ export function CoursePerformanceChart() {
         config={{
           averageRating: {
             label: t('instructor.analytics.performance.average_rating_label'),
-            color: "hsl(var(--chart-1))",
+            color: "hsl(var(--success))", // Vert
           },
         }}
         className="h-[280px] w-full"
@@ -129,10 +129,10 @@ export function CoursePerformanceChart() {
               radius={[8, 8, 0, 0]}
               animationDuration={800}
               animationBegin={0}
-              fill="hsl(var(--chart-1))"
+              fill="hsl(var(--success))"
             >
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill="hsl(var(--chart-1))" />
+                <Cell key={`cell-${index}`} fill="hsl(var(--success))" />
               ))}
             </Bar>
           </BarChart>
