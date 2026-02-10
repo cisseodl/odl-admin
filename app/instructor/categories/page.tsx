@@ -28,11 +28,11 @@ type CategoryDisplay = {
 }
 
 // Helper function to map Categorie to CategoryDisplay
-const mapCategorieToCategoryDisplay = (categorie: Categorie): CategoryDisplay => ({
+const mapCategorieToCategoryDisplay = async (categorie: Categorie): Promise<CategoryDisplay> => ({
   id: categorie.id,
   title: categorie.title,
   description: categorie.description || "",
-  courses: 0, // TODO: Get from backend if available
+  courses: categorie.id ? await categorieService.getCoursesCountByCategory(categorie.id) : 0,
 })
 
 export default function InstructorCategoriesPage() {
@@ -51,29 +51,14 @@ export default function InstructorCategoriesPage() {
     setLoading(true)
     setError(null)
     try {
-      // Récupérer les catégories et les cours en parallèle
-      const [categoriesResponse, coursesResponse] = await Promise.all([
-        categorieService.getAllCategories(),
-        courseService.getAllCourses({})
-      ])
-      
+      const categoriesResponse = await categorieService.getAllCategories()
       const categoriesData = Array.isArray(categoriesResponse) ? categoriesResponse : categoriesResponse?.data || []
-      const coursesData = Array.isArray(coursesResponse) ? coursesResponse : coursesResponse?.data || []
-      
-      // Compter le nombre de cours par catégorie
-      const courseCountByCategory = new Map<number, number>()
-      coursesData.forEach((course: any) => {
-        const categoryId = course.categorie?.id || course.categoryId
-        if (categoryId) {
-          courseCountByCategory.set(categoryId, (courseCountByCategory.get(categoryId) || 0) + 1)
-        }
-      })
       
       if (categoriesData.length > 0) {
-        setCategories(categoriesData.map((cat: Categorie) => ({
-          ...mapCategorieToCategoryDisplay(cat),
-          courses: courseCountByCategory.get(cat.id || 0) || 0
-        })))
+        // Mapper les catégories avec leurs comptes de cours
+        const mappedCategoriesPromises = categoriesData.map(mapCategorieToCategoryDisplay)
+        const mappedCategories = await Promise.all(mappedCategoriesPromises)
+        setCategories(mappedCategories)
       } else {
         setCategories([])
       }

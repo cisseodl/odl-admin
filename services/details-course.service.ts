@@ -33,7 +33,15 @@ export class DetailsCourseService {
       const response = await fetchApi<any>(`/details-course/course/${courseId}`, {
         method: "GET",
       });
-      return response.data || response || [];
+      // Le backend retourne CResponse avec structure { ok, data, message }
+      if (response && response.data !== undefined) {
+        return Array.isArray(response.data) ? response.data : (response.data ? [response.data] : []);
+      }
+      // Si la réponse est directement un tableau
+      if (Array.isArray(response)) {
+        return response;
+      }
+      return [];
     } catch (error) {
       console.error(`Error fetching details for course ${courseId}:`, error);
       return [];

@@ -57,11 +57,15 @@ export function StudentsTracker() {
       setLoading(true);
       setError(null);
       try {
+        console.log("[StudentsTracker] Début de la récupération des données...");
+        
         // Récupérer les cours de l'instructeur
         const courses = await courseService.getCoursesByInstructorId(Number(user.id));
+        console.log("[StudentsTracker] Cours récupérés:", courses?.length || 0, courses);
         setInstructorCourses(courses || []);
         
         if (!courses || courses.length === 0) {
+          console.log("[StudentsTracker] Aucun cours trouvé pour l'instructeur");
           setStudents([]);
           setAllStudents([]);
           setLoading(false);
@@ -72,6 +76,7 @@ export function StudentsTracker() {
         const courseIds = courses.map((c: any) => c.id);
         const allDetailsCourses: any[] = [];
         
+        console.log("[StudentsTracker] Récupération des détails pour", courseIds.length, "cours...");
         // Récupérer les détails pour chaque cours
         for (const courseId of courseIds) {
           try {
@@ -81,15 +86,20 @@ export function StudentsTracker() {
             } else if (details?.data && Array.isArray(details.data)) {
               allDetailsCourses.push(...details.data);
             }
+            console.log(`[StudentsTracker] Détails pour cours ${courseId}:`, Array.isArray(details) ? details.length : (details?.data?.length || 0));
           } catch (err) {
-            console.warn(`Failed to fetch details for course ${courseId}:`, err);
+            console.warn(`[StudentsTracker] Failed to fetch details for course ${courseId}:`, err);
           }
         }
 
+        console.log("[StudentsTracker] Total détails récupérés:", allDetailsCourses.length);
+
         // IDs utilisateur (User.id) des apprenants inscrits aux cours de l'instructeur
-        const learnerUserIds = [...new Set(allDetailsCourses.map(dc => dc.learnerId).filter(Boolean))];
+        const learnerUserIds = [...new Set(allDetailsCourses.map(dc => Number(dc.learnerId)).filter(id => id > 0))];
+        console.log("[StudentsTracker] Learner User IDs uniques:", learnerUserIds);
         
         if (learnerUserIds.length === 0) {
+          console.log("[StudentsTracker] Aucun learnerId trouvé dans les détails de cours");
           setStudents([]);
           setAllStudents([]);
           setLoading(false);
@@ -97,40 +107,81 @@ export function StudentsTracker() {
         }
 
         // Récupérer les apprenants via l'endpoint by-instructor (autorisé pour INSTRUCTOR)
+        // Le backend retourne déjà les apprenants filtrés par instructeur
         const allApprenants = await apprenantService.getApprenantsByInstructor();
-        const relevantApprenants = (Array.isArray(allApprenants) ? allApprenants : []).filter(
-          (a: Apprenant & { userId?: number }) => a.userId != null && learnerUserIds.includes(a.userId)
-        );
+        console.log("[StudentsTracker] Apprenants récupérés depuis backend:", Array.isArray(allApprenants) ? allApprenants.length : 0);
+        console.log("[StudentsTracker] Apprenants détaillés:", allApprenants);
+        
+        if (!Array.isArray(allApprenants) || allApprenants.length === 0) {
+          console.log("[StudentsTracker] Aucun apprenant retourné par le backend");
+          setStudents([]);
+          setAllStudents([]);
+          setLoading(false);
+          return;
+        }
 
         // Mapper les apprenants avec leurs données de progression réelles
         // Pour chaque apprenant, trouver son cours et calculer sa progression
         const mappedStudents: Student[] = [];
         
-        for (const apprenant of relevantApprenants) {
-          const learnerUserId = (apprenant as Apprenant & { userId?: number }).userId ?? apprenant.id;
+        for (const apprenant of allApprenants) {
+          const learnerUserId = (apprenant as Apprenant & { userId?: number }).userId ? Number((apprenant as Apprenant & { userId?: number }).userId) : null;
+          if (!learnerUserId) {
+            console.warn(`[StudentsTracker] Apprenant ${apprenant.id} n'a pas de userId`);
+            continue;
+          }
+          
+          // Trouver les inscriptions de cet apprenant aux cours de l'instructeur
           const apprenantDetailsCourses = allDetailsCourses.filter(dc => 
-            dc.learnerId === learnerUserId
+            Number(dc.learnerId) === learnerUserId
           );
+          
+          console.log(`[StudentsTracker] Apprenant ${apprenant.id} (userId: ${learnerUserId}) a ${apprenantDetailsCourses.length} inscriptions`);
+          
+          // Si l'apprenant n'a aucune inscription trouvée, on l'ajoute quand même avec un cours par défaut
+          if (apprenantDetailsCourses.length === 0) {
+            console.warn(`[StudentsTracker] Apprenant ${apprenant.id} n'a pas d'inscription trouvée dans allDetailsCourses`);
+            // Utiliser le premier cours de l'instructeur comme fallback
+            if (courses.length > 0) {
+              const course = courses[0];
+              const student: Student = {
+                id: apprenant.id || 0,
+                name: apprenant.username || apprenant.fullName || `${apprenant.prenom || ''} ${apprenant.nom || ''}`.trim() || "N/A",
+                email: apprenant.userEmail || apprenant.email || "",
+                course: course.title || "N/A",
+                courseId: course.id,
+                progress: 0,
+                score: 0,
+                completedModules: 0,
+                totalModules: 0,
+                lastActivity: new Date(apprenant.updatedAt || apprenant.createdAt || Date.now()).toLocaleDateString("fr-FR", { year: 'numeric', month: 'short', day: 'numeric' }),
+                avatar: apprenant.avatar || undefined,
+              };
+              mappedStudents.push(student);
+            }
+            continue;
+          }
           
           // Pour chaque inscription de l'apprenant à un cours de l'instructeur
           for (const detail of apprenantDetailsCourses) {
-            const course = courses.find((c: any) => c.id === detail.courseId);
-            if (!course) continue;
+            const courseId = Number(detail.courseId);
+            const course = courses.find((c: any) => Number(c.id) === courseId);
+            if (!course) {
+              console.warn(`[StudentsTracker] Cours ${courseId} non trouvé dans la liste des cours de l'instructeur`);
+              continue;
+            }
             
             // Récupérer le cours complet avec modules pour calculer la progression
             try {
-              const fullCourse = await courseService.getCourseById(course.id);
-              const totalModules = fullCourse.modules?.length || fullCourse.curriculum?.length || 0;
+              const fullCourse = await courseService.getCourseById(courseId);
+              const totalModules = (fullCourse as any).modules?.length || (fullCourse as any).curriculum?.length || 0;
               
-              // Pour l'instant, on ne peut pas calculer la progression réelle sans endpoint dédié
-              // On utilise 0 pour la progression et les modules complétés
-              // TODO: Implémenter un endpoint backend pour récupérer la progression réelle
               const student: Student = {
                 id: apprenant.id || 0,
                 name: apprenant.username || apprenant.fullName || `${apprenant.prenom || ''} ${apprenant.nom || ''}`.trim() || "N/A",
                 email: apprenant.userEmail || apprenant.email || "",
                 course: fullCourse.title || course.title || "N/A",
-                courseId: course.id, // Ajout de courseId pour le filtrage
+                courseId: courseId, // Ajout de courseId pour le filtrage
                 progress: 0, // Progression réelle à calculer depuis l'API
                 score: 0, // Score réel à récupérer depuis l'API
                 completedModules: 0, // Modules complétés à récupérer depuis l'API
@@ -141,14 +192,14 @@ export function StudentsTracker() {
               
               mappedStudents.push(student);
             } catch (err) {
-              console.warn(`Failed to fetch full course ${course.id} for student ${apprenant.id}:`, err);
+              console.warn(`[StudentsTracker] Failed to fetch full course ${courseId} for student ${apprenant.id}:`, err);
               // Ajouter quand même l'étudiant avec des données partielles
               const student: Student = {
                 id: apprenant.id || 0,
                 name: apprenant.username || apprenant.fullName || `${apprenant.prenom || ''} ${apprenant.nom || ''}`.trim() || "N/A",
                 email: apprenant.userEmail || apprenant.email || "",
                 course: course.title || "N/A",
-                courseId: course.id, // Ajout de courseId pour le filtrage
+                courseId: courseId, // Ajout de courseId pour le filtrage
                 progress: 0,
                 score: 0,
                 completedModules: 0,
@@ -161,12 +212,13 @@ export function StudentsTracker() {
           }
         }
         
+        console.log("[StudentsTracker] Total étudiants mappés:", mappedStudents.length);
         setAllStudents(mappedStudents); // Stocker tous les étudiants
         setStudents(mappedStudents); // Afficher tous par défaut
 
       } catch (err: any) {
         setError(err.message || "Failed to fetch students data.");
-        console.error("Error fetching students data:", err);
+        console.error("[StudentsTracker] Error fetching students data:", err);
       } finally {
         setLoading(false);
       }

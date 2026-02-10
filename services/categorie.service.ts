@@ -54,6 +54,19 @@ export class CategorieService {
       method: "DELETE",
     });
   }
+
+  async getCoursesCountByCategory(categoryId: number): Promise<number> {
+    try {
+      const response = await fetchApi<any>(`/api/categories/${categoryId}/courses/count`, { method: "GET" });
+      if (response && response.data !== undefined) {
+        return response.data;
+      }
+      return 0;
+    } catch (error) {
+      console.error(`Error fetching course count for category ${categoryId}:`, error);
+      return 0;
+    }
+  }
 }
 
 export const categorieService = new CategorieService();
