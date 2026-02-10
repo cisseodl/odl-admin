@@ -110,7 +110,17 @@ export function LabsManager() {
       setError(null);
       try {
         const response = await labDefinitionService.getAllLabDefinitions();
-        setContent(response.map(mapLabDefinitionToContentDisplay));
+        console.log("[LabsManager] Labs récupérés:", response);
+        console.log("[LabsManager] Nombre de labs:", response.length);
+        if (response.length > 0) {
+          console.log("[LabsManager] Premier lab brut:", response[0]);
+        }
+        const mapped = response.map(mapLabDefinitionToContentDisplay);
+        console.log("[LabsManager] Labs mappés:", mapped);
+        if (mapped.length > 0) {
+          console.log("[LabsManager] Premier lab mappé:", mapped[0]);
+        }
+        setContent(mapped);
       } catch (err: any) {
         setError(err.message || "Failed to fetch content.");
         console.error("Error fetching content:", err);

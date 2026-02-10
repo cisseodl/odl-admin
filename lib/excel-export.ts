@@ -30,13 +30,21 @@ export function exportToExcel(sheets: ExcelSheet[], filename: string): void {
       const headerRow = sheet.headers.map(header => header.label)
       worksheetArray.push(headerRow)
 
-      // Ligne de séparation (vide pour la lisibilité)
-      worksheetArray.push([])
-
-      // Ajouter les données
+      // Ajouter les données - format structuré comme une table de base de données
       sheet.data.forEach((row) => {
         const dataRow = sheet.headers.map((header) => {
-          return row[header.key] !== undefined ? row[header.key] : ''
+          const value = row[header.key]
+          // Formater les valeurs pour Excel
+          if (value === null || value === undefined) {
+            return ''
+          }
+          if (typeof value === 'boolean') {
+            return value ? 'Oui' : 'Non'
+          }
+          if (value instanceof Date) {
+            return value.toLocaleDateString('fr-FR')
+          }
+          return value
         })
         worksheetArray.push(dataRow)
       })
@@ -47,11 +55,22 @@ export function exportToExcel(sheets: ExcelSheet[], filename: string): void {
         const firstRow = sheet.data[0]
         const headerRow = Object.keys(firstRow)
         worksheetArray.push(headerRow)
-        worksheetArray.push([]) // Ligne de séparation
 
         // Données
         sheet.data.forEach((row) => {
-          const dataRow = Object.keys(firstRow).map(key => row[key] !== undefined ? row[key] : '')
+          const dataRow = Object.keys(firstRow).map(key => {
+            const value = row[key]
+            if (value === null || value === undefined) {
+              return ''
+            }
+            if (typeof value === 'boolean') {
+              return value ? 'Oui' : 'Non'
+            }
+            if (value instanceof Date) {
+              return value.toLocaleDateString('fr-FR')
+            }
+            return value
+          })
           worksheetArray.push(dataRow)
         })
       }
@@ -77,12 +96,8 @@ export function exportToExcel(sheets: ExcelSheet[], filename: string): void {
     if (worksheetArray.length > 0) {
       const rows: { hpt: number }[] = []
       rows.push({ hpt: 30 }) // Hauteur pour l'en-tête
-      // Hauteur pour la ligne de séparation (vide)
-      if (worksheetArray.length > 1 && worksheetArray[1].length === 0) {
-        rows.push({ hpt: 5 })
-      }
       // Hauteur standard pour les lignes de données
-      for (let i = 2; i < worksheetArray.length; i++) {
+      for (let i = 1; i < worksheetArray.length; i++) {
         rows.push({ hpt: 20 })
       }
       worksheet['!rows'] = rows

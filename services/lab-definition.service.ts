@@ -4,7 +4,15 @@ import { fetchApi } from './api.service';
 export class LabDefinitionService {
   async getAllLabDefinitions(): Promise<LabDefinition[]> {
     const response = await fetchApi<any>("/api/labs/", { method: "GET" });
-    return response.data;
+    console.log("[LabDefinitionService] Réponse brute du backend:", response);
+    const labs = response.data || response;
+    console.log("[LabDefinitionService] Labs récupérés:", Array.isArray(labs) ? labs.length : 0);
+    if (Array.isArray(labs) && labs.length > 0) {
+      console.log("[LabDefinitionService] Premier lab:", labs[0]);
+      console.log("[LabDefinitionService] Premier lab - lesson:", labs[0].lesson);
+      console.log("[LabDefinitionService] Premier lab - lesson.module:", labs[0].lesson?.module);
+    }
+    return Array.isArray(labs) ? labs : [];
   }
 
   // Other methods (getLabDefinitionById, createLabDefinition, updateLabDefinition, deleteLabDefinition)
