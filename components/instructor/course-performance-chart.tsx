@@ -44,7 +44,18 @@ export function CoursePerformanceChart() {
               }
             })
           })
-          setCourses(Array.from(courseNames))
+          const newCourses = Array.from(courseNames).sort() // Trier pour stabilité
+          // Ne mettre à jour que si le contenu a changé (comparaison par valeur)
+          setCourses(prev => {
+            const prevStr = JSON.stringify(prev.sort())
+            const newStr = JSON.stringify(newCourses)
+            if (prevStr !== newStr) {
+              return newCourses
+            }
+            return prev
+          })
+        } else {
+          setCourses([])
         }
         
         setMonthlyData(data)
@@ -61,7 +72,7 @@ export function CoursePerformanceChart() {
 
   // Transformer les données pour le graphique
   const chartData = useMemo(() => {
-    if (!monthlyData || monthlyData.length === 0) return []
+    if (!monthlyData || monthlyData.length === 0 || !courses || courses.length === 0) return []
     
     return monthlyData.map((month: Record<string, any>) => {
       const dataPoint: Record<string, any> = {
@@ -92,6 +103,7 @@ export function CoursePerformanceChart() {
 
   // Configuration des couleurs pour chaque cours (tous en vert)
   const chartConfig = useMemo(() => {
+    if (!courses || courses.length === 0) return {}
     const config: Record<string, { label?: string; color?: string }> = {}
     courses.forEach(course => {
       config[course] = {
