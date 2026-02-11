@@ -89,19 +89,8 @@ export function CoursePerformanceChart() {
     })
   }, [monthlyData, courses])
 
-  if (loading) {
-    return <PageLoader />
-  }
-
-  if (chartData.length === 0 || courses.length === 0) {
-    return (
-      <div className="text-center text-muted-foreground p-4">
-        {t('instructor.analytics.performance.no_data')}
-      </div>
-    )
-  }
-
   // Configuration des couleurs pour chaque cours (tous en vert)
+  // IMPORTANT: Tous les Hooks doivent être déclarés AVANT les returns conditionnels
   const chartConfig = useMemo(() => {
     if (!courses || courses.length === 0) return {}
     const config: Record<string, { label?: string; color?: string }> = {}
@@ -113,6 +102,19 @@ export function CoursePerformanceChart() {
     })
     return config
   }, [courses])
+
+  // Returns conditionnels APRÈS tous les Hooks
+  if (loading) {
+    return <PageLoader />
+  }
+
+  if (chartData.length === 0 || courses.length === 0) {
+    return (
+      <div className="text-center text-muted-foreground p-4">
+        {t('instructor.analytics.performance.no_data')}
+      </div>
+    )
+  }
 
   return (
     <div className="w-full space-y-4">
