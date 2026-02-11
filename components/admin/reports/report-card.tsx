@@ -225,19 +225,18 @@ export function ReportCard({ reportType }: ReportCardProps) {
   const handleExportExcel = async () => {
     try {
       const data = generateReportData()
-      const rows = (data.details || []).map((d) => ({
-        Métrique: d.label,
-        Valeur: d.value,
-      }))
+      
+      // Transformer les données en format horizontal (en-têtes en ligne, valeurs en colonnes)
+      // Format: { "Métrique 1": "Valeur 1", "Métrique 2": "Valeur 2", ... }
+      const horizontalData = (data.details || []).reduce((acc, d) => {
+        acc[d.label] = d.value
+        return acc
+      }, {} as Record<string, string>)
 
-      const metadata = {
-        "Type de rapport": reportType.title,
-        "Période": getPeriodLabel(period),
-        "Date de génération": new Date().toLocaleString("fr-FR"),
-        ...(data.metrics || {}),
-      }
+      // Créer un tableau avec une seule ligne de données (format horizontal)
+      const rows = [horizontalData]
 
-      ExcelGenerator.generate(rows, `rapport-${reportType.id}-${period}-${Date.now()}`, metadata)
+      ExcelGenerator.generate(rows, `rapport-${reportType.id}-${period}-${Date.now()}`)
     } catch (error) {
       console.error("Erreur lors de l'export Excel:", error)
       alert("Une erreur est survenue lors de l'export Excel")
