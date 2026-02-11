@@ -89,15 +89,32 @@ export function CoursePerformanceChart() {
     })
   }, [monthlyData, courses])
 
-  // Configuration des couleurs pour chaque cours (tous en vert)
+  // Configuration des couleurs pour chaque cours (couleurs différentes et vives)
   // IMPORTANT: Tous les Hooks doivent être déclarés AVANT les returns conditionnels
   const chartConfig = useMemo(() => {
     if (!courses || courses.length === 0) return {}
+    
+    // Palette de couleurs vives et distinctes (pas de noir)
+    const colorPalette = [
+      "hsl(142, 71%, 45%)",  // Vert
+      "hsl(217, 91%, 60%)",  // Bleu
+      "hsl(38, 92%, 50%)",   // Orange
+      "hsl(262, 83%, 58%)",  // Violet
+      "hsl(0, 72%, 51%)",    // Rouge
+      "hsl(199, 89%, 48%)",  // Cyan
+      "hsl(280, 100%, 70%)", // Magenta
+      "hsl(47, 96%, 53%)",   // Jaune
+      "hsl(142, 76%, 36%)",  // Vert foncé
+      "hsl(221, 83%, 53%)",  // Bleu foncé
+    ]
+    
     const config: Record<string, { label?: string; color?: string }> = {}
-    courses.forEach(course => {
+    courses.forEach((course, index) => {
+      // Utiliser une couleur différente pour chaque cours
+      const colorIndex = index % colorPalette.length
       config[course] = {
         label: course,
-        color: "hsl(var(--success))"
+        color: colorPalette[colorIndex]
       }
     })
     return config
@@ -170,16 +187,32 @@ export function CoursePerformanceChart() {
                 return value.length > 20 ? value.substring(0, 20) + "..." : value
               }}
             />
-            {courses.map((courseName) => (
-              <Bar
-                key={courseName}
-                dataKey={courseName}
-                name={courseName}
-                fill="hsl(var(--success))"
-                radius={[0, 4, 4, 0]}
-                barSize={20}
-              />
-            ))}
+            {courses.map((courseName, index) => {
+              // Palette de couleurs vives et distinctes (pas de noir)
+              const colorPalette = [
+                "hsl(142, 71%, 45%)",  // Vert
+                "hsl(217, 91%, 60%)",  // Bleu
+                "hsl(38, 92%, 50%)",   // Orange
+                "hsl(262, 83%, 58%)",  // Violet
+                "hsl(0, 72%, 51%)",    // Rouge
+                "hsl(199, 89%, 48%)",  // Cyan
+                "hsl(280, 100%, 70%)", // Magenta
+                "hsl(47, 96%, 53%)",   // Jaune
+                "hsl(142, 76%, 36%)",  // Vert foncé
+                "hsl(221, 83%, 53%)",  // Bleu foncé
+              ]
+              const colorIndex = index % colorPalette.length
+              return (
+                <Bar
+                  key={courseName}
+                  dataKey={courseName}
+                  name={courseName}
+                  fill={colorPalette[colorIndex]}
+                  radius={[0, 4, 4, 0]}
+                  barSize={20}
+                />
+              )
+            })}
           </BarChart>
         </ResponsiveContainer>
       </ChartContainer>
@@ -198,7 +231,23 @@ export function CoursePerformanceChart() {
             >
               <div
                 className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: "hsl(var(--success))" }}
+                style={{ 
+                  backgroundColor: (() => {
+                    const colorPalette = [
+                      "hsl(142, 71%, 45%)",  // Vert
+                      "hsl(217, 91%, 60%)",  // Bleu
+                      "hsl(38, 92%, 50%)",   // Orange
+                      "hsl(262, 83%, 58%)",  // Violet
+                      "hsl(0, 72%, 51%)",    // Rouge
+                      "hsl(199, 89%, 48%)",  // Cyan
+                      "hsl(280, 100%, 70%)", // Magenta
+                      "hsl(47, 96%, 53%)",   // Jaune
+                      "hsl(142, 76%, 36%)",  // Vert foncé
+                      "hsl(221, 83%, 53%)",  // Bleu foncé
+                    ]
+                    return colorPalette[index % colorPalette.length]
+                  })()
+                }}
               />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate">{courseName.length > 20 ? courseName.substring(0, 20) + "..." : courseName}</p>
