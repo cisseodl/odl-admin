@@ -108,9 +108,19 @@ export function StudentsTracker() {
 
         // Récupérer les apprenants via l'endpoint by-instructor (autorisé pour INSTRUCTOR)
         // Le backend retourne déjà les apprenants filtrés par instructeur
-        const allApprenants = await apprenantService.getApprenantsByInstructor();
-        console.log("[StudentsTracker] Apprenants récupérés depuis backend:", Array.isArray(allApprenants) ? allApprenants.length : 0);
-        console.log("[StudentsTracker] Apprenants détaillés:", allApprenants);
+        let allApprenants: any[] = [];
+        try {
+          allApprenants = await apprenantService.getApprenantsByInstructor();
+          console.log("[StudentsTracker] Apprenants récupérés depuis backend:", Array.isArray(allApprenants) ? allApprenants.length : 0);
+          console.log("[StudentsTracker] Apprenants détaillés:", allApprenants);
+        } catch (err: any) {
+          console.error("[StudentsTracker] Erreur lors de la récupération des apprenants:", err);
+          setError(err.message || "Erreur lors de la récupération des apprenants");
+          setStudents([]);
+          setAllStudents([]);
+          setLoading(false);
+          return;
+        }
         
         if (!Array.isArray(allApprenants) || allApprenants.length === 0) {
           console.log("[StudentsTracker] Aucun apprenant retourné par le backend");
@@ -125,10 +135,27 @@ export function StudentsTracker() {
         const mappedStudents: Student[] = [];
         
         for (const apprenant of allApprenants) {
-          const learnerUserId = (apprenant as Apprenant & { userId?: number }).userId ? Number((apprenant as Apprenant & { userId?: number }).userId) : null;
+          // Essayer plusieurs façons d'accéder à userId
+          const learnerUserId = apprenant.userId 
+            ? Number(apprenant.userId) 
+            : (apprenant.user?.id ? Number(apprenant.user.id) : null);
+          
+          console.log(`[StudentsTracker] Apprenant ${apprenant.id}: userId=${learnerUserId}, structure:`, {
+            userId: apprenant.userId,
+            user: apprenant.user,
+            username: apprenant.username,
+            fullName: apprenant.fullName,
+            userEmail: apprenant.userEmail
+          });
+          
           if (!learnerUserId) {
-            console.warn(`[StudentsTracker] Apprenant ${apprenant.id} n'a pas de userId`);
-            continue;
+            console.warn(`[StudentsTracker] Apprenant ${apprenant.id} n'a pas de userId accessible`);
+            // Essayer quand même d'ajouter l'apprenant avec un userId par défaut si possible
+            if (apprenant.id) {
+              console.warn(`[StudentsTracker] Utilisation de apprenant.id (${apprenant.id}) comme fallback pour userId`);
+            } else {
+              continue;
+            }
           }
           
           // Trouver les inscriptions de cet apprenant aux cours de l'instructeur

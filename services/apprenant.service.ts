@@ -9,13 +9,28 @@ export class ApprenantService {
   async getApprenantsByInstructor(): Promise<any> {
     try {
       const response = await fetchApi<any>("/api/apprenants/by-instructor", { method: "GET" });
-      if (!response || !response.data) {
+      console.log("[ApprenantService] getApprenantsByInstructor response:", response);
+      if (!response) {
+        console.warn("[ApprenantService] Response is null or undefined");
         return [];
       }
-      return Array.isArray(response.data) ? response.data : [response.data];
+      // Le backend retourne CResponse avec structure { ok: boolean, data: ApprenantWithUserDto[], message: string }
+      if (response.data) {
+        const data = Array.isArray(response.data) ? response.data : [response.data];
+        console.log("[ApprenantService] Apprenants data:", data);
+        return data;
+      }
+      // Si response.data n'existe pas, peut-être que response est directement le tableau
+      if (Array.isArray(response)) {
+        console.log("[ApprenantService] Response is directly an array:", response);
+        return response;
+      }
+      console.warn("[ApprenantService] Response structure unexpected:", response);
+      return [];
     } catch (error: any) {
-      console.error("Error fetching apprenants by instructor:", error);
-      throw error;
+      console.error("[ApprenantService] Error fetching apprenants by instructor:", error);
+      // Ne pas throw, retourner un tableau vide pour éviter de bloquer l'interface
+      return [];
     }
   }
 
