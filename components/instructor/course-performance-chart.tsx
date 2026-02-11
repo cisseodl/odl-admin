@@ -2,25 +2,20 @@
 
 import { useLanguage } from "@/contexts/language-context"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Cell } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Legend } from "recharts"
 import { BookOpen } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { fetchApi } from "@/services/api.service"
 import { PageLoader } from "@/components/ui/page-loader"
-
-const COLORS = [
-  "hsl(var(--success))", // Vert pour toutes les barres
-  "hsl(var(--success))",
-  "hsl(var(--success))",
-  "hsl(var(--success))",
-  "hsl(var(--success))",
-]
+import { format, parse } from "date-fns"
+import { fr } from "date-fns/locale"
 
 export function CoursePerformanceChart() {
   const { t } = useLanguage()
   const { user } = useAuth()
-  const [data, setData] = useState<Array<{ course: string; averageRating: number; label: string }>>([])
+  const [monthlyData, setMonthlyData] = useState<Array<Record<string, any>>>([])
+  const [courses, setCourses] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -32,26 +27,30 @@ export function CoursePerformanceChart() {
 
       try {
         setLoading(true)
-        // Utiliser l'endpoint pour récupérer les performances des cours de l'instructeur
-        const response = await fetchApi<{ data: Array<{ courseId: number; courseTitle: string; averageRating: number; studentsCount: number }> }>(
-          `/api/analytics/instructor-dashboard-performance?instructorId=${user.id}`,
+        // Utiliser le nouvel endpoint pour récupérer les performances par mois
+        const response = await fetchApi<{ data: Array<Record<string, any>> }>(
+          `/api/analytics/instructor-dashboard-performance-by-month?instructorId=${user.id}`,
           { method: 'GET' }
         )
         
-        const courseData = response.data || []
-        // Mapper les données pour afficher la note moyenne
-        const mappedData = courseData
-          .map((item: any) => ({
-            course: item.courseTitle || `Cours ${item.courseId}`,
-            averageRating: item.averageRating || 0,
-            label: (item.courseTitle || `Cours ${item.courseId}`).substring(0, 15),
-          }))
-          .filter((item: any) => item.averageRating > 0) // Filtrer uniquement les cours avec des notes
+        const data = response.data || []
+        if (data.length > 0) {
+          // Extraire la liste des cours (toutes les clés sauf "month" et "monthKey")
+          const courseNames = new Set<string>()
+          data.forEach((month: Record<string, any>) => {
+            Object.keys(month).forEach(key => {
+              if (key !== "month" && key !== "monthKey") {
+                courseNames.add(key)
+              }
+            })
+          })
+          setCourses(Array.from(courseNames))
+        }
         
-        setData(mappedData)
+        setMonthlyData(data)
       } catch (err) {
-        console.error("Error fetching course performance:", err)
-        setData([])
+        console.error("Error fetching course performance by month:", err)
+        setMonthlyData([])
       } finally {
         setLoading(false)
       }
@@ -60,11 +59,30 @@ export function CoursePerformanceChart() {
     fetchData()
   }, [user?.id])
 
+  // Transformer les données pour le graphique
+  const chartData = useMemo(() => {
+    if (!monthlyData || monthlyData.length === 0) return []
+    
+    return monthlyData.map((month: Record<string, any>) => {
+      const dataPoint: Record<string, any> = {
+        month: month.month || month.monthKey || "",
+        monthKey: month.monthKey || "",
+      }
+      
+      // Ajouter les notes de chaque cours
+      courses.forEach(courseName => {
+        dataPoint[courseName] = month[courseName] || 0
+      })
+      
+      return dataPoint
+    })
+  }, [monthlyData, courses])
+
   if (loading) {
     return <PageLoader />
   }
 
-  if (data.length === 0) {
+  if (chartData.length === 0 || courses.length === 0) {
     return (
       <div className="text-center text-muted-foreground p-4">
         {t('instructor.analytics.performance.no_data')}
@@ -72,89 +90,109 @@ export function CoursePerformanceChart() {
     )
   }
 
+  // Configuration des couleurs pour chaque cours (tous en vert)
+  const chartConfig = useMemo(() => {
+    const config: Record<string, { label?: string; color?: string }> = {}
+    courses.forEach(course => {
+      config[course] = {
+        label: course,
+        color: "hsl(var(--success))"
+      }
+    })
+    return config
+  }, [courses])
+
   return (
     <div className="w-full space-y-4">
       <ChartContainer
-        config={{
-          averageRating: {
-            label: t('instructor.analytics.performance.average_rating_label'),
-            color: "hsl(var(--success))", // Vert
-          },
-        }}
-        className="h-[280px] w-full"
+        config={chartConfig}
+        className="h-[400px] w-full"
       >
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={data}
-            margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-            barCategoryGap="20%"
+            data={chartData}
+            layout="vertical"
+            margin={{ top: 20, right: 80, left: 150, bottom: 20 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
             <XAxis
-              dataKey="label"
-              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-              tickLine={{ stroke: "hsl(var(--border))" }}
-              axisLine={{ stroke: "hsl(var(--border))" }}
-              angle={-45}
-              textAnchor="end"
-              height={80}
-            />
-            <YAxis
+              type="number"
               domain={[0, 5]}
               tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
               tickLine={{ stroke: "hsl(var(--border))" }}
               axisLine={{ stroke: "hsl(var(--border))" }}
-              label={{ value: t('instructor.analytics.performance.rating'), angle: -90, position: 'insideLeft' }}
+              label={{ value: t('instructor.analytics.performance.rating') || "Note", position: 'insideBottom', offset: -5 }}
+            />
+            <YAxis
+              type="category"
+              dataKey="month"
+              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+              tickLine={{ stroke: "hsl(var(--border))" }}
+              axisLine={{ stroke: "hsl(var(--border))" }}
+              width={140}
             />
             <ChartTooltip
               content={({ active, payload }) => {
                 if (active && payload && payload.length) {
                   return (
                     <div className="rounded-lg border bg-card p-3 shadow-md">
-                      <div className="flex items-center gap-2 mb-1">
-                        <BookOpen className="h-4 w-4 text-primary" />
-                        <p className="font-semibold">{payload[0].payload.course}</p>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        <span className="font-medium text-foreground">{Number(payload[0].value).toFixed(1)}</span> / 5 {t('instructor.analytics.performance.stars')}
-                      </p>
+                      <p className="font-semibold mb-2">{payload[0].payload.month}</p>
+                      {payload.map((entry: any, index: number) => (
+                        <div key={index} className="flex items-center gap-2 text-sm">
+                          <BookOpen className="h-4 w-4 text-primary" />
+                          <span className="text-muted-foreground">{entry.name}:</span>
+                          <span className="font-bold text-foreground">{Number(entry.value).toFixed(1)} / 5 ⭐</span>
+                        </div>
+                      ))}
                     </div>
                   )
                 }
                 return null
               }}
             />
-            <Bar
-              dataKey="averageRating"
-              radius={[8, 8, 0, 0]}
-              animationDuration={800}
-              animationBegin={0}
-              fill="hsl(var(--success))"
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill="hsl(var(--success))" />
-              ))}
-            </Bar>
+            <Legend
+              formatter={(value) => {
+                // Tronquer les noms de cours longs
+                return value.length > 20 ? value.substring(0, 20) + "..." : value
+              }}
+            />
+            {courses.map((courseName) => (
+              <Bar
+                key={courseName}
+                dataKey={courseName}
+                name={courseName}
+                fill="hsl(var(--success))"
+                radius={[0, 4, 4, 0]}
+                barSize={20}
+              />
+            ))}
           </BarChart>
         </ResponsiveContainer>
       </ChartContainer>
       
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {data.map((item, index) => (
-          <div
-            key={item.course}
-            className="flex items-center gap-2 p-2 rounded-lg border bg-card/50 hover:bg-card transition-colors"
-          >
+        {courses.map((courseName, index) => {
+          // Calculer la note moyenne globale pour ce cours
+          const totalRating = chartData.reduce((sum, month) => sum + (month[courseName] || 0), 0)
+          const monthsWithRating = chartData.filter(month => (month[courseName] || 0) > 0).length
+          const averageRating = monthsWithRating > 0 ? totalRating / monthsWithRating : 0
+          
+          return (
             <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: COLORS[index % COLORS.length] }}
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium truncate">{item.label}</p>
-              <p className="text-xs text-muted-foreground">{item.averageRating.toFixed(1)} / 5 ⭐</p>
+              key={courseName}
+              className="flex items-center gap-2 p-2 rounded-lg border bg-card/50 hover:bg-card transition-colors"
+            >
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: "hsl(var(--success))" }}
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium truncate">{courseName.length > 20 ? courseName.substring(0, 20) + "..." : courseName}</p>
+                <p className="text-xs text-muted-foreground">{averageRating.toFixed(1)} / 5 ⭐</p>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
