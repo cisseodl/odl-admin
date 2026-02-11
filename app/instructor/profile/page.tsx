@@ -242,8 +242,11 @@ export default function InstructorProfilePage() {
         passwordForm.newPassword
       )
 
-      if (response.ok) {
-        setDialogMessage("Votre mot de passe a été modifié avec succès.")
+      // Vérifier si c'est un succès : response.ok === true OU le message contient "succès"
+      const isSuccess = response.ok === true || (response.message && response.message.toLowerCase().includes("succès"))
+      
+      if (isSuccess) {
+        setDialogMessage(response.message || "Votre mot de passe a été modifié avec succès.")
         setDialogSuccess(true)
         setShowDialog(true)
         setShowPasswordSection(false)
