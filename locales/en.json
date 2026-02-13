@@ -657,7 +657,17 @@
     },
     "tabs": {
       "evaluations": "My Evaluations",
-      "pending_tps": "Pending TPs"
+      "pending_tps": "Pending TPs",
+      "corrected_tps": "Corrected TPs"
+    },
+    "corrected": {
+      "header_evaluation": "Evaluation",
+      "header_learner": "Learner",
+      "header_score": "Score",
+      "header_corrected": "Corrected on",
+      "action_view": "View details",
+      "empty_title": "No corrected TPs",
+      "empty_description": "Corrected TPs will appear here"
     },
     "toasts": {
       "success_create": "Evaluation Created",

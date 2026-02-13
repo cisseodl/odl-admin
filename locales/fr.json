@@ -671,7 +671,17 @@
     },
     "tabs": {
       "evaluations": "Mes évaluations",
-      "pending_tps": "TPs en attente"
+      "pending_tps": "TPs en attente",
+      "corrected_tps": "TPs corrigés"
+    },
+    "corrected": {
+      "header_evaluation": "Évaluation",
+      "header_learner": "Apprenant",
+      "header_score": "Score",
+      "header_corrected": "Corrigé le",
+      "action_view": "Voir détails",
+      "empty_title": "Aucun TP corrigé",
+      "empty_description": "Les TPs corrigés apparaîtront ici"
     },
     "toasts": {
       "success_create": "Évaluation créée",

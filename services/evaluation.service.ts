@@ -125,6 +125,25 @@ export class EvaluationService {
     }
   }
 
+  async getCorrectedEvaluationsForInstructor(instructorId: number): Promise<EvaluationAttempt[]> {
+    try {
+      const response = await fetchApi<any>(`/api/evaluations/instructor/${instructorId}/corrected`, {
+        method: "GET",
+      });
+      if (!response) {
+        console.warn("getCorrectedEvaluationsForInstructor: API response is null or undefined");
+        return [];
+      }
+      if (response.data !== undefined) {
+        return Array.isArray(response.data) ? response.data : (response.data ? [response.data] : []);
+      }
+      return Array.isArray(response) ? response : [];
+    } catch (error: any) {
+      console.error("Error fetching corrected evaluations:", error);
+      return [];
+    }
+  }
+
   async getEvaluationById(id: number): Promise<Evaluation | null> {
     try {
       const response = await fetchApi<any>(`/evaluations/get-all`, { method: "GET" });

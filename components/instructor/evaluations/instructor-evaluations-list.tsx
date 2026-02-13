@@ -11,7 +11,7 @@ import { useModal } from "@/hooks/use-modal"
 import { useSearch } from "@/hooks/use-search"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import type { ColumnDef } from "@tanstack/react-table"
-import { Eye, Edit, Trash2, FileText, Calendar, CheckCircle, Clock } from "lucide-react"
+import { Eye, Edit, Trash2, FileText, Calendar, CheckCircle, Clock, CheckCircle2 } from "lucide-react"
 import { Evaluation, EvaluationType, EvaluationAttempt } from "@/models/evaluation.model"
 import { evaluationService } from "@/services"
 import { PageLoader } from "@/components/ui/page-loader"
@@ -45,6 +45,18 @@ type PendingTpDisplay = {
   createdAt: string
 }
 
+type CorrectedTpDisplay = {
+  id: number
+  evaluationId: number
+  evaluationTitle: string
+  learnerName: string
+  submittedFileUrl?: string
+  score: number
+  feedback?: string
+  correctedAt: string
+  createdAt: string
+}
+
 const mapEvaluationToEvaluationDisplay = (evaluation: Evaluation): EvaluationDisplay => {
   return {
     id: evaluation.id || 0,
@@ -69,6 +81,7 @@ export function InstructorEvaluationsList() {
 
   const [evaluations, setEvaluations] = useState<EvaluationDisplay[]>([])
   const [pendingTps, setPendingTps] = useState<PendingTpDisplay[]>([])
+  const [correctedTps, setCorrectedTps] = useState<CorrectedTpDisplay[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("evaluations")
@@ -77,6 +90,7 @@ export function InstructorEvaluationsList() {
     fetchEvaluations()
     if (user?.id) {
       fetchPendingTps()
+      fetchCorrectedTps()
     }
   }, [user?.id])
 
@@ -121,6 +135,31 @@ export function InstructorEvaluationsList() {
     }
   }
 
+  const fetchCorrectedTps = async () => {
+    if (!user?.id) return
+    try {
+      const response = await evaluationService.getCorrectedEvaluationsForInstructor(Number(user.id))
+      if (Array.isArray(response) && response.length > 0) {
+        setCorrectedTps(response.map((attempt: EvaluationAttempt) => ({
+          id: attempt.id,
+          evaluationId: attempt.evaluationId,
+          evaluationTitle: "Évaluation", // TODO: fetch evaluation title
+          learnerName: "Apprenant", // TODO: fetch learner name
+          submittedFileUrl: attempt.submittedFileUrl || undefined,
+          score: attempt.score || 0,
+          feedback: attempt.instructorFeedback || undefined,
+          correctedAt: attempt.correctedAt ? new Date(attempt.correctedAt).toLocaleDateString("fr-FR") : "N/A",
+          createdAt: attempt.createdAt ? new Date(attempt.createdAt).toLocaleDateString("fr-FR") : "N/A",
+        })))
+      } else {
+        setCorrectedTps([])
+      }
+    } catch (err: any) {
+      console.error("Error fetching corrected TPs:", err)
+      setCorrectedTps([])
+    }
+  }
+
   const handleCreateEvaluation = async (data: any) => {
     setError(null)
     try {
@@ -153,6 +192,7 @@ export function InstructorEvaluationsList() {
       dialog.showSuccess(t('evaluations.toasts.success_correct_message') || "TP corrigé avec succès.")
       correctTpModal.close()
       fetchPendingTps()
+      fetchCorrectedTps()
     } catch (err: any) {
       dialog.showError(err.message || "Impossible de corriger le TP.")
     }
@@ -297,6 +337,66 @@ export function InstructorEvaluationsList() {
     [correctTpModal, t]
   )
 
+  const correctedTpColumns: ColumnDef<CorrectedTpDisplay>[] = useMemo(
+    () => [
+      {
+        accessorKey: "evaluationTitle",
+        header: t('evaluations.corrected.header_evaluation') || "Évaluation",
+        cell: ({ row }) => row.original.evaluationTitle,
+      },
+      {
+        accessorKey: "learnerName",
+        header: t('evaluations.corrected.header_learner') || "Apprenant",
+        cell: ({ row }) => row.original.learnerName,
+      },
+      {
+        accessorKey: "score",
+        header: t('evaluations.corrected.header_score') || "Score",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-orange-600">{row.original.score}/100</span>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "correctedAt",
+        header: t('evaluations.corrected.header_corrected') || "Corrigé le",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-1 text-sm">
+            <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+            {row.original.correctedAt}
+          </div>
+        ),
+      },
+      {
+        id: "actions",
+        header: t('table.actions') || "Actions",
+        cell: ({ row }) => {
+          const tp = row.original
+          return (
+            <ActionMenu
+              actions={[
+                {
+                  label: t('evaluations.corrected.action_view') || "Voir détails",
+                  icon: <Eye className="h-4 w-4" />,
+                  onClick: () => {
+                    // TODO: Open view modal with correction details
+                    viewModal.open({
+                      id: tp.evaluationId,
+                      title: tp.evaluationTitle,
+                      description: tp.feedback || "",
+                    } as EvaluationDisplay)
+                  },
+                },
+              ]}
+            />
+          )
+        },
+      },
+    ],
+    [viewModal, t]
+  )
+
   return (
     <>
       <PageHeader
@@ -309,13 +409,25 @@ export function InstructorEvaluationsList() {
 
       <Card className="mt-6">
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList>
-              <TabsTrigger value="evaluations">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+            <TabsList className="grid w-full grid-cols-3 bg-[rgb(50,50,50)]/10 dark:bg-[rgb(50,50,50)]/20 border border-[rgb(50,50,50)]/20">
+              <TabsTrigger 
+                value="evaluations"
+                className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
+              >
                 {t('evaluations.tabs.evaluations') || "Mes évaluations"}
               </TabsTrigger>
-              <TabsTrigger value="pending">
+              <TabsTrigger 
+                value="pending"
+                className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
+              >
                 {t('evaluations.tabs.pending_tps') || `TPs en attente (${pendingTps.length})`}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="corrected"
+                className="data-[state=active]:bg-[rgb(255,102,0)] data-[state=active]:text-white dark:data-[state=active]:bg-[rgb(255,102,0)] dark:data-[state=active]:text-white"
+              >
+                {t('evaluations.tabs.corrected_tps') || `TPs corrigés (${correctedTps.length})`}
               </TabsTrigger>
             </TabsList>
             <TabsContent value="evaluations">
@@ -340,7 +452,7 @@ export function InstructorEvaluationsList() {
                 <DataTable columns={evaluationColumns} data={filteredData} searchValue={searchQuery} />
               )}
             </TabsContent>
-            <TabsContent value="pending">
+            <TabsContent value="pending" className="space-y-4">
               {pendingTps.length === 0 ? (
                 <EmptyState
                   icon={CheckCircle}
@@ -349,6 +461,17 @@ export function InstructorEvaluationsList() {
                 />
               ) : (
                 <DataTable columns={pendingTpColumns} data={pendingTps} />
+              )}
+            </TabsContent>
+            <TabsContent value="corrected" className="space-y-4">
+              {correctedTps.length === 0 ? (
+                <EmptyState
+                  icon={CheckCircle2}
+                  title={t('evaluations.corrected.empty_title') || "Aucun TP corrigé"}
+                  description={t('evaluations.corrected.empty_description') || "Les TPs corrigés apparaîtront ici"}
+                />
+              ) : (
+                <DataTable columns={correctedTpColumns} data={correctedTps} />
               )}
             </TabsContent>
           </Tabs>
