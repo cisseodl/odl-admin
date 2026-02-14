@@ -146,11 +146,23 @@ export class EvaluationService {
 
   async getEvaluationById(id: number): Promise<Evaluation | null> {
     try {
-      const response = await fetchApi<any>(`/evaluations/get-all`, { method: "GET" });
+      const response = await fetchApi<any>(`/api/evaluations/get-all`, { method: "GET" });
       const evaluations = response.data || response;
       return Array.isArray(evaluations) ? evaluations.find((e: Evaluation) => e.id === id) || null : null;
     } catch (error) {
       console.error(`Error fetching evaluation with ID ${id}:`, error);
+      return null;
+    }
+  }
+
+  /** Récupère une évaluation avec ses questions et réponses (pour la modal Voir). */
+  async getEvaluationWithQuestions(id: number): Promise<Evaluation | null> {
+    try {
+      const response = await fetchApi<any>(`/api/evaluations/${id}`, { method: "GET" });
+      if (!response) return null;
+      return response.data ?? response ?? null;
+    } catch (error) {
+      console.error(`Error fetching evaluation with questions (ID ${id}):`, error);
       return null;
     }
   }

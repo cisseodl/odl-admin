@@ -11,5 +11,6 @@ export interface Reponse {
   imagePath?: string | null;
   status?: string | null;
   title?: string | null;
+  isCorrect?: boolean | null;
   questions?: Question | null;
 }
