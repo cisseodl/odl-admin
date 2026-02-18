@@ -53,6 +53,7 @@ type ApprenantFormModalProps = {
   defaultValues?: Partial<ApprenantProfileFormData>;
   cohortes?: Cohorte[]; // Cohortes for dropdown, passed from parent
   userId?: number; // Optional: for when promoting an existing user
+  simplified?: boolean; // Si true, ne montre que les champs essentiels (username, numero, profession, niveauEtude, filiere) - pas de cohorte, attentes, satisfaction
 };
 
 export function ApprenantFormModal({
@@ -65,6 +66,7 @@ export function ApprenantFormModal({
   defaultValues,
   cohortes = [],
   userId,
+  simplified = false,
 }: ApprenantFormModalProps) {
   const { t } = useLanguage();
   const form = useForm<ApprenantProfileFormData>({
@@ -179,44 +181,48 @@ export function ApprenantFormModal({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="attentes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('users.learners.modals.form.attentes') || "Attentes (optionnel)"}</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} placeholder={t('users.learners.modals.form.attentes_placeholder') || "Décrivez vos attentes..."} rows={3} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="cohorteId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('users.learners.modals.form.cohorte') || "Cohorte (optionnel)"}</FormLabel>
-                  <Select onValueChange={(value) => field.onChange(value === "__none__" ? undefined : Number(value))} value={field.value ? String(field.value) : "__none__"}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('users.learners.modals.form.cohorte_placeholder') || "Sélectionner une cohorte (optionnel)"} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="__none__">{t('users.learners.modals.form.cohorte_none') || "Aucune cohorte"}</SelectItem>
-                      {cohortes.map((cohorte) => (
-                        <SelectItem key={cohorte.id} value={String(cohorte.id)}>
-                          {cohorte.nom}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {!simplified && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="attentes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('users.learners.modals.form.attentes') || "Attentes (optionnel)"}</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} placeholder={t('users.learners.modals.form.attentes_placeholder') || "Décrivez vos attentes..."} rows={3} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="cohorteId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('users.learners.modals.form.cohorte') || "Cohorte (optionnel)"}</FormLabel>
+                      <Select onValueChange={(value) => field.onChange(value === "__none__" ? undefined : Number(value))} value={field.value ? String(field.value) : "__none__"}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t('users.learners.modals.form.cohorte_placeholder') || "Sélectionner une cohorte (optionnel)"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="__none__">{t('users.learners.modals.form.cohorte_none') || "Aucune cohorte"}</SelectItem>
+                          {cohortes.map((cohorte) => (
+                            <SelectItem key={cohorte.id} value={String(cohorte.id)}>
+                              {cohorte.nom}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
             {/* Add more fields as needed based on Apprenant model */}
             <DialogFooter>
               <Button type="submit" disabled={form.formState.isSubmitting}>

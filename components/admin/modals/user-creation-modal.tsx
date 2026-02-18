@@ -27,10 +27,11 @@ import { authService } from "@/services/auth.service"; // Assuming authService h
 import { useToast } from "@/hooks/use-toast";
 
 // Define the Zod schema for user creation
+// Le mot de passe est optionnel (pour permettre la création par admin sans mot de passe)
 export const userCreationSchema = z.object({
   fullName: z.string().min(1, "Le nom complet est requis."),
   email: z.string().email("L'email doit être valide.").min(1, "L'email est requis."),
-  password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères."),
+  password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères.").optional(),
   phone: z.string().optional(),
   // avatarFile: z.any() // Optional: if avatar upload is part of signup
   //   .refine((file) => !file || (file instanceof File && file.type.startsWith("image/")), "Le fichier doit être une image.")
@@ -46,6 +47,7 @@ type UserCreationModalProps = {
   title: string;
   description: string;
   submitLabel: string;
+  hidePassword?: boolean; // Option pour masquer le champ mot de passe (pour les formateurs créés par admin)
 };
 
 export function UserCreationModal({
@@ -55,6 +57,7 @@ export function UserCreationModal({
   title,
   description,
   submitLabel,
+  hidePassword = false,
 }: UserCreationModalProps) {
   const { toast } = useToast();
   const form = useForm<UserCreationFormData>({
@@ -92,7 +95,8 @@ export function UserCreationModal({
         });
         return;
       }
-      if (!data.password || data.password.length < 6) {
+      // Le mot de passe est optionnel si hidePassword est true (pour les formateurs créés par admin)
+      if (!hidePassword && (!data.password || data.password.length < 6)) {
         toast({
           title: "Erreur",
           description: "Le mot de passe doit contenir au moins 6 caractères.",
@@ -101,12 +105,16 @@ export function UserCreationModal({
         return;
       }
 
-      const newUser = {
+      const newUser: any = {
         fullName: data.fullName.trim(),
         email: data.email.trim(),
-        password: data.password,
         phone: data.phone?.trim() || undefined, // Phone est optionnel
       };
+      
+      // Inclure le mot de passe seulement s'il est fourni et que hidePassword est false
+      if (!hidePassword && data.password && data.password.trim().length > 0) {
+        newUser.password = data.password;
+      }
       
       console.log("Creating user with data:", { ...newUser, password: "***" }); // Log sans le mot de passe
 
@@ -227,19 +235,21 @@ export function UserCreationModal({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Mot de passe</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="password" placeholder="********" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {!hidePassword && (
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mot de passe</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="password" placeholder="********" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="phone"

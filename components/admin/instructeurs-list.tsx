@@ -564,6 +564,7 @@ export function InstructeursList() {
           title={t('users.learners.modals.create_user_title')}
           description={t('users.instructors.toasts.success_user_created', { name: '' })}
           submitLabel={t('users.learners.modals.create_user_submit')}
+          hidePassword={true}
         />
       )}
 
@@ -589,6 +590,8 @@ export function InstructeursList() {
           defaultValues={mapInstructorDisplayToUserFormData(editUserFormModal.selectedItem)}
           onSubmit={handleUpdateInstructor}
           submitLabel={t('users.instructors.modals.edit_user_submit')}
+          simplified={true}
+          disableRoleField={true}
         />
       )}
 

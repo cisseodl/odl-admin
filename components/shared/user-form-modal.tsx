@@ -16,6 +16,7 @@ type UserFormModalProps = {
   submitLabel?: string
   roleDefaultValue?: UserFormData['role'] // New prop
   disableRoleField?: boolean // New prop
+  simplified?: boolean // Si true, ne montre que les champs essentiels (nom, prénom, email, téléphone, statut)
 }
 
 export function UserFormModal({
@@ -28,6 +29,7 @@ export function UserFormModal({
   submitLabel = "Enregistrer",
   roleDefaultValue, // Destructure new prop
   disableRoleField, // Destructure new prop
+  simplified = false, // Destructure new prop
 }: UserFormModalProps) {
   const form = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
@@ -83,52 +85,56 @@ export function UserFormModal({
             register={formInstance.register}
             error={formInstance.formState.errors.numero?.message}
           />
-          <FormField
-            type="input"
-            name="profession"
-            label="Profession (optionnel)"
-            placeholder="Étudiant, Développeur..."
-            register={formInstance.register}
-            error={formInstance.formState.errors.profession?.message}
-          />
-          <FormField
-            type="input"
-            name="niveauEtude"
-            label="Niveau d'étude (optionnel)"
-            placeholder="Licence, Master..."
-            register={formInstance.register}
-            error={formInstance.formState.errors.niveauEtude?.message}
-          />
-          <FormField
-            type="input"
-            name="filiere"
-            label="Filière (optionnel)"
-            placeholder="Informatique, Marketing..."
-            register={formInstance.register}
-            error={formInstance.formState.errors.filiere?.message}
-          />
-          <FormField
-            type="input"
-            name="cohorteId"
-            label="ID Cohorte (optionnel)"
-            placeholder="1"
-            inputType="number"
-            register={formInstance.register}
-            error={formInstance.formState.errors.cohorteId?.message}
-          />
-          {!disableRoleField && (
-            <FormField
-              type="select"
-              name="role"
-              label="Rôle"
-              control={formInstance.control}
-              options={[
-                { value: "Apprenant", label: "Apprenant" },
-                { value: "Instructeur", label: "Formateur" },
-                { value: "Admin", label: "Administrateur" },
-              ]}
-              error={formInstance.formState.errors.role?.message}
-            />
+          {!simplified && (
+            <>
+              <FormField
+                type="input"
+                name="profession"
+                label="Profession (optionnel)"
+                placeholder="Étudiant, Développeur..."
+                register={formInstance.register}
+                error={formInstance.formState.errors.profession?.message}
+              />
+              <FormField
+                type="input"
+                name="niveauEtude"
+                label="Niveau d'étude (optionnel)"
+                placeholder="Licence, Master..."
+                register={formInstance.register}
+                error={formInstance.formState.errors.niveauEtude?.message}
+              />
+              <FormField
+                type="input"
+                name="filiere"
+                label="Filière (optionnel)"
+                placeholder="Informatique, Marketing..."
+                register={formInstance.register}
+                error={formInstance.formState.errors.filiere?.message}
+              />
+              <FormField
+                type="input"
+                name="cohorteId"
+                label="ID Cohorte (optionnel)"
+                placeholder="1"
+                inputType="number"
+                register={formInstance.register}
+                error={formInstance.formState.errors.cohorteId?.message}
+              />
+              {!disableRoleField && (
+                <FormField
+                  type="select"
+                  name="role"
+                  label="Rôle"
+                  control={formInstance.control}
+                  options={[
+                    { value: "Apprenant", label: "Apprenant" },
+                    { value: "Instructeur", label: "Formateur" },
+                    { value: "Admin", label: "Administrateur" },
+                  ]}
+                  error={formInstance.formState.errors.role?.message}
+                />
+              )}
+            </>
           )}
           <FormField
             type="select"

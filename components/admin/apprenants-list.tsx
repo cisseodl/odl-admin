@@ -624,6 +624,7 @@ export function ApprenantsList() {
           title={t('users.learners.modals.create_user_title')}
           description={t('users.learners.modals.create_user_description')}
           submitLabel={t('users.learners.modals.create_user_submit')}
+          hidePassword={true}
         />
       )}
 
@@ -660,6 +661,7 @@ export function ApprenantsList() {
               cohorteId: editModal.selectedItem.cohorte?.id,
             }}
             cohortes={cohortes}
+            simplified={true}
           />
         );
       })()}
