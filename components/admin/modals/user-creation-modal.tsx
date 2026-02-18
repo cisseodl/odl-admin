@@ -57,7 +57,7 @@ export type UserCreationFormData = {
 type UserCreationModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUserCreated?: (user: { id: number; fullName: string; email: string }) => void; // Callback after successful creation
+  onUserCreated?: (user: { id: number; fullName: string; email: string; phone?: string }) => void; // Callback after successful creation
   title: string;
   description: string;
   submitLabel: string;
@@ -168,6 +168,7 @@ export function UserCreationModal({
             id: createdUser.id,
             fullName: createdUser.fullName || data.fullName,
             email: createdUser.email || data.email,
+            phone: createdUser.phone || data.phone,
           });
           onOpenChange(false);
           return; // Sortir de la fonction après succès
@@ -185,6 +186,7 @@ export function UserCreationModal({
           id: userFromResponse.id,
           fullName: userFromResponse.fullName || data.fullName,
           email: userFromResponse.email || data.email,
+          phone: userFromResponse.phone || data.phone,
         });
         onOpenChange(false);
         return;

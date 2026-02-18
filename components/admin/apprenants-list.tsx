@@ -251,7 +251,7 @@ export function ApprenantsList() {
     }
   };
 
-  const handleUserCreated = (user: { id: number; fullName: string; email: string }) => {
+  const handleUserCreated = (user: { id: number; fullName: string; email: string; phone?: string }) => {
     toast({
       title: t('users.learners.toasts.success_user_created', {name: user.fullName}),
       description: `L'utilisateur ${user.fullName} a été créé. Vous pouvez maintenant créer son profil apprenant.`,
@@ -261,6 +261,7 @@ export function ApprenantsList() {
       userId: user.id, 
       defaultValues: {
         username: user.fullName, // Utiliser le fullName comme username par défaut
+        numero: user.phone || "", // Pré-remplir le numéro de téléphone
       }
     });
   };
