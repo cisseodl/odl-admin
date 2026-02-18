@@ -28,17 +28,31 @@ import { useToast } from "@/hooks/use-toast";
 
 // Define the Zod schema for user creation
 // Le mot de passe est optionnel (pour permettre la création par admin sans mot de passe)
-export const userCreationSchema = z.object({
-  fullName: z.string().min(1, "Le nom complet est requis."),
-  email: z.string().email("L'email doit être valide.").min(1, "L'email est requis."),
-  password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères.").optional(),
-  phone: z.string().optional(),
-  // avatarFile: z.any() // Optional: if avatar upload is part of signup
-  //   .refine((file) => !file || (file instanceof File && file.type.startsWith("image/")), "Le fichier doit être une image.")
-  //   .optional(),
-});
+// Créer une fonction pour générer le schéma dynamiquement selon hidePassword
+const createUserCreationSchema = (hidePassword: boolean = false) => {
+  return z.object({
+    fullName: z.string().min(1, "Le nom complet est requis."),
+    email: z.string().email("L'email doit être valide.").min(1, "L'email est requis."),
+    password: hidePassword 
+      ? z.union([z.string(), z.undefined(), z.literal("")]).optional()
+      : z.union([
+          z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères."),
+          z.string().length(0),
+          z.undefined()
+        ]).optional(),
+    phone: z.string().optional(),
+  });
+};
 
-export type UserCreationFormData = z.infer<typeof userCreationSchema>;
+export const userCreationSchema = createUserCreationSchema(false);
+
+// Type de base pour le formulaire
+export type UserCreationFormData = {
+  fullName: string;
+  email: string;
+  password?: string;
+  phone?: string;
+};
 
 type UserCreationModalProps = {
   open: boolean;
@@ -60,8 +74,10 @@ export function UserCreationModal({
   hidePassword = false,
 }: UserCreationModalProps) {
   const { toast } = useToast();
+  // Créer le schéma dynamiquement selon hidePassword
+  const schema = createUserCreationSchema(hidePassword);
   const form = useForm<UserCreationFormData>({
-    resolver: zodResolver(userCreationSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       fullName: "",
       email: "",
@@ -73,10 +89,17 @@ export function UserCreationModal({
   useEffect(() => {
     if (!open) {
       form.reset();
+    } else {
+      // S'assurer que le champ password est défini même s'il n'est pas rendu
+      if (hidePassword) {
+        form.setValue("password", undefined, { shouldValidate: false });
+      }
     }
-  }, [open, form]);
+  }, [open, form, hidePassword]);
 
   const onSubmit = async (data: UserCreationFormData) => {
+    console.log("onSubmit called with data:", data);
+    console.log("hidePassword:", hidePassword);
     try {
       // S'assurer que les champs requis sont bien remplis
       if (!data.fullName || !data.fullName.trim()) {
@@ -208,7 +231,14 @@ export function UserCreationModal({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+            console.error("Form validation errors:", errors);
+            toast({
+              title: "Erreur de validation",
+              description: "Veuillez vérifier les champs du formulaire.",
+              variant: "destructive",
+            });
+          })} className="space-y-4">
             <FormField
               control={form.control}
               name="fullName"
