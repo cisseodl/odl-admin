@@ -335,11 +335,12 @@ export function ContentManager() {
     
     try {
       const { moduleId, courseId } = deleteModuleModal.selectedItem;
-      const selectedCourse = courses.find(c => c.id === courseId);
+      const cid = Number(courseId);
+      const selectedCourse = courses.find(c => Number(c.id) === cid);
       const courseLevel = selectedCourse?.level || "DEBUTANT";
       
-      // Utiliser la liste à jour depuis l'état modules (pas courses[].modules qui peut être vide si le cours n'a pas été ouvert)
-      const courseModules = modules.filter((m: any) => m.courseId === courseId);
+      // Utiliser la liste à jour depuis l'état modules (comparaison numérique pour éviter string/number)
+      const courseModules = modules.filter((m: any) => Number(m.courseId) === cid);
       const updatedModules = courseModules
         .filter(m => m.id !== moduleId)
         .map(m => ({
@@ -355,7 +356,7 @@ export function ContentManager() {
         }));
       
       const payload = {
-        courseId,
+        courseId: cid,
         courseType: courseLevel.toUpperCase() as "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE",
         modules: updatedModules,
       };
