@@ -68,10 +68,9 @@ export async function fetchApi<T>(
     return (textResponse ? { message: textResponse } : null) as T;
   }
 
-  // Vérifier si la réponse contient une erreur (CResponse avec ok: false)
-  // Mais ne pas lancer d'exception si le status HTTP est 200, car le backend peut retourner ok=false avec status 200
-  if (jsonData && jsonData.ok === false && !response.ok) {
-    throw new Error(jsonData.message || `API Error ${response.status}: Something went wrong`);
+  // Traiter CResponse avec ok: false comme erreur (même en 200) pour afficher le message côté UI
+  if (jsonData && jsonData.ok === false) {
+    throw new Error(jsonData.message || `Erreur API: ${response.status}`);
   }
 
   if (!response.ok) {

@@ -281,9 +281,9 @@ export function ContentManager() {
       const selectedCourse = courses.find(c => c.id === courseId);
       const courseLevel = selectedCourse?.level || "DEBUTANT";
       
-      // Pour modifier, on doit envoyer tous les modules du cours avec le module modifié
-      const currentModules = courses.find(c => c.id === courseId)?.modules || [];
-      const updatedModules = currentModules.map(m => 
+      // Utiliser l'état modules (comme pour la suppression) pour avoir toute la liste, même si le cours n'est pas ouvert
+      const courseModules = modules.filter((m: any) => m.courseId === courseId);
+      const updatedModules = courseModules.map(m => 
         m.id === module.id 
           ? {
               ...m,
