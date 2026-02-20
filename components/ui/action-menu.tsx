@@ -43,7 +43,13 @@ export function ActionMenu({ actions, trigger }: ActionMenuProps) {
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {defaultActions.map((action, index) => (
-          <DropdownMenuItem key={index} onClick={action.onClick}>
+          <DropdownMenuItem
+            key={index}
+            onSelect={(e) => {
+              e.preventDefault();
+              action.onClick();
+            }}
+          >
             {action.icon || <Eye className="mr-2 h-4 w-4" />}
             {action.label}
           </DropdownMenuItem>
@@ -52,7 +58,10 @@ export function ActionMenu({ actions, trigger }: ActionMenuProps) {
         {destructiveActions.map((action, index) => (
           <DropdownMenuItem
             key={index}
-            onClick={action.onClick}
+            onSelect={(e) => {
+              e.preventDefault();
+              action.onClick();
+            }}
             className="text-destructive focus:text-destructive"
           >
             {action.icon || <Trash2 className="mr-2 h-4 w-4" />}

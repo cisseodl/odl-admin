@@ -61,10 +61,13 @@ export async function fetchApi<T>(
   if (contentType && contentType.includes('application/json')) {
     jsonData = await response.json();
   } else {
-    // Handle non-JSON responses, e.g., plain text success messages
-    // For DELETE operations, an empty response body is also common.
+    // Réponse non-JSON (ex. 500 avec HTML ou texte) : si erreur HTTP, lever une exception
+    // pour que l'UI affiche l'erreur au lieu d'afficher "Succès" à tort (ex. bouton Publier).
     const textResponse = await response.text();
-    // Return based on whether text content is available, otherwise null/undefined
+    if (!response.ok) {
+      const msg = textResponse?.slice(0, 200) || response.statusText;
+      throw new Error(`Erreur ${response.status}: ${msg}`);
+    }
     return (textResponse ? { message: textResponse } : null) as T;
   }
 
@@ -76,20 +79,19 @@ export async function fetchApi<T>(
   if (!response.ok) {
     // Gestion spéciale pour les erreurs 401/403 - token invalide ou expiré
     if (response.status === 401 || response.status === 403) {
-      // Si le token est invalide ou expiré, nettoyer le localStorage et rediriger
+      const authMessage = jsonData?.message || `Erreur d'authentification (${response.status}): Votre session a expiré. Veuillez vous reconnecter.`;
       if (typeof window !== "undefined") {
         console.warn(`[API] Authentication error (${response.status}) for ${endpoint}. Clearing auth data.`);
         localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.TOKEN);
         localStorage.removeItem(STORAGE_KEYS.USER);
         localStorage.removeItem(STORAGE_KEYS.USER_INFO);
-        
-        // Rediriger vers la page de connexion si on n'y est pas déjà
+        // Rediriger après un court délai pour laisser le toast d'erreur s'afficher
         if (!window.location.pathname.includes('/login')) {
-          window.location.href = '/login';
+          setTimeout(() => { window.location.href = '/login'; }, 1500);
         }
       }
-      throw new Error(`Erreur d'authentification (${response.status}): Votre session a expiré. Veuillez vous reconnecter.`);
+      throw new Error(authMessage);
     }
     throw new Error(`API Error ${response.status}: ${jsonData?.message || response.statusText || "Something went wrong"}`);
   }

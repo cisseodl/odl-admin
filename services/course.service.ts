@@ -142,11 +142,19 @@ export class CourseService {
     if (reason && reason.trim()) {
       payload.reason = reason;
     }
-    const response = await fetchApi<any>(`/courses/${courseId}/validate`, {
-      method: "POST",
-      body: payload,
-    });
-    return response.data || response;
+    const url = `/courses/${courseId}/validate`;
+    console.log("[CourseService] validateCourse appelé – courseId:", courseId, "action:", action, "payload:", payload);
+    try {
+      const response = await fetchApi<any>(url, {
+        method: "POST",
+        body: payload,
+      });
+      console.log("[CourseService] validateCourse réponse:", response);
+      return response?.data ?? response;
+    } catch (e) {
+      console.error("[CourseService] validateCourse erreur:", e);
+      throw e;
+    }
   }
 
   async enrollInCourse(courseId: number): Promise<any> { // Nouvelle méthode

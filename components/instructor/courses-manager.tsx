@@ -239,17 +239,21 @@ export function CoursesManager({ refreshTrigger }: CoursesManagerProps = {}) {
   };
 
   const handlePublishCourse = async (course: Course) => {
+    console.log("[CoursesManager] Publier cliqué – courseId:", course.id, "titre:", course.title);
     try {
-      await courseService.validateCourse(course.id, "APPROVE");
+      const result = await courseService.validateCourse(course.id, "APPROVE");
+      console.log("[CoursesManager] Publication OK – réponse:", result);
       toast({
         title: "Succès",
         description: "Le cours a été publié.",
       });
       await fetchCourses();
     } catch (err: any) {
+      const message = err?.message || "Impossible de publier le cours.";
+      console.error("[CoursesManager] Erreur publication cours:", message, err);
       toast({
-        title: "Erreur",
-        description: err.message || "Impossible de publier le cours.",
+        title: "Erreur publication",
+        description: message,
         variant: "destructive",
       });
     }
