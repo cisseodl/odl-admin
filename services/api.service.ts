@@ -71,9 +71,10 @@ export async function fetchApi<T>(
     return (textResponse ? { message: textResponse } : null) as T;
   }
 
-  // Traiter CResponse avec ok: false comme erreur (même en 200) pour afficher le message côté UI
-  if (jsonData && jsonData.ok === false) {
-    throw new Error(jsonData.message || `Erreur API: ${response.status}`);
+  // Traiter les réponses d'échec (plusieurs formats possibles selon le backend) pour afficher l'erreur côté UI
+  if (jsonData && (jsonData.ok === false || jsonData.success === false || jsonData.failed === true)) {
+    const msg = jsonData.message || jsonData.error || `Erreur API: ${response.status}`;
+    throw new Error(msg || "Une erreur est survenue.");
   }
 
   if (!response.ok) {
