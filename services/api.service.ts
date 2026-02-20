@@ -73,8 +73,10 @@ export async function fetchApi<T>(
 
   // Traiter les réponses d'échec (plusieurs formats possibles selon le backend) pour afficher l'erreur côté UI
   if (jsonData && (jsonData.ok === false || jsonData.success === false || jsonData.failed === true)) {
-    const msg = jsonData.message || jsonData.error || `Erreur API: ${response.status}`;
-    throw new Error(msg || "Une erreur est survenue.");
+    const msg = jsonData.message || jsonData.error;
+    throw new Error(
+      msg && String(msg).trim() ? String(msg).trim() : "Une erreur est survenue. Réessayez ou contactez l'administrateur."
+    );
   }
 
   if (!response.ok) {
