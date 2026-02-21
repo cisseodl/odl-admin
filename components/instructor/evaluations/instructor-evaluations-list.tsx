@@ -98,7 +98,8 @@ export function InstructorEvaluationsList() {
     setLoading(true)
     setError(null)
     try {
-      const response = await evaluationService.getAllEvaluations()
+      // Uniquement les évaluations de niveau cours (examen), pas les quiz associés à une leçon
+      const response = await evaluationService.getCourseLevelEvaluations()
       if (Array.isArray(response) && response.length > 0) {
         setEvaluations(response.map(mapEvaluationToEvaluationDisplay))
       } else {

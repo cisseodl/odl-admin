@@ -73,8 +73,10 @@ export function QuizzesManager() {
     setError(null)
     try {
       const response = await evaluationService.getAllEvaluations()
-      // Filtrer seulement les évaluations de type QUIZ
-      const quizEvaluations = response.filter((e: Evaluation) => e.type === EvaluationType.QUIZ)
+      // Uniquement les quiz associés à une leçon (pas les examens de fin de cours)
+      const quizEvaluations = response.filter(
+        (e: Evaluation) => e.type === EvaluationType.QUIZ && (e as any).lesson != null
+      )
       setQuizzes(quizEvaluations.map(mapEvaluationToQuizDisplay))
     } catch (err: any) {
       setError(err.message || "Failed to fetch quizzes.")

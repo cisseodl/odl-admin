@@ -40,9 +40,27 @@ export interface EvaluationCorrectionRequest {
 }
 
 export class EvaluationService {
+  /**
+   * Toutes les évaluations (pour la liste Quiz qui filtre côté client les quiz avec leçon).
+   */
   async getAllEvaluations(): Promise<Evaluation[]> {
+    return this.getEvaluationsInternal(false);
+  }
+
+  /**
+   * Uniquement les évaluations de niveau cours (examen de fin de cours, pas les quiz/TD associés à une leçon).
+   * Pour la liste "Évaluations" du dash instructeur.
+   */
+  async getCourseLevelEvaluations(): Promise<Evaluation[]> {
+    return this.getEvaluationsInternal(true);
+  }
+
+  private async getEvaluationsInternal(courseLevelOnly: boolean): Promise<Evaluation[]> {
     try {
-      const response = await fetchApi<any>("/api/evaluations/get-all", { method: "GET" });
+      const url = courseLevelOnly
+        ? "/api/evaluations/get-all?courseLevelOnly=true"
+        : "/api/evaluations/get-all";
+      const response = await fetchApi<any>(url, { method: "GET" });
       if (!response) {
         console.warn("getAllEvaluations: API response is null or undefined");
         return [];
