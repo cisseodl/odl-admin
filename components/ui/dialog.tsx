@@ -54,17 +54,28 @@ function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
 }) {
+  const hasTitle = (function findTitle(nodes: React.ReactNode): boolean {
+    return React.Children.toArray(nodes).some((node) => {
+      if (React.isValidElement(node) && (node.type as any)?.displayName === 'DialogTitle') return true
+      if (React.isValidElement(node) && node.props?.children) return findTitle(node.props.children)
+      return false
+    })
+  })(children)
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"
+        aria-describedby={undefined}
         className={cn(
           'bg-card text-card-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg',
           className,
         )}
         {...props}
       >
+        {!hasTitle && (
+          <DialogPrimitive.Title className="sr-only">Fenêtre de dialogue</DialogPrimitive.Title>
+        )}
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close
@@ -115,6 +126,7 @@ function DialogTitle({
     />
   )
 }
+DialogTitle.displayName = 'DialogTitle'
 
 function DialogDescription({
   className,
