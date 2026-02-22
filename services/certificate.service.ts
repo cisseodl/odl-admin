@@ -23,6 +23,15 @@ class CertificateService {
     return response.data || [];
   }
 
+  /** Tous les apprenants certifiés (admin). */
+  async getAllCertificatesForAdmin(): Promise<Certificate[]> {
+    const response = await fetchApi<{ data: Certificate[] }>(
+      '/api/certificates/admin/all',
+      { method: 'GET' }
+    );
+    return response.data || [];
+  }
+
   async downloadCertificate(certificateUrl: string): Promise<void> {
     if (certificateUrl) {
       window.open(certificateUrl, '_blank');

@@ -886,6 +886,21 @@
       "success_delete": "Cohorte supprimée avec succès."
     }
   },
+  "attestation": {
+    "description": "Liste des apprenants ayant obtenu leur certification.",
+    "search": "Rechercher un apprenant certifié...",
+    "empty": "Aucun certificat délivré.",
+    "list": {
+      "apprenant": "Apprenant",
+      "formation": "Formation",
+      "issued": "Date d'émission",
+      "valid_until": "Valide jusqu'au",
+      "status": "Statut",
+      "actions": "Actions",
+      "view": "Voir",
+      "download": "Télécharger"
+    }
+  },
   "certifications": {
     "title": "Gestion des Certifications",
     "description": "Gérez toutes les certifications de la plateforme",
@@ -1042,6 +1057,7 @@
     "courses_all": "Toutes les formations",
     "courses_categories": "Catégories",
     "certifications": "Certifications",
+    "attestation": "Attestation",
     "reviews": "Commentaires",
     "content": "Contenu",
     "labs": "Labs",

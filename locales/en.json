@@ -760,6 +760,7 @@
     "courses_all": "All Courses",
     "courses_categories": "Categories",
     "certifications": "Certifications",
+    "attestation": "Attestation",
     "reviews": "Reviews",
     "content": "Content",
     "labs": "Labs",
@@ -814,6 +815,21 @@
       "success_add": "Category created successfully.",
       "success_update": "Category updated successfully.",
       "success_delete": "Category deleted successfully."
+    }
+  },
+  "attestation": {
+    "description": "List of learners who have obtained their certification.",
+    "search": "Search for a certified learner...",
+    "empty": "No certificates issued.",
+    "list": {
+      "apprenant": "Learner",
+      "formation": "Course",
+      "issued": "Issue date",
+      "valid_until": "Valid until",
+      "status": "Status",
+      "actions": "Actions",
+      "view": "View",
+      "download": "Download"
     }
   },
   "certifications": {

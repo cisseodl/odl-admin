@@ -76,6 +76,11 @@ export const adminRoutes: Route[] = [
     href: "/admin/certifications",
   },
   {
+    label: "routes.attestation",
+    icon: Award,
+    href: "/admin/attestations",
+  },
+  {
     label: "routes.reviews",
     icon: MessageSquare,
     href: "/admin/reviews",
@@ -144,7 +149,7 @@ export const instructorRoutes: Route[] = [
     href: "/instructor/evaluations",
   },
   {
-    label: "routes.instructor_certificates",
+    label: "routes.attestation",
     icon: Award,
     href: "/instructor/certificates",
   },

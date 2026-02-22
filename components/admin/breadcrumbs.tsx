@@ -16,6 +16,7 @@ export function Breadcrumbs() {
     "/admin/instructors": t('routes.instructors'),
     "/admin/categories": t('routes.categories'),
     "/admin/certifications": t('routes.certifications'),
+    "/admin/attestations": t('routes.attestation'),
     "/admin/analytics": t('routes.analytics'),
     "/admin/reviews": t('routes.reviews'),
     "/admin/content": t('routes.content'),
