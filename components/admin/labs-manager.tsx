@@ -438,7 +438,7 @@ export function LabsManager() {
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-        <TabsList>
+        <TabsList className="bg-muted/40 border border-border/60">
           <TabsTrigger value="labs">Labs</TabsTrigger>
           <TabsTrigger value="realisations">Réalisations des apprenants</TabsTrigger>
         </TabsList>
