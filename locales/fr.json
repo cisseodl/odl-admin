@@ -603,6 +603,11 @@
       "empty_title": "Aucune évaluation",
       "empty_description": "Commencez par ajouter une évaluation à la plateforme"
     },
+    "edit": {
+      "title": "Modifier l'évaluation",
+      "description": "Modifiez les informations et les points par question.",
+      "loading": "Chargement..."
+    },
     "create": {
       "title": "Créer une évaluation",
       "description": "Créez une nouvelle évaluation pour vos cours",
@@ -686,6 +691,7 @@
     "toasts": {
       "success_create": "Évaluation créée",
       "success_create_message": "L'évaluation a été créée avec succès.",
+      "success_update_message": "L'évaluation a été mise à jour avec succès.",
       "error_create": "Erreur de création",
       "success_correct": "TP corrigé",
       "success_correct_message": "Le TP a été corrigé avec succès.",

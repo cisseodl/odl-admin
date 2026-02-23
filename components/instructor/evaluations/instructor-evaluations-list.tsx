@@ -75,6 +75,7 @@ export function InstructorEvaluationsList() {
   const dialog = useActionResultDialog()
   const { user } = useAuth()
   const addModal = useModal<EvaluationDisplay>()
+  const editModal = useModal<EvaluationDisplay>()
   const deleteModal = useModal<EvaluationDisplay>()
   const viewModal = useModal<EvaluationDisplay>()
   const correctTpModal = useModal<EvaluationAttempt>()
@@ -163,21 +164,29 @@ export function InstructorEvaluationsList() {
 
   const handleCreateEvaluation = async (data: any) => {
     setError(null)
+    const isEdit = !!editModal.selectedItem
     try {
-      await evaluationService.createEvaluation({
+      const payload = {
         title: data.title,
         description: data.description,
         courseId: data.courseId,
         type: data.type,
         tpInstructions: data.tpInstructions,
         tpFileUrl: data.tpFileUrl,
-        questions: data.questions, // Inclure les questions pour les QUIZ
-      })
-      dialog.showSuccess(t('evaluations.toasts.success_create_message') || "Évaluation créée avec succès.")
-      addModal.close()
+        questions: data.questions,
+      }
+      if (isEdit) {
+        await evaluationService.updateEvaluation(editModal.selectedItem!.id, payload)
+        dialog.showSuccess(t('evaluations.toasts.success_update_message') || "Évaluation mise à jour avec succès.")
+        editModal.close()
+      } else {
+        await evaluationService.createEvaluation(payload)
+        dialog.showSuccess(t('evaluations.toasts.success_create_message') || "Évaluation créée avec succès.")
+        addModal.close()
+      }
       fetchEvaluations()
     } catch (err: any) {
-      dialog.showError(err.message || "Impossible de créer l'évaluation.")
+      dialog.showError(err.message || (isEdit ? "Impossible de modifier l'évaluation." : "Impossible de créer l'évaluation."))
     }
   }
 
@@ -271,6 +280,11 @@ export function InstructorEvaluationsList() {
                   onClick: () => viewModal.open(evaluation),
                 },
                 {
+                  label: t('evaluations.list.action_edit') || "Modifier",
+                  icon: <Edit className="h-4 w-4" />,
+                  onClick: () => editModal.open(evaluation),
+                },
+                {
                   label: t('evaluations.list.action_delete') || "Supprimer",
                   icon: <Trash2 className="h-4 w-4" />,
                   onClick: () => deleteModal.open(evaluation),
@@ -282,7 +296,7 @@ export function InstructorEvaluationsList() {
         },
       },
     ],
-    [viewModal, deleteModal, t]
+    [viewModal, editModal, deleteModal, t]
   )
 
   const pendingTpColumns: ColumnDef<PendingTpDisplay>[] = useMemo(
@@ -480,9 +494,15 @@ export function InstructorEvaluationsList() {
       </Card>
 
       <CreateEvaluationModal
-        open={addModal.isOpen}
-        onOpenChange={(open) => !open && addModal.close()}
+        open={addModal.isOpen || editModal.isOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            addModal.close()
+            editModal.close()
+          }
+        }}
         onSubmit={handleCreateEvaluation}
+        editEvaluationId={editModal.selectedItem?.id ?? null}
       />
 
       {viewModal.selectedItem && (

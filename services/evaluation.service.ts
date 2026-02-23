@@ -185,10 +185,10 @@ export class EvaluationService {
     }
   }
 
-  async updateEvaluation(id: number, evaluationData: Partial<Evaluation>): Promise<Evaluation> {
+  async updateEvaluation(id: number, request: EvaluationRequest): Promise<Evaluation> {
     const response = await fetchApi<any>(`/api/evaluations/update/${id}`, {
       method: "PUT",
-      body: evaluationData,
+      body: request,
     });
     if (!response) {
       throw new Error("La réponse de l'API est vide");

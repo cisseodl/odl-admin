@@ -16,7 +16,7 @@ import { Save, Upload, PlusCircle, MinusCircle, CheckCircle2, XCircle } from "lu
 import { useState, useEffect } from "react"
 import { useLanguage } from "@/contexts/language-context"
 import { EvaluationType } from "@/models/evaluation.model"
-import { courseService } from "@/services"
+import { courseService, evaluationService } from "@/services"
 import { Course } from "@/models"
 import { fileUploadService } from "@/services/file-upload.service"
 import { useToast } from "@/hooks/use-toast"
@@ -54,18 +54,22 @@ type CreateEvaluationModalProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSubmit: (data: CreateEvaluationFormData & { tpFile?: File; questions?: any[] }) => Promise<void>
+  /** En mode édition : id de l'évaluation à modifier (charge les données au montage). */
+  editEvaluationId?: number | null
 }
 
 export function CreateEvaluationModal({
   open,
   onOpenChange,
   onSubmit,
+  editEvaluationId,
 }: CreateEvaluationModalProps) {
   const { t } = useLanguage()
   const { toast } = useToast()
   const { user } = useAuth()
   const [courses, setCourses] = useState<Course[]>([])
   const [loadingCourses, setLoadingCourses] = useState(false)
+  const [loadingEdit, setLoadingEdit] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [uploadingFile, setUploadingFile] = useState(false)
 
@@ -128,6 +132,46 @@ export function CreateEvaluationModal({
     }
   }, [open, user?.id, t, toast])
 
+  // En mode édition : charger l'évaluation avec questions pour préremplir le formulaire
+  useEffect(() => {
+    if (!open || !editEvaluationId) return
+    setLoadingEdit(true)
+    evaluationService
+      .getEvaluationWithQuestions(editEvaluationId)
+      .then((evalData: any) => {
+        if (!evalData) return
+        const courseId = evalData.course?.id ?? evalData.courseId ?? 0
+        const questions = (evalData.questions || []).map((q: any) => ({
+          title: q.title ?? "",
+          description: q.description ?? "",
+          type: q.type ?? "SINGLE_CHOICE",
+          points: q.points != null && q.points > 0 ? Number(q.points) : 1,
+          reponses: (q.reponses || []).map((r: any) => ({
+            title: r.title ?? "",
+            description: r.description ?? "",
+            isCorrect: Boolean(r.isCorrect),
+          })),
+        }))
+        form.reset({
+          title: evalData.title ?? "",
+          description: evalData.description ?? "",
+          courseId: Number(courseId),
+          type: evalData.type ?? EvaluationType.QUIZ,
+          tpInstructions: evalData.tpInstructions ?? "",
+          tpFileUrl: evalData.tpFileUrl ?? "",
+          questions: questions.length > 0 ? questions : [],
+        })
+      })
+      .catch((err: any) => {
+        toast({
+          title: t('evaluations.toasts.error_load') ?? "Erreur",
+          description: err?.message ?? "Impossible de charger l'évaluation.",
+          variant: "destructive",
+        })
+      })
+      .finally(() => setLoadingEdit(false))
+  }, [open, editEvaluationId, form, t, toast])
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -178,11 +222,20 @@ export function CreateEvaluationModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t('evaluations.create.title') || "Créer une évaluation"}</DialogTitle>
+          <DialogTitle>
+            {editEvaluationId ? (t('evaluations.edit.title') || "Modifier l'évaluation") : (t('evaluations.create.title') || "Créer une évaluation")}
+          </DialogTitle>
           <DialogDescription>
-            {t('evaluations.create.description') || "Créez une nouvelle évaluation pour vos cours"}
+            {editEvaluationId
+              ? (t('evaluations.edit.description') || "Modifiez les informations et les points par question.")
+              : (t('evaluations.create.description') || "Créez une nouvelle évaluation pour vos cours")}
           </DialogDescription>
         </DialogHeader>
+        {loadingEdit ? (
+          <div className="flex items-center justify-center py-12 text-muted-foreground">
+            {t('evaluations.edit.loading') || "Chargement..."}
+          </div>
+        ) : (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="grid gap-4 py-4">
             <FormField
@@ -424,6 +477,7 @@ export function CreateEvaluationModal({
             </DialogFooter>
           </form>
         </Form>
+        )}
       </DialogContent>
     </Dialog>
   )

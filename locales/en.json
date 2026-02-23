@@ -605,6 +605,11 @@
       "empty_title": "No evaluations",
       "empty_description": "Start by adding an evaluation to the platform"
     },
+    "edit": {
+      "title": "Edit Evaluation",
+      "description": "Edit information and points per question.",
+      "loading": "Loading..."
+    },
     "create": {
       "title": "Create Evaluation",
       "description": "Create a new evaluation for your courses",
@@ -672,6 +677,7 @@
     "toasts": {
       "success_create": "Evaluation Created",
       "success_create_message": "The evaluation has been created successfully.",
+      "success_update_message": "The evaluation has been updated successfully.",
       "error_create": "Creation Error",
       "success_correct": "TP Corrected",
       "success_correct_message": "The TP has been corrected successfully.",
