@@ -98,7 +98,7 @@ export class EvaluationService {
   }
 
   async correctEvaluation(request: EvaluationCorrectionRequest): Promise<EvaluationAttempt> {
-    const response = await fetchApi<any>("/evaluations/correct", {
+    const response = await fetchApi<any>("/api/evaluations/correct", {
       method: "POST",
       body: request,
     });

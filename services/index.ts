@@ -10,7 +10,7 @@ export { detailsCourseService } from "./details-course.service";
 export { evaluationService } from "./evaluation.service";
 export { infotestService } from "./infotest.service";
 export { labDefinitionService } from "./lab-definition.service";
-export { labSessionService } from "./lab-session.service";
+export { labSessionService, type LabSubmissionForInstructor } from "./lab-session.service";
 export { learnerChapterService } from "./learner-chapter.service";
 export { learnerModuleService } from "./learner-module.service";
 export { learnerService } from "./learner.service";

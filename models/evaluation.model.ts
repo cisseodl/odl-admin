@@ -38,10 +38,14 @@ export interface Evaluation {
 export interface EvaluationAttempt {
   id: number;
   evaluationId: number;
+  evaluationTitle?: string | null;
   userId: number;
+  learnerName?: string | null;
+  learnerEmail?: string | null;
   score?: number | null;
   status: AttemptStatus;
   submittedFileUrl?: string | null;
+  submittedText?: string | null;
   correctedBy?: number | null;
   correctedAt?: Date | null;
   instructorFeedback?: string | null;

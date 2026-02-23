@@ -14,10 +14,12 @@ import { useModal } from "@/hooks/use-modal"
 import { useSearch } from "@/hooks/use-search"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import type { ColumnDef } from "@tanstack/react-table"
-import { Edit, Trash2, FileText, Video, Image, FileQuestion, File, Calendar, Clock, HardDrive } from "lucide-react"
+import { Edit, Trash2, FileText, Video, Image, FileQuestion, File, Calendar, Clock, HardDrive, ExternalLink, User } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useAuth } from "@/contexts/auth-context"
 
 import { LabDefinition } from "@/models"; // Import LabDefinition from models/index.ts
-import { labDefinitionService } from "@/services"; // Import labDefinitionService from services/index.ts
+import { labDefinitionService, labSessionService, type LabSubmissionForInstructor } from "@/services"; // Import labDefinitionService from services/index.ts
 
 import { PageLoader } from "@/components/ui/page-loader";
 import { EmptyState } from "./empty-state";
@@ -106,13 +108,17 @@ const mapContentDisplayToLabFormData = (content: ContentDisplay): LabFormData =>
 
 
 export function LabsManager() {
+  const { user } = useAuth()
   const addModal = useModal<ContentDisplay>()
   const editModal = useModal<ContentDisplay>()
   const deleteModal = useModal<ContentDisplay>()
 
   const [content, setContent] = useState<ContentDisplay[]>([]);
+  const [submissions, setSubmissions] = useState<LabSubmissionForInstructor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("labs");
   const dialog = useActionResultDialog();
 
   useEffect(() => {
@@ -142,6 +148,21 @@ export function LabsManager() {
     fetchContent();
   }, []); // Empty dependency array means this runs once on mount
 
+  useEffect(() => {
+    if (activeTab !== "realisations" || !user?.id) return
+    const fetchSubmissions = async () => {
+      setLoadingSubmissions(true)
+      try {
+        const data = await labSessionService.getInstructorSubmissions(Number(user.id))
+        setSubmissions(data ?? [])
+      } catch (err) {
+        setSubmissions([])
+      } finally {
+        setLoadingSubmissions(false)
+      }
+    }
+    fetchSubmissions()
+  }, [activeTab, user?.id])
 
   const { searchQuery, setSearchQuery, filteredData } = useSearch<ContentDisplay>({
     data: Array.isArray(content) ? content : [],
@@ -360,42 +381,114 @@ export function LabsManager() {
     [editModal, deleteModal]
   )
 
+  const submissionColumns: ColumnDef<LabSubmissionForInstructor>[] = useMemo(
+    () => [
+      { accessorKey: "labTitle", header: "Lab", cell: ({ row }) => <span className="font-medium">{row.original.labTitle || "—"}</span> },
+      { accessorKey: "courseTitle", header: "Cours", cell: ({ row }) => row.original.courseTitle || "—" },
+      { accessorKey: "lessonTitle", header: "Leçon", cell: ({ row }) => row.original.lessonTitle || "—" },
+      {
+        accessorKey: "learnerName",
+        header: "Apprenant",
+        cell: ({ row }) => (
+          <span className="flex items-center gap-1">
+            <User className="h-4 w-4 text-muted-foreground" />
+            {row.original.learnerName || row.original.learnerEmail || "—"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "reportUrl",
+        header: "Rapport",
+        cell: ({ row }) =>
+          row.original.reportUrl ? (
+            <a
+              href={row.original.reportUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline inline-flex items-center gap-1"
+            >
+              <ExternalLink className="h-4 w-4" /> Voir le rapport
+            </a>
+          ) : (
+            "—"
+          ),
+      },
+      {
+        accessorKey: "createdAt",
+        header: "Soumis le",
+        cell: ({ row }) =>
+          row.original.createdAt
+            ? new Date(row.original.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+            : "—",
+      },
+    ],
+    []
+  )
+
   return (
     <>
       <PageHeader
         title="Gestion des Labs"
-        description="Gérez tous les labs de la plateforme"
-        action={{
-          label: "Ajouter un lab",
-          onClick: () => addModal.open(),
-        }}
+        description="Gérez les labs et consultez les réalisations (rapports) soumises par les apprenants"
+        action={
+          activeTab === "labs"
+            ? { label: "Ajouter un lab", onClick: () => addModal.open() }
+            : undefined
+        }
       />
 
-      <Card className="mt-6">
-        <CardContent>
-          <div className="mb-4">
-            <SearchBar
-              placeholder="Rechercher un lab..."
-              value={searchQuery}
-              onChange={setSearchQuery}
-            />
-          </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
+        <TabsList>
+          <TabsTrigger value="labs">Labs</TabsTrigger>
+          <TabsTrigger value="realisations">Réalisations des apprenants</TabsTrigger>
+        </TabsList>
 
-          {loading ? (
-            <PageLoader />
-          ) : error ? (
-            <div className="text-center text-destructive p-4">{error}</div>
-          ) : filteredData.length === 0 ? (
-            <EmptyState
-              icon={HardDrive} // Changed icon to HardDrive for Labs
-              title="Aucun lab"
-              description="Commencez par ajouter un lab à la plateforme"
-            />
-          ) : (
-            <DataTable columns={columns} data={Array.isArray(filteredData) ? filteredData : []} searchValue={searchQuery} />
-          )}
-        </CardContent>
-      </Card>
+        <TabsContent value="labs" className="mt-4">
+          <Card>
+            <CardContent>
+              <div className="mb-4">
+                <SearchBar
+                  placeholder="Rechercher un lab..."
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                />
+              </div>
+
+              {loading ? (
+                <PageLoader />
+              ) : error ? (
+                <div className="text-center text-destructive p-4">{error}</div>
+              ) : filteredData.length === 0 ? (
+                <EmptyState
+                  icon={HardDrive}
+                  title="Aucun lab"
+                  description="Commencez par ajouter un lab à la plateforme"
+                />
+              ) : (
+                <DataTable columns={columns} data={Array.isArray(filteredData) ? filteredData : []} searchValue={searchQuery} />
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="realisations" className="mt-4">
+          <Card>
+            <CardContent>
+              {loadingSubmissions ? (
+                <PageLoader />
+              ) : submissions.length === 0 ? (
+                <EmptyState
+                  icon={FileText}
+                  title="Aucune réalisation"
+                  description="Les rapports soumis par les apprenants (Ma réalisation) apparaîtront ici."
+                />
+              ) : (
+                <DataTable columns={submissionColumns} data={submissions} />
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* LabFormModal for Add and Edit */}
       <LabFormModal

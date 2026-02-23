@@ -1,10 +1,31 @@
 import { LabSession } from '../models/lab-session.model';
 import { fetchApi } from './api.service';
 
+export interface LabSubmissionForInstructor {
+  id: number;
+  labDefinitionId: number;
+  labTitle: string;
+  courseId?: number;
+  courseTitle?: string;
+  lessonTitle?: string;
+  userId: number;
+  learnerName?: string;
+  learnerEmail?: string;
+  reportUrl: string;
+  createdAt?: string;
+}
+
 export class LabSessionService {
   async getMyLabSessions(): Promise<LabSession[]> {
     const response = await fetchApi<any>("/api/labs/my-sessions", { method: "GET" });
     return response.data;
+  }
+
+  /** Réalisations "Ma réalisation" (rapports de lab) soumises par les apprenants, pour les cours de l'instructeur. */
+  async getInstructorSubmissions(instructorId: number): Promise<LabSubmissionForInstructor[]> {
+    const response = await fetchApi<any>(`/api/labs/instructor/${instructorId}/submissions`, { method: "GET" });
+    if (!response?.data) return [];
+    return Array.isArray(response.data) ? response.data : [response.data];
   }
 
   async startLabSession(labId: number): Promise<LabSession> {

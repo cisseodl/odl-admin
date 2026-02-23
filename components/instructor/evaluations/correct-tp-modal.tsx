@@ -60,17 +60,27 @@ export function CorrectTpModal({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="grid gap-4 py-4">
-            {attempt.submittedFileUrl && (
+            {(attempt.submittedFileUrl || attempt.submittedText) && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">{t('evaluations.correct.submitted_file') || "Fichier soumis"}</label>
-                <a
-                  href={attempt.submittedFileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-primary hover:underline"
-                >
-                  {t('evaluations.correct.view_file') || "Voir le fichier"}
-                </a>
+                {attempt.submittedFileUrl && (
+                  <>
+                    <label className="text-sm font-medium">{t('evaluations.correct.submitted_file') || "Fichier soumis"}</label>
+                    <a
+                      href={attempt.submittedFileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary hover:underline block"
+                    >
+                      {t('evaluations.correct.view_file') || "Voir le fichier"}
+                    </a>
+                  </>
+                )}
+                {attempt.submittedText && (
+                  <>
+                    <label className="text-sm font-medium">{t('evaluations.correct.submitted_text') || "Texte soumis"}</label>
+                    <p className="text-sm border rounded p-3 bg-muted/30 whitespace-pre-wrap">{attempt.submittedText}</p>
+                  </>
+                )}
               </div>
             )}
             <FormField

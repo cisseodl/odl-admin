@@ -42,6 +42,7 @@ type PendingTpDisplay = {
   evaluationTitle: string
   learnerName: string
   submittedFileUrl?: string
+  submittedText?: string
   createdAt: string
 }
 
@@ -123,9 +124,10 @@ export function InstructorEvaluationsList() {
         setPendingTps(response.map((attempt: EvaluationAttempt) => ({
           id: attempt.id,
           evaluationId: attempt.evaluationId,
-          evaluationTitle: "Évaluation", // TODO: fetch evaluation title
-          learnerName: "Apprenant", // TODO: fetch learner name
+          evaluationTitle: attempt.evaluationTitle ?? "Évaluation",
+          learnerName: attempt.learnerName ?? attempt.learnerEmail ?? "Apprenant",
           submittedFileUrl: attempt.submittedFileUrl || undefined,
+          submittedText: attempt.submittedText || undefined,
           createdAt: attempt.createdAt ? new Date(attempt.createdAt).toLocaleDateString("fr-FR") : "N/A",
         })))
       } else {
@@ -145,8 +147,8 @@ export function InstructorEvaluationsList() {
         setCorrectedTps(response.map((attempt: EvaluationAttempt) => ({
           id: attempt.id,
           evaluationId: attempt.evaluationId,
-          evaluationTitle: "Évaluation", // TODO: fetch evaluation title
-          learnerName: "Apprenant", // TODO: fetch learner name
+          evaluationTitle: attempt.evaluationTitle ?? "Évaluation",
+          learnerName: attempt.learnerName ?? attempt.learnerEmail ?? "Apprenant",
           submittedFileUrl: attempt.submittedFileUrl || undefined,
           score: attempt.score || 0,
           feedback: attempt.instructorFeedback || undefined,
