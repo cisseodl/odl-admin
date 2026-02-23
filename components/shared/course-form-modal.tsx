@@ -36,7 +36,7 @@ const courseFormSchema = z.object({
   title: z.string().min(2, "Le titre doit contenir au moins 2 caractères."),
   subtitle: z.string().optional(),
   description: z.string().optional(),
-  imageUrl: z.string().optional(),
+  imageFile: z.any().optional(),
   level: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]),
   language: z.string().min(2, "La langue doit contenir au moins 2 caractères."),
   categoryId: z.number({
@@ -136,19 +136,23 @@ export function CourseFormModal({
             />
             <FormField
               control={form.control}
-              name="imageUrl"
-              render={({ field }) => (
+              name="imageFile"
+              render={({ field: { value, onChange, ...field } }) => (
                 <FormItem>
-                  <FormLabel>{t('course_form.image_url_label') || "URL de l'image (optionnel)"}</FormLabel>
+                  <FormLabel>{t('course_form.image_upload_label') || "Image du cours (optionnel)"}</FormLabel>
                   <FormControl>
                     <Input
-                      type="url"
-                      placeholder={t('course_form.image_url_placeholder') || "https://exemple.com/image-python.png"}
+                      type="file"
+                      accept="image/*"
                       {...field}
-                      name={field.name}
-                      value={field.value ?? ""}
+                      onChange={(e) => onChange(e.target.files?.[0] ?? undefined)}
                     />
                   </FormControl>
+                  {value && (
+                    <p className="text-sm text-muted-foreground">
+                      {typeof value === "object" && value?.name ? value.name : "Fichier sélectionné"}
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

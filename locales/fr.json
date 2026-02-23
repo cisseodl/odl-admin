@@ -1398,6 +1398,7 @@
     "image_label": "Image de la formation (optionnel)",
     "image_url_label": "URL de l'image (optionnel)",
     "image_url_placeholder": "https://exemple.com/image-python.png",
+    "image_upload_label": "Image du cours (optionnel)",
     "continue_to_modules": "Continuer vers les Modules"
   },
   "wizard": {

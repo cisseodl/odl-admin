@@ -91,16 +91,17 @@ export class CourseService {
     imageFile?: File
   ): Promise<Course> {
     const formData = new FormData();
-    const { imageUrl, ...rest } = courseData;
+    const { imageFile: _imageFile, imageUrl, ...rest } = courseData;
+    const fileToSend = imageFile ?? _imageFile;
     const payload = {
       ...rest,
       categoryId: catId,
       formationId: undefined,
-      imagePath: imageUrl && imageUrl.trim() ? imageUrl.trim() : undefined,
+      imagePath: !fileToSend && imageUrl && imageUrl.trim() ? imageUrl.trim() : undefined,
     };
     formData.append("courses", new Blob([JSON.stringify(payload)], { type: "application/json" }));
-    if (imageFile) {
-      formData.append("image", imageFile);
+    if (fileToSend) {
+      formData.append("image", fileToSend);
     }
 
     const response = await fetchApi<any>(`/courses/save/${catId}`, {
