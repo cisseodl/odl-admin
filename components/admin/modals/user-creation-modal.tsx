@@ -62,6 +62,8 @@ type UserCreationModalProps = {
   description: string;
   submitLabel: string;
   hidePassword?: boolean; // Option pour masquer le champ mot de passe (pour les formateurs créés par admin)
+  /** Si true, le backend ne crée pas le profil Apprenant (pour créer ensuite via "Créer profil apprenant" avec mdp par défaut). */
+  skipApprenantProfile?: boolean;
 };
 
 export function UserCreationModal({
@@ -72,6 +74,7 @@ export function UserCreationModal({
   description,
   submitLabel,
   hidePassword = false,
+  skipApprenantProfile = false,
 }: UserCreationModalProps) {
   const { toast } = useToast();
   // Créer le schéma dynamiquement selon hidePassword
@@ -137,6 +140,9 @@ export function UserCreationModal({
       // Inclure le mot de passe seulement s'il est fourni et que hidePassword est false
       if (!hidePassword && data.password && data.password.trim().length > 0) {
         newUser.password = data.password;
+      }
+      if (skipApprenantProfile) {
+        newUser.skipApprenantProfile = true;
       }
       
       console.log("Creating user with data:", { ...newUser, password: "***" }); // Log sans le mot de passe

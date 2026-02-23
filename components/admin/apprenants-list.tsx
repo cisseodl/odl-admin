@@ -649,6 +649,7 @@ export function ApprenantsList() {
           description={t('users.learners.modals.create_user_description')}
           submitLabel={t('users.learners.modals.create_user_submit')}
           hidePassword={true}
+          skipApprenantProfile={true}
         />
       )}
 
