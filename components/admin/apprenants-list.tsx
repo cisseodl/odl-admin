@@ -341,9 +341,8 @@ export function ApprenantsList() {
         description: t('users.learners.toasts.success_delete'),
       });
       dialog.showSuccess(t('users.learners.toasts.success_delete'));
-      setApprenants((prev) => prev.filter((apprenant) => apprenant.id !== id));
-      setRawApprenantsData((prev) => prev.filter((app) => app.id !== raw.id && app.userId !== id));
       deleteModal.close();
+      await fetchApprenants();
     } catch (err: any) {
       setError(err.message || t('users.learners.toasts.error_delete'));
       toast({
