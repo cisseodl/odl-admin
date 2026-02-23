@@ -34,8 +34,8 @@ import { useLanguage } from "@/contexts/language-context"
 
 const courseFormSchema = z.object({
   title: z.string().min(2, "Le titre doit contenir au moins 2 caractères."),
-  subtitle: z.string().min(2, "Le sous-titre doit contenir au moins 2 caractères."),
-  description: z.string().min(10, "La description doit contenir au moins 10 caractères."),
+  subtitle: z.string().optional(),
+  description: z.string().optional(),
   level: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]),
   language: z.string().min(2, "La langue doit contenir au moins 2 caractères."),
   categoryId: z.number({

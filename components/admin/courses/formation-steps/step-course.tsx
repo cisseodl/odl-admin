@@ -74,15 +74,15 @@ export function StepCourse({ onSubmit, categories, instructors, loading, default
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Vérifier qu'on a au moins une catégorie OU une formation
-    if (!title.trim() || !description.trim() || (!categoryId && !formationId) || !instructorId) {
+    // Vérifier qu'on a au moins une catégorie OU une formation (titre et contenus essentiels requis)
+    if (!title.trim() || (!categoryId && !formationId) || !instructorId) {
       return
     }
 
     onSubmit({
       title: title.trim(),
       subtitle: subtitle.trim() || undefined,
-      description: description.trim(),
+      description: description.trim() || undefined,
       categoryId: categoryId || undefined,
       formationId: formationId || undefined,
       instructorId,

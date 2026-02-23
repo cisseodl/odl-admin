@@ -34,13 +34,24 @@ import { useToast } from "@/hooks/use-toast";
 type Course = {
   id: number;
   title: string;
+  subtitle?: string;
+  description?: string;
   modules: number;
   chapters: number;
   videos: number;
-  students: number; // Ajouté
+  students: number;
   status: "Publié" | "Non publié" | "En révision";
-  rating: number; // Ajouté
+  rating: number;
   createdAt: string;
+  category?: string;
+  categorie?: { id?: number; title?: string };
+  formation?: { title?: string };
+  categoryId?: number;
+  level?: string;
+  language?: string;
+  /** Image du cours (URL) — affichée sur Mes cours, pas envoyée à la création */
+  imagePath?: string | null;
+  activate?: boolean;
 };
 
 type CoursesManagerProps = {
@@ -284,6 +295,23 @@ export function CoursesManager({ refreshTrigger }: CoursesManagerProps = {}) {
   const columns: ColumnDef<Course>[] = useMemo(
     () => [
       {
+        id: "image",
+        header: "",
+        cell: ({ row }) => {
+          const course = row.original;
+          const imgUrl = course.imagePath || null;
+          return (
+            <div className="w-12 h-12 rounded-md overflow-hidden bg-muted flex items-center justify-center shrink-0">
+              {imgUrl ? (
+                <img src={imgUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <BookOpen className="h-6 w-6 text-muted-foreground" />
+              )}
+            </div>
+          );
+        },
+      },
+      {
         accessorKey: "title",
         header: "Cours",
         cell: ({ row }) => {
@@ -300,7 +328,7 @@ export function CoursesManager({ refreshTrigger }: CoursesManagerProps = {}) {
           return (
             <div className="font-medium flex flex-col gap-1">
               <div className="flex items-center gap-2">
-                <BookOpen className="h-4 w-4 text-muted-foreground" />
+                <BookOpen className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span>{courseTitle}</span>
               </div>
               {(formationTitle || categoryTitle) && (

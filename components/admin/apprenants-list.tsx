@@ -49,6 +49,8 @@ type ApprenantDisplay = {
   coursesEnrolled: number;
   completedCourses: number;
   totalCertificates: number;
+  /** false pour les utilisateurs inscrits via smart-odc.com sans fiche Apprenant */
+  hasApprenantProfile?: boolean;
 }
 
 const mapApprenantToApprenantDisplay = (apprenant: Apprenant): ApprenantDisplay => {
@@ -77,8 +79,10 @@ const mapApprenantToApprenantDisplay = (apprenant: Apprenant): ApprenantDisplay 
   // Utiliser userEmail en priorité, sinon email
   const email = apprenant.userEmail || apprenant.email || "";
 
+  // Id unique : id apprenant si présent, sinon userId (pour les inscrits via smart-odc.com sans fiche Apprenant)
+  const rowId = apprenant.id ?? apprenant.userId ?? 0;
   return {
-    id: apprenant.id || 0,
+    id: rowId,
     name: name,
     email: email,
     numero: apprenant.numero || "",
@@ -92,8 +96,14 @@ const mapApprenantToApprenantDisplay = (apprenant: Apprenant): ApprenantDisplay 
     coursesEnrolled: 0,
     completedCourses: 0,
     totalCertificates: 0,
+    hasApprenantProfile: apprenant.id != null,
   };
 };
+
+/** Trouve la ligne brute (Apprenant ou User seul) à partir de l'id affiché (apprenant.id ou userId). */
+function findRawApprenant(raw: Apprenant[], displayId: number): Apprenant | undefined {
+  return raw.find((app) => app.id === displayId || (app.id == null && app.userId === displayId));
+}
 
 const mapApprenantDisplayToUserFormData = (apprenant: ApprenantDisplay): UserFormData => {
   return {
@@ -271,8 +281,8 @@ export function ApprenantsList() {
     if (editModal.selectedItem) {
       try {
         // Récupérer l'apprenant actuel pour obtenir le userId
-        const currentApprenant = rawApprenantsData.find((app: Apprenant) => app.id === editModal.selectedItem?.id);
-        const userId = currentApprenant?.user?.id;
+        const currentApprenant = findRawApprenant(rawApprenantsData, editModal.selectedItem?.id ?? 0);
+        const userId = currentApprenant?.userId ?? currentApprenant?.user?.id;
         
         const updatedApprenantData = {
           username: data.username,
@@ -288,7 +298,12 @@ export function ApprenantsList() {
           } : undefined,
         };
 
-        const updatedApprenant = await apprenantService.updateApprenant(editModal.selectedItem.id, updatedApprenantData);
+        const apprenantId = currentApprenant?.id;
+        if (apprenantId == null) {
+          toast({ title: t('common.error'), description: "Cet utilisateur n'a pas de fiche apprenant à modifier.", variant: "destructive" });
+          return;
+        }
+        const updatedApprenant = await apprenantService.updateApprenant(apprenantId, updatedApprenantData);
         const apprenant = updatedApprenant?.data || updatedApprenant;
         
         // Recharger la liste complète pour avoir les données à jour
@@ -313,14 +328,21 @@ export function ApprenantsList() {
 
   const handleDeleteApprenant = async (id: number) => {
     setError(null);
+    const raw = findRawApprenant(rawApprenantsData, id);
+    if (raw?.id == null) {
+      toast({ title: t('common.info'), description: "Cet utilisateur n'a pas de fiche apprenant à supprimer.", variant: "default" });
+      deleteModal.close();
+      return;
+    }
     try {
-      await apprenantService.deleteApprenant(id);
+      await apprenantService.deleteApprenant(raw.id);
       toast({
         title: t('common.success'),
         description: t('users.learners.toasts.success_delete'),
       });
       dialog.showSuccess(t('users.learners.toasts.success_delete'));
       setApprenants((prev) => prev.filter((apprenant) => apprenant.id !== id));
+      setRawApprenantsData((prev) => prev.filter((app) => app.id !== raw.id && app.userId !== id));
       deleteModal.close();
     } catch (err: any) {
       setError(err.message || t('users.learners.toasts.error_delete'));
@@ -338,7 +360,7 @@ export function ApprenantsList() {
     if (blacklistModal.selectedItem) {
       try {
         // Récupérer le userId (User) depuis les données brutes — le backend envoie userId, pas user.id
-        const apprenantData = rawApprenantsData.find((app: Apprenant) => app.id === blacklistModal.selectedItem?.id);
+        const apprenantData = findRawApprenant(rawApprenantsData, blacklistModal.selectedItem?.id ?? 0);
         const userId = apprenantData?.userId ?? apprenantData?.user?.id ?? apprenantData?.id;
         
         if (!userId) {
@@ -372,7 +394,7 @@ export function ApprenantsList() {
   const handleUnblacklist = useCallback(async () => {
     if (unblacklistModal.selectedItem) {
       try {
-        const apprenantData = rawApprenantsData.find((app: Apprenant) => app.id === unblacklistModal.selectedItem?.id);
+        const apprenantData = findRawApprenant(rawApprenantsData, unblacklistModal.selectedItem?.id ?? 0);
         const userId = apprenantData?.userId ?? apprenantData?.user?.id ?? apprenantData?.id;
         
         if (!userId) {
@@ -407,8 +429,8 @@ export function ApprenantsList() {
     if (unenrollModal.selectedItem) {
       try {
         // Récupérer le userId depuis les données brutes
-        const apprenantData = rawApprenantsData.find((app: Apprenant) => app.id === unenrollModal.selectedItem?.id);
-        const userId = apprenantData?.user?.id || apprenantData?.id;
+        const apprenantData = findRawApprenant(rawApprenantsData, unenrollModal.selectedItem?.id ?? 0);
+        const userId = apprenantData?.userId ?? apprenantData?.user?.id ?? apprenantData?.id;
         
         if (!userId) {
           toast({
@@ -541,12 +563,14 @@ export function ApprenantsList() {
                   icon: <LogOut className="h-4 w-4" />,
                   onClick: () => unenrollModal.open(apprenant),
                 },
-                {
-                  label: t('users.learners.list.action_delete'),
-                  icon: <Trash2 className="h-4 w-4" />,
-                  onClick: () => deleteModal.open(apprenant),
-                  variant: "destructive",
-                },
+                ...(apprenant.hasApprenantProfile !== false
+                  ? [{
+                      label: t('users.learners.list.action_delete'),
+                      icon: <Trash2 className="h-4 w-4" />,
+                      onClick: () => deleteModal.open(apprenant),
+                      variant: "destructive" as const,
+                    }]
+                  : []),
               ]}
             />
           )
@@ -644,15 +668,21 @@ export function ApprenantsList() {
       )}
 
       {editModal.selectedItem && (() => {
-        const currentApprenant = rawApprenantsData.find((app: Apprenant) => app.id === editModal.selectedItem?.id);
+        const currentApprenant = findRawApprenant(rawApprenantsData, editModal.selectedItem?.id ?? 0);
+        const hasApprenantProfile = currentApprenant?.id != null;
         return (
           <ApprenantFormModal
             open={editModal.isOpen}
             onOpenChange={(open) => !open && editModal.close()}
-            onSubmit={handleUpdateApprenant}
-            title={t('users.learners.modals.edit_title')}
-            description={t('users.learners.modals.edit_description')}
-            submitLabel={t('users.learners.modals.edit_submit')}
+            onSubmit={hasApprenantProfile ? handleUpdateApprenant : async (data) => {
+              if (currentApprenant?.userId != null) {
+                await handlePromoteUserAndCreateProfile({ ...data, userId: currentApprenant.userId });
+                editModal.close();
+              }
+            }}
+            title={hasApprenantProfile ? t('users.learners.modals.edit_title') : t('users.learners.modals.create_profile_title')}
+            description={hasApprenantProfile ? t('users.learners.modals.edit_description') : t('users.learners.modals.create_profile_description')}
+            submitLabel={hasApprenantProfile ? t('users.learners.modals.edit_submit') : t('users.learners.modals.create_profile_submit')}
             defaultValues={{
               username: editModal.selectedItem.name,
               numero: editModal.selectedItem.numero,
@@ -662,7 +692,8 @@ export function ApprenantsList() {
               cohorteId: editModal.selectedItem.cohorte?.id,
             }}
             cohortes={cohortes}
-            simplified={true}
+            simplified={hasApprenantProfile}
+            userId={!hasApprenantProfile ? currentApprenant?.userId : undefined}
           />
         );
       })()}
@@ -715,7 +746,7 @@ export function ApprenantsList() {
       />
 
       {unenrollModal.selectedItem && (() => {
-        const apprenantData = rawApprenantsData.find((app: Apprenant) => app.id === unenrollModal.selectedItem?.id);
+        const apprenantData = findRawApprenant(rawApprenantsData, unenrollModal.selectedItem?.id ?? 0);
         const userId = apprenantData?.userId ?? apprenantData?.user?.id ?? apprenantData?.id;
         return userId ? (
           <CourseSelectModal

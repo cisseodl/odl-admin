@@ -2,7 +2,7 @@ import { z } from "zod"
 
 export const labSchema = z.object({
   title: z.string().min(1, "Le titre est requis").min(3, "Le titre doit contenir au moins 3 caractères"),
-  description: z.string().min(1, "La description est requise"),
+  description: z.string().optional(),
   lessonId: z.coerce.number({
     required_error: "La leçon est requise",
     invalid_type_error: "La leçon doit être sélectionnée",

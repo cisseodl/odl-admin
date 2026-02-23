@@ -71,11 +71,6 @@ export const adminRoutes: Route[] = [
   },
   // Remove top-level Instructeurs as it's now a sub-item
   {
-    label: "routes.certifications",
-    icon: Award,
-    href: "/admin/certifications",
-  },
-  {
     label: "routes.attestation",
     icon: Award,
     href: "/admin/attestations",

@@ -56,7 +56,7 @@ export const courseStructureSchema = z.object({
 export const step1BasicInfoSchema = z.object({
   title: z.string().min(1, "Le titre est requis").min(3, "Le titre doit contenir au moins 3 caractères"),
   subtitle: z.string().optional(),
-  description: z.string().min(10, "La description doit contenir au moins 10 caractères"),
+  description: z.string().optional(),
   category: z.coerce.number().min(1, "La catégorie est requise"), // Changed to coerce.number
   instructor: z.coerce.number().min(1, "L'instructeur est requis"), // Changed to coerce.number
   language: z.string().min(1, "La langue est requise"),

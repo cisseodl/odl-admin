@@ -198,40 +198,45 @@ export function StudentsTracker() {
               continue;
             }
             
-            // Récupérer le cours complet avec modules pour calculer la progression
+            // Utiliser la progression renvoyée par l'API details-course (progress, completedLessons, totalLessons, completedModules, totalModules)
             try {
               const fullCourse = await courseService.getCourseById(courseId);
-              const totalModules = (fullCourse as any).modules?.length || (fullCourse as any).curriculum?.length || 0;
+              const totalModulesFromCourse = (fullCourse as any).modules?.length || (fullCourse as any).curriculum?.length;
+              const progress = typeof detail.progress === "number" ? detail.progress : 0;
+              const completedModules = typeof detail.completedModules === "number" ? detail.completedModules : 0;
+              const totalModules = typeof detail.totalModules === "number" ? detail.totalModules : (totalModulesFromCourse ?? 0);
               
               const student: Student = {
                 id: apprenant.id || 0,
                 name: apprenant.username || apprenant.fullName || `${apprenant.prenom || ''} ${apprenant.nom || ''}`.trim() || "N/A",
                 email: apprenant.userEmail || apprenant.email || "",
-                course: fullCourse.title || course.title || "N/A",
-                courseId: courseId, // Ajout de courseId pour le filtrage
-                progress: 0, // Progression réelle à calculer depuis l'API
-                score: 0, // Score réel à récupérer depuis l'API
-                completedModules: 0, // Modules complétés à récupérer depuis l'API
-                totalModules: totalModules,
-                lastActivity: new Date(apprenant.updatedAt || apprenant.createdAt || Date.now()).toLocaleDateString("fr-FR", { year: 'numeric', month: 'short', day: 'numeric' }),
+                course: fullCourse?.title || course.title || "N/A",
+                courseId: courseId,
+                progress,
+                score: 0, // Score à brancher si l'API le fournit
+                completedModules,
+                totalModules: totalModules || 1,
+                lastActivity: (detail.lastModifiedAt ? new Date(detail.lastModifiedAt) : new Date(apprenant.updatedAt || apprenant.createdAt || Date.now())).toLocaleDateString("fr-FR", { year: 'numeric', month: 'short', day: 'numeric' }),
                 avatar: apprenant.avatar || undefined,
               };
               
               mappedStudents.push(student);
             } catch (err) {
               console.warn(`[StudentsTracker] Failed to fetch full course ${courseId} for student ${apprenant.id}:`, err);
-              // Ajouter quand même l'étudiant avec des données partielles
+              const progress = typeof detail.progress === "number" ? detail.progress : 0;
+              const completedModules = typeof detail.completedModules === "number" ? detail.completedModules : 0;
+              const totalModules = typeof detail.totalModules === "number" ? detail.totalModules : 0;
               const student: Student = {
                 id: apprenant.id || 0,
                 name: apprenant.username || apprenant.fullName || `${apprenant.prenom || ''} ${apprenant.nom || ''}`.trim() || "N/A",
                 email: apprenant.userEmail || apprenant.email || "",
                 course: course.title || "N/A",
-                courseId: courseId, // Ajout de courseId pour le filtrage
-                progress: 0,
+                courseId: courseId,
+                progress,
                 score: 0,
-                completedModules: 0,
-                totalModules: 0,
-                lastActivity: new Date(apprenant.updatedAt || apprenant.createdAt || Date.now()).toLocaleDateString("fr-FR", { year: 'numeric', month: 'short', day: 'numeric' }),
+                completedModules,
+                totalModules: totalModules || 1,
+                lastActivity: (detail.lastModifiedAt ? new Date(detail.lastModifiedAt) : new Date(apprenant.updatedAt || apprenant.createdAt || Date.now())).toLocaleDateString("fr-FR", { year: 'numeric', month: 'short', day: 'numeric' }),
                 avatar: apprenant.avatar || undefined,
               };
               mappedStudents.push(student);
