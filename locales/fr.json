@@ -1396,6 +1396,8 @@
     "instructor_no_available_message": "Aucun formateur disponible. Veuillez créer un formateur d'abord.",
     "instructor_default": "Formateur #{{id}}",
     "image_label": "Image de la formation (optionnel)",
+    "image_url_label": "URL de l'image (optionnel)",
+    "image_url_placeholder": "https://exemple.com/image-python.png",
     "continue_to_modules": "Continuer vers les Modules"
   },
   "wizard": {

@@ -36,13 +36,13 @@ const courseFormSchema = z.object({
   title: z.string().min(2, "Le titre doit contenir au moins 2 caractères."),
   subtitle: z.string().optional(),
   description: z.string().optional(),
+  imageUrl: z.string().optional(),
   level: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]),
   language: z.string().min(2, "La langue doit contenir au moins 2 caractères."),
   categoryId: z.number({
     required_error: "La catégorie est requise",
     invalid_type_error: "Veuillez sélectionner une catégorie",
   }).min(1, "La catégorie est requise"),
-   // Nouveau champ pour le fichier image
 })
 
 export type CourseFormData = z.infer<typeof courseFormSchema>
@@ -129,6 +129,25 @@ export function CourseFormModal({
                   <FormLabel>{t('course_form.description_label') || "Description"}</FormLabel>
                   <FormControl>
                     <Textarea placeholder={t('course_form.description_placeholder') || "Ce cours couvre..."} {...field} name={field.name} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="imageUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('course_form.image_url_label') || "URL de l'image (optionnel)"}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="url"
+                      placeholder={t('course_form.image_url_placeholder') || "https://exemple.com/image-python.png"}
+                      {...field}
+                      name={field.name}
+                      value={field.value ?? ""}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

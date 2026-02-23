@@ -91,12 +91,12 @@ export class CourseService {
     imageFile?: File
   ): Promise<Course> {
     const formData = new FormData();
-    // Ne pas envoyer imageUrl (absent du formulaire de création) pour éviter imageUrl: null dans le payload
     const { imageUrl, ...rest } = courseData;
     const payload = {
       ...rest,
       categoryId: catId,
-      formationId: undefined, // Ne plus utiliser formationId
+      formationId: undefined,
+      imagePath: imageUrl && imageUrl.trim() ? imageUrl.trim() : undefined,
     };
     formData.append("courses", new Blob([JSON.stringify(payload)], { type: "application/json" }));
     if (imageFile) {
