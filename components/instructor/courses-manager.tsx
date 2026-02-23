@@ -303,10 +303,24 @@ export function CoursesManager({ refreshTrigger }: CoursesManagerProps = {}) {
           return (
             <div className="w-12 h-12 rounded-md overflow-hidden bg-muted flex items-center justify-center shrink-0">
               {imgUrl ? (
-                <img src={imgUrl} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <BookOpen className="h-6 w-6 text-muted-foreground" />
-              )}
+                <img
+                  src={imgUrl}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                    const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = "flex";
+                  }}
+                />
+              ) : null}
+              <div
+                className="w-full h-full items-center justify-center text-muted-foreground"
+                style={{ display: imgUrl ? "none" : "flex" }}
+                aria-hidden
+              >
+                <BookOpen className="h-6 w-6" />
+              </div>
             </div>
           );
         },
