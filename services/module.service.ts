@@ -61,6 +61,42 @@ export class ModuleService {
     }
   }
 
+  /** Ajoute un seul module sans remplacer les existants (évite ConstraintViolation en base). */
+  async addModule(payload: ModulesPayload): Promise<any> {
+    try {
+      if (!payload.modules || payload.modules.length !== 1) {
+        throw new Error("addModule attend exactement un module dans payload.modules");
+      }
+      const body = {
+        courseId: payload.courseId,
+        courseType: payload.courseType || "DEBUTANT",
+        modules: payload.modules.map(m => ({
+          title: m.title,
+          description: m.description ?? "",
+          moduleOrder: m.moduleOrder,
+          lessons: (m.lessons || []).map((l: any) => ({
+            title: l.title,
+            lessonOrder: l.lessonOrder,
+            type: l.type,
+            ...(l.contentUrl && l.contentUrl.trim() && { contentUrl: l.contentUrl }),
+            ...(l.duration && l.duration > 0 && { duration: l.duration }),
+          })),
+        })),
+      };
+      const response = await fetchApi<any>("/modules/add", {
+        method: "POST",
+        body,
+      });
+      if (response && (response as any).ok === false) {
+        throw new Error((response as any).message || "Erreur lors de l'ajout du module.");
+      }
+      return response;
+    } catch (error: any) {
+      console.error("[ModuleService] Erreur dans addModule:", error);
+      throw error;
+    }
+  }
+
   async getModulesByCourse(courseId: number): Promise<any[]> {
     const response = await fetchApi<any>(`/modules/course/${courseId}`, {
       method: "GET",

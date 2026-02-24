@@ -229,7 +229,10 @@ export function ContentManager() {
     try {
       const selectedCourse = courses.find(c => c.id === data.courseId);
       const courseLevel = selectedCourse?.level || "DEBUTANT";
-      
+
+      // Utiliser l'endpoint "add" qui ajoute un seul module sans toucher aux existants,
+      // pour éviter ConstraintViolationException (suppression des modules existants échoue
+      // s'ils sont référencés par LearnerModule, UserProgress, etc.).
       const payload = {
         courseId: data.courseId,
         courseType: courseLevel.toUpperCase() as "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE",
@@ -251,8 +254,8 @@ export function ContentManager() {
           },
         ],
       };
-      
-      const response = await moduleService.saveModules(payload);
+
+      const response = await moduleService.addModule(payload);
       
       toast({
         title: "Succès",
