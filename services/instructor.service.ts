@@ -3,6 +3,7 @@ import { UserDb } from '@/models/user-db.model'; // Assuming instructor update m
 
 // Interface pour InstructorRequest du backend
 export interface InstructorRequest {
+  userId?: number;
   biography?: string;
   specialization?: string;
 }
@@ -74,8 +75,8 @@ export class InstructorService {
     // de créer un profil instructor pour un autre utilisateur
     const payload: InstructorRequest = {
       userId: userId,
-      biography: instructorProfileData.biography,
-      specialization: instructorProfileData.specialization,
+      biography: instructorProfileData.biography?.trim() || undefined,
+      specialization: instructorProfileData.specialization?.trim() || undefined,
     };
     
     const response = await fetchApi<any>("/instructors/create", {

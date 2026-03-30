@@ -565,6 +565,7 @@ export function InstructeursList() {
           description={t('users.instructors.toasts.success_user_created', { name: '' })}
           submitLabel={t('users.learners.modals.create_user_submit')}
           hidePassword={true}
+          skipApprenantProfile={true}
         />
       )}
 
