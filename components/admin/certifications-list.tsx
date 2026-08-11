@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react" // Added useEffect
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { useLanguage } from "@/contexts/language-context"
 import { PageHeader } from "@/components/ui/page-header"
 import { SearchBar } from "@/components/ui/search-bar"
@@ -8,123 +8,97 @@ import { DataTable } from "@/components/ui/data-table"
 import { ActionMenu } from "@/components/ui/action-menu"
 import { StatusBadge } from "@/components/ui/status-badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { useModal } from "@/hooks/use-modal"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useSearch } from "@/hooks/use-search"
-import { CertificationFormModal } from "@/components/shared/certification-form-modal"
-import { ConfirmDialog } from "@/components/ui/confirm-dialog"
-import { ViewCertificationModal } from "./modals/view-certification-modal"
+import { certificateService, Certificate } from "@/services/certificate.service"
+import { PageLoader } from "@/components/ui/page-loader"
 import type { ColumnDef } from "@tanstack/react-table"
-import { Eye, Edit, Trash2, Award, BookOpen, Users, Calendar } from "lucide-react"
-import type { CertificationFormData } from "@/lib/validations/certification"
+import { Download, Award, BookOpen, Calendar, User, Mail } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
-import { certificationService, Certification } from "@/services/certification.service"; // Import service and type
-import { PageLoader } from "@/components/ui/page-loader"; // Import PageLoader
-
+function formatCertificateDates(data: Certificate[]): Certificate[] {
+  return data.map(cert => ({
+    ...cert,
+    issuedDate: cert.issuedDate
+      ? new Date(cert.issuedDate).toLocaleDateString("fr-FR", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })
+      : "",
+    validUntil: cert.validUntil
+      ? new Date(cert.validUntil).toLocaleDateString("fr-FR", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })
+      : "",
+  }))
+}
 
 export function CertificationsList() {
   const { t } = useLanguage()
-  const addModal = useModal<Certification>()
-  const editModal = useModal<Certification>()
-  const deleteModal = useModal<Certification>()
-  const viewModal = useModal<Certification>()
+  const [certificates, setCertificates] = useState<Certificate[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
+  const PAGE_SIZE = 50
 
-  const [certifications, setCertifications] = useState<Certification[]>([]); // Initialiser vide
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const fetchCertificates = useCallback(async (pageToLoad: number = 0) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const result = await certificateService.getAllCertificatesForAdmin(pageToLoad, PAGE_SIZE)
+      setCertificates(formatCertificateDates(result.content))
+      setTotalPages(result.totalPages)
+      setTotalElements(result.totalElements)
+      setPage(result.page)
+    } catch (err: any) {
+      setError(err.message || t('certifications.toasts.error_fetch'))
+      console.error("Error fetching certificates:", err)
+    } finally {
+      setLoading(false)
+    }
+  }, [t])
 
   useEffect(() => {
-    const fetchCertifications = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await certificationService.getAllCertifications();
-        setCertifications(data);
-      } catch (err: any) {
-        setError(err.message || "Failed to fetch certifications.");
-        console.error("Error fetching certifications:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCertifications();
-  }, []); // Exécuter une fois au montage
+    fetchCertificates(0)
+  }, [fetchCertificates])
 
-  const { searchQuery, setSearchQuery, filteredData } = useSearch<Certification>({
-    data: certifications,
-    searchKeys: ["name", "course"],
+  const { searchQuery, setSearchQuery, filteredData } = useSearch<Certificate>({
+    data: certificates,
+    searchKeys: ["studentName", "studentEmail", "course"],
   })
 
-  const handleAddCertification = async (data: CertificationFormData) => {
-    setError(null);
-    try {
-      const newCertificationData: Omit<Certification, 'id' | 'issued'> = {
-        name: data.name,
-        course: data.course,
-        validUntil: data.validUntil,
-        status: data.status,
-        requirements: data.requirements,
-      };
-      const createdCertification = await certificationService.createCertification(newCertificationData);
-      setCertifications((prev) => [...prev, createdCertification]);
-      addModal.close();
-    } catch (err: any) {
-      setError(err.message || "Failed to add certification.");
-      console.error("Error adding certification:", err);
-    }
-  }
-
-  const handleUpdateCertification = async (data: CertificationFormData) => {
-    setError(null);
-    if (editModal.selectedItem) {
-      try {
-        const updatedCertificationData: Partial<Certification> = {
-          name: data.name,
-          course: data.course,
-          validUntil: data.validUntil,
-          status: data.status,
-          requirements: data.requirements,
-        };
-        const updatedCertification = await certificationService.updateCertification(editModal.selectedItem.id, updatedCertificationData);
-        setCertifications((prev) =>
-          prev.map((cert) =>
-            cert.id === editModal.selectedItem!.id
-              ? updatedCertification
-              : cert
-          )
-        );
-        editModal.close();
-      } catch (err: any) {
-        setError(err.message || "Failed to update certification.");
-        console.error("Error updating certification:", err);
-      }
-    }
-  }
-
-  const handleDeleteCertification = async () => {
-    setError(null);
-    if (deleteModal.selectedItem) {
-      try {
-        await certificationService.deleteCertification(deleteModal.selectedItem.id);
-        setCertifications((prev) => prev.filter((cert) => cert.id !== deleteModal.selectedItem!.id));
-        deleteModal.close();
-      } catch (err: any) {
-        setError(err.message || "Failed to delete certification.");
-        console.error("Error deleting certification:", err);
-      }
-    }
-  }
-
-  const columns: ColumnDef<Certification>[] = useMemo(
+  const columns: ColumnDef<Certificate>[] = useMemo(
     () => [
       {
-        accessorKey: "name",
-        header: "Certification",
-        cell: ({ row }) => (
-          <div className="font-medium flex items-center gap-2">
-            <Award className="h-4 w-4 text-muted-foreground" />
-            {row.original.name}
-          </div>
-        ),
+        accessorKey: "studentName",
+        header: t('certifications.list.header_students'),
+        cell: ({ row }) => {
+          const cert = row.original
+          return (
+            <div className="flex items-center gap-3">
+              <Avatar>
+                <AvatarFallback className="bg-primary text-primary-foreground">
+                  {cert.studentName.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <div className="font-medium flex items-center gap-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  {cert.studentName}
+                </div>
+                <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                  <Mail className="h-3.5 w-3.5" />
+                  {cert.studentEmail}
+                </div>
+              </div>
+            </div>
+          )
+        },
       },
       {
         accessorKey: "course",
@@ -137,12 +111,12 @@ export function CertificationsList() {
         ),
       },
       {
-        accessorKey: "issued",
-        header: "Délivrés",
+        accessorKey: "issuedDate",
+        header: t('certifications.list.header_issued'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
-            <Users className="h-4 w-4 text-muted-foreground" />
-            {row.original.issued}
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            {row.original.issuedDate}
           </div>
         ),
       },
@@ -151,7 +125,7 @@ export function CertificationsList() {
         header: t('certifications.list.header_validity'),
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <Award className="h-4 w-4 text-muted-foreground" />
             {row.original.validUntil}
           </div>
         ),
@@ -165,25 +139,18 @@ export function CertificationsList() {
         id: "actions",
         header: t('certifications.list.header_actions'),
         cell: ({ row }) => {
-          const certification = row.original
+          const cert = row.original
           return (
             <ActionMenu
               actions={[
                 {
-                  label: t('certifications.list.action_view'),
-                  icon: <Eye className="h-4 w-4" />,
-                  onClick: () => viewModal.open(certification),
-                },
-                {
-                  label: t('certifications.list.action_edit'),
-                  icon: <Edit className="h-4 w-4" />,
-                  onClick: () => editModal.open(certification),
-                },
-                {
-                  label: t('certifications.list.action_delete'),
-                  icon: <Trash2 className="h-4 w-4" />,
-                  onClick: () => deleteModal.open(certification),
-                  variant: "destructive",
+                  label: "Télécharger",
+                  icon: <Download className="h-4 w-4" />,
+                  onClick: () => {
+                    if (cert.certificateUrl) {
+                      certificateService.downloadCertificate(cert.certificateUrl)
+                    }
+                  },
                 },
               ]}
             />
@@ -191,14 +158,12 @@ export function CertificationsList() {
         },
       },
     ],
-    [viewModal, editModal, deleteModal, t]
+    [t]
   )
 
   return (
     <>
-      <PageHeader
-        title="Certifications"
-      />
+      <PageHeader title={t('certifications.list.title')} />
 
       <Card className="mt-6">
         <CardContent>
@@ -210,59 +175,39 @@ export function CertificationsList() {
             <>
               <div className="mb-4">
                 <SearchBar
-                  placeholder="Rechercher une certification..."
+                  placeholder={t('certifications.list.search_placeholder')}
                   value={searchQuery}
                   onChange={setSearchQuery}
                 />
               </div>
-              {certifications.length === 0 ? (
-                <div className="text-center text-muted-foreground p-4">Aucune certification trouvée.</div>
+              {certificates.length === 0 ? (
+                <div className="text-center text-muted-foreground p-4">
+                  {t('certifications.list.empty')}
+                </div>
               ) : (
-                <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
+                <>
+                  <DataTable columns={columns} data={filteredData} searchValue={searchQuery} />
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                      <p className="text-sm text-muted-foreground">
+                        {totalElements} certificat{totalElements > 1 ? "s" : ""} — page {page + 1} / {totalPages}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" disabled={page <= 0 || loading} onClick={() => fetchCertificates(page - 1)}>
+                          Précédent
+                        </Button>
+                        <Button variant="outline" size="sm" disabled={page >= totalPages - 1 || loading} onClick={() => fetchCertificates(page + 1)}>
+                          Suivant
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}
         </CardContent>
       </Card>
-
-      <CertificationFormModal
-        open={addModal.isOpen}
-        onOpenChange={(open) => !open && addModal.close()}
-        title={t('certifications.modals.add_title')}
-        description={t('certifications.modals.add_description')}
-        onSubmit={handleAddCertification}
-        submitLabel={t('certifications.modals.add_submit')}
-      />
-
-      {editModal.selectedItem && (
-        <CertificationFormModal
-          open={editModal.isOpen}
-          onOpenChange={(open) => !open && editModal.close()}
-          title={t('certifications.modals.edit_title')}
-          description={t('certifications.modals.edit_description')}
-          defaultValues={editModal.selectedItem}
-          onSubmit={handleUpdateCertification}
-          submitLabel={t('certifications.modals.edit_submit')}
-        />
-      )}
-
-      {viewModal.selectedItem && (
-        <ViewCertificationModal
-          open={viewModal.isOpen}
-          onOpenChange={(open) => !open && viewModal.close()}
-          certification={viewModal.selectedItem}
-        />
-      )}
-
-      <ConfirmDialog
-        open={deleteModal.isOpen}
-        onOpenChange={(open) => !open && deleteModal.close()}
-        onConfirm={handleDeleteCertification}
-        title={t('certifications.modals.delete_title')}
-        description={t('certifications.modals.delete_description').replace('{{name}}', deleteModal.selectedItem?.name || '')}
-        confirmText={t('certifications.modals.delete_confirm')}
-        variant="destructive"
-      />
     </>
   )
 }

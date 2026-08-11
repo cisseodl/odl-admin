@@ -79,10 +79,14 @@ const mapApprenantToApprenantDisplay = (apprenant: Apprenant): ApprenantDisplay 
   // Utiliser userEmail en priorité, sinon email
   const email = apprenant.userEmail || apprenant.email || "";
 
-  // Id unique : id apprenant si présent, sinon userId (pour les inscrits via smart-odc.com sans fiche Apprenant)
-  const rowId = apprenant.id ?? apprenant.userId ?? 0;
+  const cohorte =
+    apprenant.cohorte ||
+    (apprenant.cohorteNom
+      ? ({ id: apprenant.cohorteId ?? 0, nom: apprenant.cohorteNom } as Cohorte)
+      : null);
+
   return {
-    id: rowId,
+    id: apprenant.id ?? apprenant.userId ?? 0,
     name: name,
     email: email,
     numero: apprenant.numero || "",
@@ -91,7 +95,7 @@ const mapApprenantToApprenantDisplay = (apprenant: Apprenant): ApprenantDisplay 
     filiere: apprenant.filiere || "",
     niveauEtude: apprenant.niveauEtude || "",
     profession: apprenant.profession || "",
-    cohorte: apprenant.cohorte || null,
+    cohorte,
     avatar: apprenant.avatar || undefined,
     coursesEnrolled: 0,
     completedCourses: 0,
@@ -162,6 +166,10 @@ export function ApprenantsList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cohortes, setCohortes] = useState<Cohorte[]>([]);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const PAGE_SIZE = 50;
   
   const { searchQuery, setSearchQuery, filteredData } = useSearch<ApprenantDisplay>({
     data: Array.isArray(apprenants) ? apprenants : [],
@@ -185,35 +193,53 @@ export function ApprenantsList() {
     promoteUserModal.close();
   };
 
-  const fetchApprenants = useCallback(async () => {
+  const fetchApprenants = useCallback(async (pageToLoad: number = 0) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await apprenantService.getAllApprenants();
-      const apprenantsData = Array.isArray(response) ? response : (response?.data || []);
-      
-      if (Array.isArray(apprenantsData) && apprenantsData.length > 0) {
-        setRawApprenantsData(apprenantsData);
-        const apprenantsWithSummary = await Promise.all(
-          apprenantsData.map(async (apprenant: Apprenant) => {
-            const mapped = mapApprenantToApprenantDisplay(apprenant);
-            try {
-              const summary = apprenant.id ? await apprenantService.getApprenantDashboardSummary(apprenant.id) : null;
-              return {
-                ...mapped,
-                coursesEnrolled: summary?.coursesEnrolled ?? 0,
-                completedCourses: summary?.completedCourses ?? 0,
-                totalCertificates: summary?.totalCertificates ?? 0,
-              };
-            } catch {
-              return mapped;
-            }
-          })
-        );
-        setApprenants(apprenantsWithSummary);
-      } else {
+      const response = await apprenantService.getAllApprenants(pageToLoad, PAGE_SIZE);
+      const isPaginated = response && typeof response === "object" && Array.isArray(response.content);
+      const apprenantsData = isPaginated
+        ? response.content
+        : (Array.isArray(response) ? response : (response?.data || []));
+
+      if (isPaginated) {
+        setTotalPages(response.totalPages ?? 0);
+        setTotalElements(response.totalElements ?? apprenantsData.length);
+        setPage(response.page ?? pageToLoad);
+      }
+
+      if (!Array.isArray(apprenantsData) || apprenantsData.length === 0) {
         setRawApprenantsData([]);
         setApprenants([]);
+        return;
+      }
+
+      setRawApprenantsData(apprenantsData);
+      const initialDisplay = apprenantsData.map((apprenant: Apprenant) =>
+        mapApprenantToApprenantDisplay(apprenant)
+      );
+      setApprenants(initialDisplay);
+
+      const idsWithProfile = apprenantsData
+        .filter((a: Apprenant) => a.id)
+        .map((a: Apprenant) => a.id as number);
+
+      if (idsWithProfile.length > 0) {
+        const statsMap = await apprenantService.getApprenantStatsBatch(idsWithProfile);
+        setApprenants(
+          initialDisplay.map((display, index) => {
+            const apprenant = apprenantsData[index] as Apprenant;
+            const stats = apprenant.id ? statsMap[apprenant.id] : undefined;
+            if (!stats) return display;
+            return {
+              ...display,
+              coursesEnrolled: stats.coursesEnrolled ?? 0,
+              completedCourses: stats.completedCourses ?? 0,
+              totalCertificates: stats.totalCertificates ?? 0,
+            };
+          })
+        );
       }
     } catch (err: any) {
       setError(err.message || t('users.learners.toasts.error_fetch'));
@@ -225,7 +251,7 @@ export function ApprenantsList() {
   }, [t]);
 
   useEffect(() => {
-    fetchApprenants();
+    fetchApprenants(0);
   }, [fetchApprenants]);
 
   const handlePromoteUserAndCreateProfile = async (promotionData: ApprenantProfileFormData & { userId: number }) => {
@@ -626,7 +652,34 @@ export function ApprenantsList() {
               description={t('users.learners.list.empty_description')}
             />
           ) : (
-            <DataTable columns={columns} data={filteredData || []} searchValue={searchQuery} />
+            <>
+              <DataTable columns={columns} data={filteredData || []} searchValue={searchQuery} />
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                  <p className="text-sm text-muted-foreground">
+                    {totalElements} apprenant{totalElements > 1 ? "s" : ""} — page {page + 1} / {totalPages}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page <= 0 || loading}
+                      onClick={() => fetchApprenants(page - 1)}
+                    >
+                      Précédent
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page >= totalPages - 1 || loading}
+                      onClick={() => fetchApprenants(page + 1)}
+                    >
+                      Suivant
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

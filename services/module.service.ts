@@ -21,26 +21,67 @@ export interface ModulesPayload {
   }>;
 }
 
+const BACKEND_LESSON_TYPES = new Set(["VIDEO", "QUIZ", "DOCUMENT", "LAB"]);
+
+function normalizeLessonType(type: string): "VIDEO" | "QUIZ" | "DOCUMENT" | "LAB" {
+  const upper = (type || "VIDEO").toUpperCase();
+  if (upper === "IMAGE") return "DOCUMENT";
+  if (BACKEND_LESSON_TYPES.has(upper)) {
+    return upper as "VIDEO" | "QUIZ" | "DOCUMENT" | "LAB";
+  }
+  return "VIDEO";
+}
+
+function buildModulePayload(payload: ModulesPayload) {
+  return {
+    courseId: payload.courseId,
+    courseType: payload.courseType || "DEBUTANT",
+    modules: payload.modules.map(m => ({
+      ...(m.id != null && { id: m.id }),
+      title: m.title,
+      description: m.description || "",
+      moduleOrder: m.moduleOrder,
+      lessons: (m.lessons || []).map((l: any) => ({
+        ...(l.id != null && { id: l.id }),
+        title: l.title,
+        lessonOrder: l.lessonOrder,
+        type: normalizeLessonType(l.type),
+        ...(l.contentUrl && l.contentUrl.trim() && { contentUrl: l.contentUrl }),
+        ...(l.duration && l.duration > 0 && { duration: l.duration }),
+      })),
+    })),
+  };
+}
+
 export class ModuleService {
+  /** Ajoute un seul module sans supprimer les modules existants du cours. */
+  async addModule(payload: ModulesPayload): Promise<any> {
+    if (!payload.modules?.length) {
+      throw new Error("Au moins un module est requis.");
+    }
+    try {
+      const modulePayload = buildModulePayload({
+        ...payload,
+        modules: [payload.modules[0]],
+      });
+      const response = await fetchApi<any>("/modules/add", {
+        method: "POST",
+        body: modulePayload,
+      });
+      if (response?.ok === false) {
+        throw new Error(response.message || "Erreur lors de l'ajout du module.");
+      }
+      return response;
+    } catch (error: any) {
+      console.error("[ModuleService] Erreur dans addModule:", error);
+      throw error;
+    }
+  }
+
   async saveModules(payload: ModulesPayload): Promise<any> {
     try {
       // Le backend attend un FormData avec "module" comme JSON stringifié
-      const modulePayload = {
-        courseId: payload.courseId,
-        courseType: payload.courseType || "DEBUTANT",
-        modules: payload.modules.map(m => ({
-          title: m.title, // @NotBlank - requis
-          description: m.description || "", // Reverted: Ensure empty string if empty or null
-          moduleOrder: m.moduleOrder, // @NotNull - requis
-          lessons: (m.lessons || []).map((l: any) => ({
-            title: l.title, // @NotBlank - requis
-            lessonOrder: l.lessonOrder, // @NotNull - requis
-            type: l.type, // @NotNull - requis (VIDEO, QUIZ, DOCUMENT, LAB)
-            ...(l.contentUrl && l.contentUrl.trim() && { contentUrl: l.contentUrl }), // Optionnel
-            ...(l.duration && l.duration > 0 && { duration: l.duration }), // Optionnel, en minutes
-          })),
-        })),
-      };
+      const modulePayload = buildModulePayload(payload);
       
       const jsonString = JSON.stringify(modulePayload);
       
@@ -51,7 +92,11 @@ export class ModuleService {
         method: "POST",
         body: formData,
       });
-      
+
+      if (response?.ok === false) {
+        throw new Error(response.message || "Erreur lors de la sauvegarde des modules.");
+      }
+
       return response;
     } catch (error: any) {
       console.error("[ModuleService] Erreur dans saveModules:", error);

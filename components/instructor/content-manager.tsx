@@ -254,7 +254,7 @@ export function ContentManager() {
           },
         ],
       };
-
+      
       const response = await moduleService.addModule(payload);
       
       toast({

@@ -206,7 +206,10 @@ export function LearnerProgressList() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => learnerProgressModal.open(row.original.id)}
+            onClick={() => {
+              const learnerId = row.original.id ?? row.original.userId ?? null;
+              if (learnerId) learnerProgressModal.open(learnerId);
+            }}
           >
             <Eye className="h-4 w-4 mr-2" />
             {t('analytics.learnerProgress.list.viewProgressButton')}

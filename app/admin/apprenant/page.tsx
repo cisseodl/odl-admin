@@ -1,12 +1,5 @@
-// app/admin/apprenant/page.tsx
-import { Suspense } from "react";
-import { PageLoader } from "@/components/ui/page-loader";
-import { ApprenantList } from "@/components/admin/apprenant-list"; // Will create this component soon
+import { redirect } from "next/navigation";
 
 export default function ApprenantPage() {
-  return (
-    <Suspense fallback={<PageLoader />}>
-      <ApprenantList />
-    </Suspense>
-  );
+  redirect("/admin/users/apprenants");
 }

@@ -1,7 +1,7 @@
 import { Cohorte } from './cohorte.model';
 
 export interface Apprenant {
-  id: number;
+  id?: number | null;
   activate: boolean;
   createdAt?: Date | null;
   created_by?: string | null;
@@ -15,6 +15,8 @@ export interface Apprenant {
   prenom?: string | null;
   profession?: string | null;
   cohorte?: Cohorte | null;
+  cohorteId?: number | null;
+  cohorteNom?: string | null;
   // Champs depuis ApprenantWithUserDto
   username?: string | null; // Nom complet construit depuis prenom + nom
   fullName?: string | null; // Nom complet depuis User

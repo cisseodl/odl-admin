@@ -34,14 +34,16 @@ export class ApprenantService {
     }
   }
 
-  async getAllApprenants(): Promise<any> {
+  async getAllApprenants(page?: number, size: number = 50): Promise<any> {
     try {
-      // Essayer d'abord avec le nouveau endpoint /api/apprenants/get-all
-      const response = await fetchApi<any>("/api/apprenants/get-all", { method: "GET" });
-      // Backend retourne CResponse avec structure { ok: boolean, data: Apprenant[], message: string }
+      const query = page != null ? `?page=${page}&size=${size}` : "";
+      const response = await fetchApi<any>(`/api/apprenants/get-all${query}`, { method: "GET" });
       if (!response || !response.data) {
         console.warn("[ApprenantService] Response data is empty or null");
-        return [];
+        return page != null ? { content: [], totalElements: 0, totalPages: 0, page: 0, size } : [];
+      }
+      if (page != null && response.data.content) {
+        return response.data;
       }
       return Array.isArray(response.data) ? response.data : [response.data];
     } catch (error: any) {
@@ -56,12 +58,11 @@ export class ApprenantService {
           return Array.isArray(fallbackResponse.data) ? fallbackResponse.data : [fallbackResponse.data];
         } catch (fallbackError: any) {
           console.error("[ApprenantService] Erreur également avec l'ancien endpoint:", fallbackError);
-          console.error("[ApprenantService] Le backend doit être redéployé avec le nouveau mapping /api/apprenants");
-          return [];
+          throw new Error("Impossible de récupérer la liste des apprenants. Vérifiez que le backend est à jour.");
         }
       }
       console.error("Error fetching apprenants:", error);
-      return [];
+      throw error;
     }
   }
 
@@ -128,6 +129,18 @@ export class ApprenantService {
     } catch (error: any) {
       console.error(`Error deleting apprenant with ID ${id}:`, error);
       throw error;
+    }
+  }
+
+  async getApprenantStatsBatch(apprenantIds: number[]): Promise<Record<number, { coursesEnrolled: number; completedCourses: number; totalCertificates: number }>> {
+    if (!apprenantIds.length) return {};
+    try {
+      const idsParam = apprenantIds.filter(Boolean).join(",");
+      const response = await fetchApi<any>(`/api/apprenants/stats/batch?ids=${idsParam}`, { method: "GET" });
+      return (response?.data as Record<number, { coursesEnrolled: number; completedCourses: number; totalCertificates: number }>) || {};
+    } catch (error) {
+      console.error("[ApprenantService] Error fetching batch stats:", error);
+      return {};
     }
   }
 

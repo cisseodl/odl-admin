@@ -249,7 +249,7 @@ export function ContentManager() {
         ],
       }
       
-      const response = await moduleService.saveModules(payload)
+      const response = await moduleService.addModule(payload)
       
       toast({
         title: "Succès",
