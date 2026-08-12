@@ -4,6 +4,7 @@ frontend:
     preBuild:
       commands:
         - npm install -g pnpm
+        - pnpm config set onlyBuiltDependencies sharp
     build:
       commands:
         - pnpm install
@@ -20,3 +21,6 @@ frontend:
 # Ces variables doivent être configurées dans la console Amplify
 # Environment variables > Add variable
 # NEXT_PUBLIC_API_URL=https://api.smart-odc.com
+
+
+
