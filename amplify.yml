@@ -4,7 +4,6 @@ frontend:
     preBuild:
       commands:
         - npm install -g pnpm
-        - echo "onlyBuiltDependencies[]=sharp" > .npmrc
     build:
       commands:
         - pnpm install
