@@ -4,7 +4,6 @@ frontend:
     preBuild:
       commands:
         - npm install -g pnpm
-        - echo "ignore-scripts=false" > .npmrc
     build:
       commands:
         - pnpm install
