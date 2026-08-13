@@ -40,10 +40,38 @@ export class ApprenantService {
       const response = await fetchApi<any>(`/api/apprenants/get-all${query}`, { method: "GET" });
       if (!response || !response.data) {
         console.warn("[ApprenantService] Response data is empty or null");
-        return page != null ? { content: [], totalElements: 0, totalPages: 0, page: 0, size } : [];
+        if (page != null) {
+          return { content: [], totalElements: 0, totalPages: 0, page: 0, size };
+        }
+        return [];
       }
-      if (page != null && response.data.content) {
-        return response.data;
+      if (page != null && response.data.content !== undefined) {
+        const paginated = response.data;
+        // Fallback : si la pagination renvoie vide, réessayer sans pagination (compatibilité backend)
+        if (
+          Array.isArray(paginated.content) &&
+          paginated.content.length === 0 &&
+          (paginated.totalElements ?? 0) === 0
+        ) {
+          try {
+            const fallback = await fetchApi<any>("/api/apprenants/get-all", { method: "GET" });
+            if (fallback?.data && Array.isArray(fallback.data) && fallback.data.length > 0) {
+              const total = fallback.data.length;
+              const from = page * size;
+              const slice = fallback.data.slice(from, from + size);
+              return {
+                content: slice,
+                totalElements: total,
+                totalPages: Math.ceil(total / size),
+                page,
+                size,
+              };
+            }
+          } catch {
+            // ignore fallback errors
+          }
+        }
+        return paginated;
       }
       return Array.isArray(response.data) ? response.data : [response.data];
     } catch (error: any) {

@@ -198,12 +198,12 @@ export function ApprenantsList() {
     setError(null);
     try {
       const response = await apprenantService.getAllApprenants(pageToLoad, PAGE_SIZE);
-      const isPaginated = response && typeof response === "object" && Array.isArray(response.content);
+      const isPaginated = response && typeof response === "object" && response.content !== undefined;
       const apprenantsData = isPaginated
-        ? response.content
+        ? (Array.isArray(response.content) ? response.content : [])
         : (Array.isArray(response) ? response : (response?.data || []));
 
-      if (isPaginated) {
+      if (page != null && response.data.content !== undefined) {
         setTotalPages(response.totalPages ?? 0);
         setTotalElements(response.totalElements ?? apprenantsData.length);
         setPage(response.page ?? pageToLoad);
