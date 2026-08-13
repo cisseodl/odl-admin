@@ -3,10 +3,11 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm install -g pnpm
+        - corepack enable
+        - corepack prepare pnpm@9.15.4 --activate
+        - pnpm install --frozen-lockfile
     build:
       commands:
-        - pnpm install
         - pnpm run build
   artifacts:
     baseDirectory: .next
@@ -15,11 +16,4 @@ frontend:
   cache:
     paths:
       - node_modules/**/*
-      - .pnpm-store/**/*
-# Variables d'environnement pour la production
-# Ces variables doivent être configurées dans la console Amplify
-# Environment variables > Add variable
-# NEXT_PUBLIC_API_URL=https://api.smart-odc.com
-
-
-
+      - .next/cache/**/*
