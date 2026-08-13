@@ -203,7 +203,7 @@ export function ApprenantsList() {
         ? (Array.isArray(response.content) ? response.content : [])
         : (Array.isArray(response) ? response : (response?.data || []));
 
-      if (page != null && response.data.content !== undefined) {
+      if (isPaginated) {
         setTotalPages(response.totalPages ?? 0);
         setTotalElements(response.totalElements ?? apprenantsData.length);
         setPage(response.page ?? pageToLoad);

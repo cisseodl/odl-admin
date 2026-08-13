@@ -141,6 +141,10 @@ export function UserCreationModal({
       if (!hidePassword && data.password && data.password.trim().length > 0) {
         newUser.password = data.password;
       }
+      // Mot de passe par défaut pour les comptes créés par l'admin (envoyé par email lors de la création du profil)
+      if (hidePassword) {
+        newUser.password = "apprenant@odl";
+      }
       if (skipApprenantProfile) {
         newUser.skipApprenantProfile = true;
       }

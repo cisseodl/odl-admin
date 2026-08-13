@@ -45,33 +45,47 @@ export class ApprenantService {
         }
         return [];
       }
-      if (page != null && response.data.content !== undefined) {
-        const paginated = response.data;
-        // Fallback : si la pagination renvoie vide, réessayer sans pagination (compatibilité backend)
-        if (
-          Array.isArray(paginated.content) &&
-          paginated.content.length === 0 &&
-          (paginated.totalElements ?? 0) === 0
-        ) {
-          try {
-            const fallback = await fetchApi<any>("/api/apprenants/get-all", { method: "GET" });
-            if (fallback?.data && Array.isArray(fallback.data) && fallback.data.length > 0) {
-              const total = fallback.data.length;
-              const from = page * size;
-              const slice = fallback.data.slice(from, from + size);
-              return {
-                content: slice,
-                totalElements: total,
-                totalPages: Math.ceil(total / size),
-                page,
-                size,
-              };
+      if (page != null && response.data) {
+        // Réponse paginée : { content, totalElements, ... }
+        if (response.data.content !== undefined) {
+          const paginated = response.data;
+          if (
+            Array.isArray(paginated.content) &&
+            paginated.content.length === 0 &&
+            (paginated.totalElements ?? 0) === 0
+          ) {
+            try {
+              const fallback = await fetchApi<any>("/api/apprenants/get-all", { method: "GET" });
+              if (fallback?.data && Array.isArray(fallback.data) && fallback.data.length > 0) {
+                const total = fallback.data.length;
+                const from = page * size;
+                const slice = fallback.data.slice(from, from + size);
+                return {
+                  content: slice,
+                  totalElements: total,
+                  totalPages: Math.ceil(total / size),
+                  page,
+                  size,
+                };
+              }
+            } catch {
+              // ignore fallback errors
             }
-          } catch {
-            // ignore fallback errors
           }
+          return paginated;
         }
-        return paginated;
+        // Backend sans pagination : tableau direct dans data
+        if (Array.isArray(response.data)) {
+          const total = response.data.length;
+          const from = page * size;
+          return {
+            content: response.data.slice(from, from + size),
+            totalElements: total,
+            totalPages: Math.ceil(total / size),
+            page,
+            size,
+          };
+        }
       }
       return Array.isArray(response.data) ? response.data : [response.data];
     } catch (error: any) {
